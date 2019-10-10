@@ -1,0 +1,64 @@
+language: php
+
+php:
+  - 5.6
+  - 7.0
+  - 7.1
+  - 7.2
+  - 7.3
+env:
+  global:
+    - TEST_PATH='framework-tests'
+    - SYMFONY_DEPRECATIONS_HELPER=weak
+  matrix:
+    - VERSION=2.8 TEST_REPO='-b 2.1 https://github.com/Codeception/symfony-demo.git' SUITES=functional TEST_PATH=framework-tests/src/AppBundle
+    - VERSION=3.4 TEST_REPO='--recurse-submodules https://github.com/Naktibalda/codeception-symfony-tests'
+    - VERSION=4 TEST_REPO='https://github.com/Codeception/symfony-demo.git' SUITES=functional,unit
+matrix:
+  exclude:
+    - php: 7.0
+      env: VERSION=2.8 TEST_REPO='-b 2.1 https://github.com/Codeception/symfony-demo.git' SUITES=functional TEST_PATH=framework-tests/src/AppBundle
+    - php: 7.1
+      env: VERSION=2.8 TEST_REPO='-b 2.1 https://github.com/Codeception/symfony-demo.git' SUITES=functional TEST_PATH=framework-tests/src/AppBundle
+    - php: 7.2
+      env: VERSION=2.8 TEST_REPO='-b 2.1 https://github.com/Codeception/symfony-demo.git' SUITES=functional TEST_PATH=framework-tests/src/AppBundle
+    - php: 7.3
+      env: VERSION=2.8 TEST_REPO='-b 2.1 https://github.com/Codeception/symfony-demo.git' SUITES=functional TEST_PATH=framework-tests/src/AppBundle
+    - php: 5.6
+      env: VERSION=3.4 TEST_REPO='--recurse-submodules https://github.com/Naktibalda/codeception-symfony-tests'
+    - php: 7.0
+      env: VERSION=3.4 TEST_REPO='--recurse-submodules https://github.com/Naktibalda/codeception-symfony-tests'
+    - php: 7.3
+      env: VERSION=3.4 TEST_REPO='--recurse-submodules https://github.com/Naktibalda/codeception-symfony-tests'
+    - php: 5.6
+      env: VERSION=4 TEST_REPO='https://github.com/Codeception/symfony-demo.git' SUITES=functional,unit
+    - php: 7.0
+      env: VERSION=4 TEST_REPO='https://github.com/Codeception/symfony-demo.git' SUITES=functional,unit
+services:
+  - mysql
+before_install:
+  - export INI=~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - echo memory_limit = -1 >> $INI
+install:
+  - '[[ -z "$CI_USER_TOKEN" ]] || composer config github-oauth.github.com ${CI_USER_TOKEN};'
+  - travis_retry composer self-update && composer --version
+  - git clone -q --depth=1 $TEST_REPO framework-tests
+  - git --git-dir framework-tests/.git log -n 1
+  - composer require symfony/finder=~$VERSION --no-update --ignore-platform-reqs
+  - composer require symfony/yaml=~$VERSION --no-update --ignore-platform-reqs
+  - composer require symfony/console=~$VERSION --no-update --ignore-platform-reqs
+  - composer require symfony/event-dispatcher=~$VERSION --no-update --ignore-platform-reqs
+  - composer require symfony/css-selector=~$VERSION --no-update --ignore-platform-reqs
+  - composer require symfony/dom-crawler=~$VERSION --no-update --ignore-platform-reqs
+  - composer require symfony/browser-kit=~$VERSION --no-update --ignore-platform-reqs
+  - composer require symfony/browser-kit=~$VERSION --no-update --ignore-platform-reqs
+  - travis_retry composer install
+  - travis_retry composer update -d framework-tests --no-dev --prefer-dist --no-interaction
+before_script:
+  - mysql -e "create database symfony_test;"
+  - '[[ "$VERSION" != "2.8" ]] || php framework-tests/app/console doctrine:schema:create -n --env test'
+  - '[[ "$VERSION" != "2.8" ]] || php framework-tests/app/console doctrine:fixtures:load -n --env test'
+  - '[[ "$VERSION" != "3.4" ]] || php framework-tests/bin/console doctrine:schema:update --force -n'
+  - php ./vendor/bin/codecept build -c $TEST_PATH
+script:
+  - php ./vendor/bin/codecept run functional -c $TEST_PATH

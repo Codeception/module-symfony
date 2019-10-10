@@ -1,0 +1,35 @@
+{
+    "name":"codeception/module-symfony",
+    "description":"Codeception module for Symfony framework",
+    "keywords":["codeception", "symfony"],
+    "homepage":"http://codeception.com/",
+    "type":"library",
+    "license":"MIT",
+    "authors":[
+        {
+            "name":"Michael Bodnarchuk"
+        }
+    ],
+    "minimum-stability": "RC",
+
+    "require": {
+        "php": ">=5.6.0 <8.0",
+        "codeception/lib-innerbrowser": "dev-master | ^1.0",
+        "codeception/codeception": "4.0.x-dev | ^4.0"
+    },
+    "require-dev": {
+        "codeception/util-robohelpers": "dev-master",
+        "codeception/module-asserts": "dev-master | ^1.0",
+        "codeception/module-doctrine2": "dev-master | ^1.0",
+        "codeception/module-phpbrowser": "dev-master | ^1.0",
+        "codeception/module-rest": "dev-master | ^1.0",
+        "codeception/module-sequence": "dev-master | ^1.0",
+        "vlucas/phpdotenv": "^3.6"
+    },
+    "autoload":{
+        "classmap": ["src/"]
+    },
+    "config": {
+        "classmap-authoritative": true
+    }
+}
