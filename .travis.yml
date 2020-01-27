@@ -52,8 +52,8 @@ install:
   - composer require symfony/dom-crawler=~$VERSION --no-update --ignore-platform-reqs
   - composer require symfony/browser-kit=~$VERSION --no-update --ignore-platform-reqs
   - composer require symfony/browser-kit=~$VERSION --no-update --ignore-platform-reqs
-  - travis_retry composer install
-  - travis_retry composer update -d framework-tests --no-dev --prefer-dist --no-interaction
+  - COMPOSER_MEMORY_LIMIT=-1 composer install
+  - COMPOSER_MEMORY_LIMIT=-1 composer update -d framework-tests --no-dev --prefer-dist --no-interaction
 before_script:
   - mysql -e "create database symfony_test;"
   - '[[ "$VERSION" != "2.8" ]] || php framework-tests/app/console doctrine:schema:create -n --env test'
