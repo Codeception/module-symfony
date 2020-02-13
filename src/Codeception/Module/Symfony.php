@@ -202,6 +202,13 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
 
         $this->kernel = new $this->kernelClass($this->config['environment'], $this->config['debug']);
+
+        $bootstrapFile = $this->kernel->getProjectDir() . '/config/bootstrap.php';
+        if (file_exists($bootstrapFile)) {
+            $_ENV['APP_ENV'] = $this->config['environment'];
+            require $bootstrapFile;
+        }
+
         $this->kernel->boot();
 
         if ($this->config['cache_router'] === true) {
