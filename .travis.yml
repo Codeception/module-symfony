@@ -14,6 +14,7 @@ env:
     - VERSION=2.8 TEST_REPO='-b 2.1 https://github.com/Codeception/symfony-demo.git' SUITES=functional TEST_PATH=framework-tests/src/AppBundle
     - VERSION=3.4 TEST_REPO='--recurse-submodules https://github.com/Naktibalda/codeception-symfony-tests'
     - VERSION=4 TEST_REPO='https://github.com/Codeception/symfony-demo.git' SUITES=functional,unit
+    - VERSION=5 TEST_REPO='-b symfony5 https://github.com/Codeception/symfony-demo.git' SUITES=functional,unit
 matrix:
   exclude:
     - php: 7.0
@@ -34,6 +35,12 @@ matrix:
       env: VERSION=4 TEST_REPO='https://github.com/Codeception/symfony-demo.git' SUITES=functional,unit
     - php: 7.0
       env: VERSION=4 TEST_REPO='https://github.com/Codeception/symfony-demo.git' SUITES=functional,unit
+    - php: 5.6
+      env: VERSION=5 TEST_REPO='-b symfony5 https://github.com/Codeception/symfony-demo.git' SUITES=functional,unit
+    - php: 7.0
+      env: VERSION=5 TEST_REPO='-b symfony5 https://github.com/Codeception/symfony-demo.git' SUITES=functional,unit
+    - php: 7.1
+      env: VERSION=5 TEST_REPO='-b symfony5 https://github.com/Codeception/symfony-demo.git' SUITES=functional,unit
 services:
   - mysql
 before_install:
@@ -50,7 +57,6 @@ install:
   - composer require symfony/event-dispatcher=~$VERSION --no-update --ignore-platform-reqs
   - composer require symfony/css-selector=~$VERSION --no-update --ignore-platform-reqs
   - composer require symfony/dom-crawler=~$VERSION --no-update --ignore-platform-reqs
-  - composer require symfony/browser-kit=~$VERSION --no-update --ignore-platform-reqs
   - composer require symfony/browser-kit=~$VERSION --no-update --ignore-platform-reqs
   - COMPOSER_MEMORY_LIMIT=-1 composer install
   - COMPOSER_MEMORY_LIMIT=-1 composer update -d framework-tests --no-dev --prefer-dist --no-interaction
