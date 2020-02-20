@@ -312,6 +312,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             require_once codecept_root_dir() . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
         }
 
+        //If symfony is install on another project/dir than codeception, this ensure that its autoloader is load too
+        if (file_exists($path . DIRECTORY_SEPARATOR . '..'. DIRECTORY_SEPARATOR .'vendor' . DIRECTORY_SEPARATOR . 'autoload.php')) {
+            require_once $path . DIRECTORY_SEPARATOR . '..'. DIRECTORY_SEPARATOR .'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+        }
+
         $filesRealPath = array_map(function ($file) {
             require_once $file;
             return $file->getRealPath();
