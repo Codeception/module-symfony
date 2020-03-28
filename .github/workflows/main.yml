@@ -9,6 +9,8 @@ jobs:
     services:
       mysql:
         image: mysql
+        ports:
+          - 3306
 
     strategy:
       matrix:
