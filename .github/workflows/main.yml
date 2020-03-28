@@ -26,13 +26,13 @@ jobs:
         coverage: none
         
     - name: Install Demo
-        run: |
-          git clone -q --depth=1 -b symfony5 https://github.com/Codeception/symfony-demo.git framework-tests
-          git --git-dir framework-tests/.git log -n 1
-          mysql -e "create database symfony_test;"
-          php framework-tests/app/console doctrine:schema:create -n --env test
-          php framework-tests/app/console doctrine:fixtures:load -n --env test
-          php framework-tests/bin/console doctrine:schema:update --force -n
+      run: |
+        git clone -q --depth=1 -b symfony5 https://github.com/Codeception/symfony-demo.git framework-tests
+        git --git-dir framework-tests/.git log -n 1
+        mysql -e "create database symfony_test;"
+        php framework-tests/app/console doctrine:schema:create -n --env test
+        php framework-tests/app/console doctrine:fixtures:load -n --env test
+        php framework-tests/bin/console doctrine:schema:update --force -n
 
     - name: Validate composer.json and composer.lock
       run: composer validate
