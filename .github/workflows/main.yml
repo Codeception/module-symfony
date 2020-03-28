@@ -1,0 +1,44 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        images: mysql
+
+    strategy:
+      matrix:
+        php: [7.1]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v1
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v1
+      with:
+        php-version: ${{ matrix.php }}
+        extensions: mbstring, php-xml, ext-dom
+        coverage: none
+        
+    - name: Install Demo
+        run: |
+          git clone -q --depth=1 -b symfony5 https://github.com/Codeception/symfony-demo.git framework-tests
+          git --git-dir framework-tests/.git log -n 1
+          mysql -e "create database symfony_test;"
+          php framework-tests/app/console doctrine:schema:create -n --env test
+          php framework-tests/app/console doctrine:fixtures:load -n --env test
+          php framework-tests/bin/console doctrine:schema:update --force -n
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-suggest
+
+    - name: Run test suite
+      run: php ./vendor/bin/codecept run functional -c framework-tests
