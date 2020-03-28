@@ -11,7 +11,7 @@ jobs:
         image: mysql
         env:
             MYSQL_ALLOW_EMPTY_PASSWORD: yes
-            MYSQL_DATABASE: laravel_tags
+            MYSQL_DATABASE: symfony_test
         ports:
           - 3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -33,7 +33,6 @@ jobs:
         
     - name: Install Demo
       run: |
-        mysql -e "create database symfony_test;"
         php framework-tests/app/console doctrine:schema:create -n --env test
         php framework-tests/app/console doctrine:fixtures:load -n --env test
         php framework-tests/bin/console doctrine:schema:update --force -n
