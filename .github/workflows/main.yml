@@ -8,7 +8,7 @@ jobs:
 
     services:
       mysql:
-        images: mysql
+        image: mysql
 
     strategy:
       matrix:
