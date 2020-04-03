@@ -9,6 +9,7 @@ use Codeception\Exception\ModuleRequireException;
 use Codeception\Lib\Connector\Symfony as SymfonyConnector;
 use Codeception\Lib\Interfaces\DoctrineProvider;
 use Codeception\Lib\Interfaces\PartedModule;
+use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\SplFileInfo;
@@ -545,42 +546,45 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
         return $container->get($service);
     }
-    
+
     /**
      * Run Symfony console command, grab response and return as string.
      * Recommended to use for integration or functional testing.
      *
      * ``` php
      * <?php
-     * $result = $I->runSymfonyConsoleCommand('hello:world', '--verbose' => 3]);
+     * $result = $I->runSymfonyConsoleCommand('hello:world', ['arg' => 'argValue', 'opt1' => 'optValue'], ['input']);
      * ?>
      * ```
      *
-     * @param string  $command
-     * @param mixed[] $params
+     * @param string $command          The console command to execute
+     * @param array  $parameters       Parameters (arguments and options) to pass to the command
+     * @param array  $consoleInputs    Console inputs (e.g. used for interactive questions)
+     * @param int    $expectedExitCode The expected exit code of the command
      *
-     * @return string
-     *
-     * @throws \Exception
+     * @return string Returns the console output of the command
      */
-    public function runSymfonyConsoleCommand(string $command, array $params = [])
+    public function runSymfonyConsoleCommand($command, $parameters = [], $consoleInputs = [], $expectedExitCode = 0)
     {
-        $application = new Application($this->kernel);
-        $application->setAutoExit(false);
-        $params['command'] = $command;
+        $kernel = $this->grabService('kernel');
+        $application = new Application($kernel);
+        $consoleCommand = $application->find($command);
+        $commandTester = new CommandTester($consoleCommand);
+        $commandTester->setInputs($consoleInputs);
 
-        $input = new ArrayInput($params);
-        $output = new BufferedOutput();
-        $code = $application->run($input, $output);
+        $parameters = ['command' => $command] + $parameters;
+        $exitCode = $commandTester->execute($parameters);
+        $output = $commandTester->getDisplay();
 
-        // return the output, don't use if you used NullOutput()
-        $content = $output->fetch();
+        $this->assertEquals(
+            $expectedExitCode,
+            $exitCode,
+            'Command did not exit with code '.$expectedExitCode
+            .' but with '.$exitCode.': '.$output
+        );
 
-        $this->assertEquals(0, $code, 'Exit code in '.$command.' is not equal 0 :'.$content);
-
-        return $content;
+        return $output;
     }
-
     /**
      * @return \Symfony\Component\HttpKernel\Profiler\Profile
      */
