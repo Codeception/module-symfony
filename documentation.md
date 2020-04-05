@@ -821,16 +821,16 @@ Recommended to use for integration or functional testing.
 
 ``` php
 <?php
-$result = $I->runSymfonyConsoleCommand('hello:world', '--verbose' => 3]);
+$result = $I->runSymfonyConsoleCommand('hello:world', ['arg' => 'argValue', 'opt1' => 'optValue'], ['input']);
 ?>
 ```
 
- * `param string`  $command
- * `param mixed[]` $params
+ * `param string` $command          The console command to execute
+ * `param array`  $parameters       Parameters (arguments and options) to pass to the command
+ * `param array`  $consoleInputs    Console inputs (e.g. used for interactive questions)
+ * `param int`    $expectedExitCode The expected exit code of the command
 
- * `return` string
-
-@throws \Exception
+ * `return` string Returns the console output of the command
 
 
 ### see
