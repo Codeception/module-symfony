@@ -47,10 +47,17 @@ jobs:
       run: composer validate
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --no-suggest
+      run: |
+        composer install --prefer-dist --no-progress --no-suggest
+        ls
+        ls framework-tests
+        ls framework-tests/app
 
     - name: Run test suite
       run: |
+        ls
+        ls framework-tests
+        ls framework-tests/app
         php framework-tests/app/console doctrine:schema:create -n --env test
         php framework-tests/app/console doctrine:fixtures:load -n --env test
         php framework-tests/bin/console doctrine:schema:update --force -n
