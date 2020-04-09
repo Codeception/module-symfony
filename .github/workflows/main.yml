@@ -35,6 +35,7 @@ jobs:
       run: |
         git clone -q --depth=1 -b symfony5 https://github.com/Codeception/symfony-demo.git framework-tests
         git --git-dir framework-tests/.git log -n 1
+        composer update -d framework-tests --no-dev --prefer-dist --no-interaction
         composer require symfony/finder=~5 --no-update --ignore-platform-reqs
         composer require symfony/yaml=~5 --no-update --ignore-platform-reqs
         composer require symfony/console=~5 --no-update --ignore-platform-reqs
