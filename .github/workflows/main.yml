@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         php: [7.0, 7.1, 7.2, 7.3, 7.4]
-        symfony: [4, 5]
+        symfony: [3.4, 4, 5]
         exclude:
           - php: 7.0
             symfony: 4
@@ -38,6 +38,10 @@ jobs:
         php-version: ${{ matrix.php }}
         extensions: mbstring, php-xml, ext-dom, pdo, mysql, pdo_mysql
         coverage: none
+
+    - name: Clone Symfony 3.4 Demo
+      if: matrix.symfony == 3.4
+      run: git clone -q --depth=1 --recurse-submodules https://github.com/Naktibalda/codeception-symfony-tests framework-tests
 
     - name: Clone Symfony 5 Demo
       if: matrix.symfony == 5
