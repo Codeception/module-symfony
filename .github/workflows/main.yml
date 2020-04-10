@@ -93,7 +93,13 @@ jobs:
       run: |
         composer install --prefer-dist --no-progress --no-suggest
 
-    - name: Database
+    - name: Database Symfony 2.8
+      if: matrix.symfony == 2.8
+      run: |
+        php framework-tests/app/console doctrine:schema:create -n --env test
+        php framework-tests/app/console doctrine:fixtures:load -n --env test
+
+    - name: Database Symfony 3.4
       if: matrix.symfony == 3.4
       run: |
         sed -i -e "s/%database_host%/127.0.0.1/g" framework-tests/app/config/config.yml
