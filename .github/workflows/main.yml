@@ -76,20 +76,12 @@ jobs:
     - name: Database
       if: matrix.symfony == 3.4
       run: |
-        #sed -i -e "s/%database_host%/127.0.0.1/g" framework-tests/app/config/config.yml
-        #sed -i -e "s/%database_port%/3306/g" framework-tests/app/config/config.yml
-        #sed -i -e "s/%database_name%/symfony_test/g" framework-tests/app/config/config.yml
-        #sed -i -e "s/%database_user%/root/g" framework-tests/app/config/config.yml
-        #sed -i -e "s/%database_password%//g" framework-tests/app/config/config.yml
-        #cat framework-tests/app/config/config.yml
-        #mysql -h $database_host -u $database_user -e "show databases;"
+        sed -i -e "s/%database_host%/127.0.0.1/g" framework-tests/app/config/config.yml
+        sed -i -e "s/%database_port%/3306/g" framework-tests/app/config/config.yml
+        sed -i -e "s/%database_name%/symfony_test/g" framework-tests/app/config/config.yml
+        sed -i -e "s/%database_user%/root/g" framework-tests/app/config/config.yml
+        sed -i -e "s/%database_password%//g" framework-tests/app/config/config.yml
         php framework-tests/bin/console doctrine:schema:update --force -n
-      env:
-        database_host: 127.0.0.1
-        database_port: 3306
-        database_name: symfony_test
-        database_user: root
-        database_password: ''
 
     - name: Run test suite
       run: |
