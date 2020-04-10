@@ -75,7 +75,10 @@ jobs:
 
     - name: Database
       if: matrix.symfony == 3.4
-      run: php framework-tests/bin/console doctrine:schema:update --force -n
+      run: |
+        cat framework-tests/app/config/config.yml
+        mysql -h $database_host -u $database_user -e "show databases;"
+        php framework-tests/bin/console doctrine:schema:update --force -n
       env:
         database_host: 127.0.0.1
         database_port: 3306
