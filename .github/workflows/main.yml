@@ -109,11 +109,11 @@ jobs:
         sed -i -e "s/%database_password%//g" framework-tests/app/config/config.yml
         php framework-tests/bin/console doctrine:schema:update --force -n
 
-    - name: Run test suite
+    - name: Run test suite Symfony > 2.8
       if: matrix.symfony != 2.8
       run: php ./vendor/bin/codecept run functional -c framework-tests
 
-    - name: Run test suite
+    - name: Run test suite Symfony 2.8
       if: matrix.symfony == 2.8
       run: php ./vendor/bin/codecept run functional -c framework-tests/src/AppBundle
 
