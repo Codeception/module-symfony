@@ -56,7 +56,7 @@ jobs:
       uses: shivammathur/setup-php@v1
       with:
         php-version: ${{ matrix.php }}
-        extensions: mbstring, php-xml, ext-dom, pdo, mysql, pdo_mysql
+        extensions: mbstring, php-xml, ext-dom, pdo, mysql, pdo_mysql, pdo_sqlite
         coverage: none
 
     - name: Clone Symfony 2.8 Demo
