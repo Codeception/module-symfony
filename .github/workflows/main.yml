@@ -21,7 +21,15 @@ jobs:
         php: [5.6, 7.0, 7.1, 7.2, 7.3, 7.4]
         symfony: [2.8, 3.4, 4, 5]
         exclude:
-          - php: 7.*
+          - php: 7.0
+            symfony: 2.8
+          - php: 7.1
+            symfony: 2.8
+          - php: 7.2
+            symfony: 2.8
+          - php: 7.3
+            symfony: 2.8
+          - php: 7.4
             symfony: 2.8
           - php: 5.6
             symfony: 3.4
@@ -50,6 +58,10 @@ jobs:
         php-version: ${{ matrix.php }}
         extensions: mbstring, php-xml, ext-dom, pdo, mysql, pdo_mysql
         coverage: none
+
+    - name: Clone Symfony 2.8 Demo
+      if: matrix.symfony == 2.8
+      run: git clone -q --depth=1 -b 2.1 https://github.com/Codeception/symfony-demo.git framework-tests
 
     - name: Clone Symfony 3.4 Demo
       if: matrix.symfony == 3.4
