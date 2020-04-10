@@ -19,6 +19,7 @@ jobs:
     strategy:
       matrix:
         php: [7.2, 7.3, 7.4]
+        symfony: [5]
 
     steps:
     - name: Checkout code
@@ -36,13 +37,13 @@ jobs:
         git clone -q --depth=1 -b symfony5 https://github.com/Codeception/symfony-demo.git framework-tests
         git --git-dir framework-tests/.git log -n 1
         composer update -d framework-tests --no-dev --prefer-dist --no-interaction
-        composer require symfony/finder=~5 --no-update --ignore-platform-reqs
-        composer require symfony/yaml=~5 --no-update --ignore-platform-reqs
-        composer require symfony/console=~5 --no-update --ignore-platform-reqs
-        composer require symfony/event-dispatcher=~5 --no-update --ignore-platform-reqs
-        composer require symfony/css-selector=~5 --no-update --ignore-platform-reqs
-        composer require symfony/dom-crawler=~5 --no-update --ignore-platform-reqs
-        composer require symfony/browser-kit=~5 --no-update --ignore-platform-reqs
+        composer require "symfony/finder=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
+        composer require "symfony/yaml=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
+        composer require "symfony/console=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
+        composer require "symfony/event-dispatcher=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
+        composer require "symfony/css-selector=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
+        composer require "symfony/dom-crawler=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
+        composer require "symfony/browser-kit=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
 
     - name: Validate composer.json and composer.lock
       run: composer validate
