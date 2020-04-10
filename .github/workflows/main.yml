@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         php: [7.2, 7.3, 7.4]
-        symfony: [5]
+        symfony: [4, 5]
 
     steps:
     - name: Checkout code
@@ -31,11 +31,17 @@ jobs:
         php-version: ${{ matrix.php }}
         extensions: mbstring, php-xml, ext-dom, pdo, mysql, pdo_mysql
         coverage: none
-        
+
+    - name: Clone Symfony 5 Demo
+      if: matrix.symfony == 5
+      run: git clone -q --depth=1 -b symfony5 https://github.com/Codeception/symfony-demo.git framework-tests
+
+    - name: Clone Symfony 4 Demo
+      if: matrix.symfony == 4
+      run: git clone -q --depth=1 https://github.com/Codeception/symfony-demo.git framework-tests
+
     - name: Install Demo
       run: |
-        git clone -q --depth=1 -b symfony5 https://github.com/Codeception/symfony-demo.git framework-tests
-        git --git-dir framework-tests/.git log -n 1
         composer update -d framework-tests --no-dev --prefer-dist --no-interaction
         composer require "symfony/finder=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
         composer require "symfony/yaml=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
