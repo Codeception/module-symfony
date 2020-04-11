@@ -11,7 +11,6 @@
         }
     ],
     "minimum-stability": "RC",
-
     "require": {
         "php": ">=5.6.0 <8.0",
         "codeception/lib-innerbrowser": "^1.0",
