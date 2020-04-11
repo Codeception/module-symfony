@@ -59,21 +59,36 @@ jobs:
         extensions: mbstring, php-xml, ext-dom, pdo, mysql, pdo_mysql, pdo_sqlite
         coverage: none
 
-    - name: Clone Symfony 2.8 Demo
+    - name: Checkout Symfony 2.8 Demo
       if: matrix.symfony == 2.8
-      run: git clone -q --depth=1 -b 2.1 https://github.com/Codeception/symfony-demo.git framework-tests
+      uses: actions/checkout@v2
+      with:
+        repository: Codeception/symfony-demo
+        path: framework-tests
+        ref: 2.1
 
-    - name: Clone Symfony 3.4 Demo
+    - name: Checkout Symfony 3.4 Demo
       if: matrix.symfony == 3.4
-      run: git clone -q --depth=1 --recurse-submodules https://github.com/Naktibalda/codeception-symfony-tests framework-tests
+      uses: actions/checkout@v2
+      with:
+        repository: Naktibalda/codeception-symfony-tests
+        path: framework-tests
+        submodules: recursive
 
-    - name: Clone Symfony 5 Demo
-      if: matrix.symfony == 5
-      run: git clone -q --depth=1 -b symfony5 https://github.com/Codeception/symfony-demo.git framework-tests
-
-    - name: Clone Symfony 4 Demo
+    - name: Checkout Symfony 4 Demo
       if: matrix.symfony == 4
-      run: git clone -q --depth=1 https://github.com/Codeception/symfony-demo.git framework-tests
+      uses: actions/checkout@v2
+      with:
+        repository: Codeception/symfony-demo
+        path: framework-tests
+
+    - name: Checkout Symfony 5 Demo
+      if: matrix.symfony == 5
+      uses: actions/checkout@v2
+      with:
+        repository: Codeception/symfony-demo
+        path: framework-tests
+        ref: symfony5
 
     - name: Install Demo
       run: |
