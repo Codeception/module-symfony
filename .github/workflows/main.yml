@@ -90,8 +90,7 @@ jobs:
       run: composer validate
 
     - name: Install dependencies
-      run: |
-        composer install --prefer-dist --no-progress --no-suggest
+      run: composer install --prefer-dist --no-progress --no-interaction --no-suggest
 
     - name: Database Symfony 2.8
       if: matrix.symfony == 2.8
