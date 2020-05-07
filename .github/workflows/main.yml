@@ -1,0 +1,141 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+            MYSQL_ALLOW_EMPTY_PASSWORD: true
+            MYSQL_DATABASE: symfony_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        php: [5.6, 7.0, 7.1, 7.2, 7.3, 7.4]
+        symfony: [2.8, 3.4, 4, 5]
+        exclude:
+          - php: 7.0
+            symfony: 2.8
+          - php: 7.1
+            symfony: 2.8
+          - php: 7.2
+            symfony: 2.8
+          - php: 7.3
+            symfony: 2.8
+          - php: 7.4
+            symfony: 2.8
+          - php: 5.6
+            symfony: 3.4
+          - php: 7.3
+            symfony: 3.4
+          - php: 7.4
+            symfony: 3.4
+          - php: 5.6
+            symfony: 4
+          - php: 7.0
+            symfony: 4
+          - php: 5.6
+            symfony: 5
+          - php: 7.0
+            symfony: 5
+          - php: 7.1
+            symfony: 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php }}
+        extensions: pdo, mysql, sqlite
+        coverage: none
+
+    - name: Checkout Symfony 2.8 Sample
+      if: matrix.symfony == 2.8
+      uses: actions/checkout@v2
+      with:
+        repository: Codeception/symfony-demo
+        path: framework-tests
+        ref: 2.1
+
+    - name: Checkout Symfony 3.4 Sample
+      if: matrix.symfony == 3.4
+      uses: actions/checkout@v2
+      with:
+        repository: Naktibalda/codeception-symfony-tests
+        path: framework-tests
+        submodules: recursive
+
+    - name: Checkout Symfony 4 Sample
+      if: matrix.symfony == 4
+      uses: actions/checkout@v2
+      with:
+        repository: Codeception/symfony-demo
+        path: framework-tests
+
+    - name: Checkout Symfony 5 Sample
+      if: matrix.symfony == 5
+      uses: actions/checkout@v2
+      with:
+        repository: Codeception/symfony-demo
+        path: framework-tests
+        ref: symfony5
+
+    - name: Install Symfony Sample
+      run: |
+        composer update --no-dev --prefer-dist --no-interaction
+      working-directory: framework-tests
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate
+
+    - name: Install dependencies
+      run: |
+        composer require "symfony/finder=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
+        composer require "symfony/yaml=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
+        composer require "symfony/console=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
+        composer require "symfony/event-dispatcher=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
+        composer require "symfony/css-selector=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
+        composer require "symfony/dom-crawler=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
+        composer require "symfony/browser-kit=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
+        composer install --prefer-dist --no-progress --no-interaction --no-suggest
+
+    - name: Database Symfony 2.8
+      if: matrix.symfony == 2.8
+      run: |
+        php app/console doctrine:schema:create -n --env test
+        php app/console doctrine:fixtures:load -n --env test
+      working-directory: framework-tests
+
+    - name: Database Symfony 3.4
+      if: matrix.symfony == 3.4
+      run: |
+        sed -i -e "s/%database_host%/127.0.0.1/g" app/config/config.yml
+        sed -i -e "s/%database_port%/3306/g" app/config/config.yml
+        sed -i -e "s/%database_name%/symfony_test/g" app/config/config.yml
+        sed -i -e "s/%database_user%/root/g" app/config/config.yml
+        sed -i -e "s/%database_password%//g" app/config/config.yml
+        php bin/console doctrine:schema:update --force -n
+      working-directory: framework-tests
+
+    - name: Run test suite Symfony > 2.8
+      if: matrix.symfony != 2.8
+      run: php vendor/bin/codecept run functional -c framework-tests
+
+    - name: Run test suite Symfony 2.8
+      if: matrix.symfony == 2.8
+      run: php vendor/bin/codecept run functional -c framework-tests/src/AppBundle
+
