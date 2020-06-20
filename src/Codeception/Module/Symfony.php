@@ -498,6 +498,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
 
         $realCount = $profile->getCollector('swiftmailer')->getMessageCount();
+        $realCount += count($profile->getCollector('mailer')->getEvents()->getMessages());
         if ($expectedCount === null) {
             $this->assertGreaterThan(0, $realCount);
         } else {
