@@ -490,7 +490,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         switch ($mailer) {
             case 'swiftmailer':
                 if (!$profile->hasCollector('swiftmailer')) {
-                    $this->fail('Emails can\'t be tested without SwiftMailer connector');
+                    $this->fail(
+                        'Emails can\'t be tested without SwiftMailer connector.
+                        If you are using Symfony Mailer use "symfony_mailer" as second parameter'
+                    );
                 }
                 break;
             case 'symfony_mailer':
