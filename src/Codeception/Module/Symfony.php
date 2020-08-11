@@ -479,15 +479,27 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * ```
      *
      * @param null|int $expectedCount
+     * @param null|string $mailer
      */
-    public function seeEmailIsSent($expectedCount = null)
+    public function seeEmailIsSent($expectedCount = null, $mailer = 'swiftmailer')
     {
         $profile = $this->getProfile();
         if (!$profile) {
             $this->fail('Emails can\'t be tested without Profiler');
         }
-        if (!$profile->hasCollector('swiftmailer')) {
-            $this->fail('Emails can\'t be tested without SwiftMailer connector');
+        switch ($mailer) {
+            case 'swiftmailer':
+                if (!$profile->hasCollector('swiftmailer')) {
+                    $this->fail('Emails can\'t be tested without SwiftMailer connector');
+                }
+                break;
+            case 'symfony_mailer':
+                if (!$profile->hasCollector('mailer')) {
+                    $this->fail('Emails can\'t be tested without Symfony Mailer connector');
+                }
+                break;
+            default:
+                $this->fail('Invalid mailer argument. Allowed Options: "swiftmailer" or "symfony_mailer"');
         }
 
         if (!is_int($expectedCount) && !is_null($expectedCount)) {
@@ -497,8 +509,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             ));
         }
 
-        $realCount = $profile->getCollector('swiftmailer')->getMessageCount();
-        $realCount += count($profile->getCollector('mailer')->getEvents()->getMessages());
+        if ($mailer === 'swiftmailer') {
+            $realCount = $profile->getCollector('swiftmailer')->getMessageCount();
+        } else {
+            $realCount = count($profile->getCollector('mailer')->getEvents()->getMessages());
+        }
+
         if ($expectedCount === null) {
             $this->assertGreaterThan(0, $realCount);
         } else {
@@ -631,6 +647,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             }
             if ($profile->hasCollector('swiftmailer')) {
                 $messages = $profile->getCollector('swiftmailer')->getMessageCount();
+                if ($messages) {
+                    $this->debugSection('Emails', $messages . ' sent');
+                }
+            } elseif ($profile->hasCollector('mailer')) {
+                $messages = count($profile->getCollector('mailer')->getEvents()->getMessages());
                 if ($messages) {
                     $this->debugSection('Emails', $messages . ' sent');
                 }
