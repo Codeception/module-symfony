@@ -113,6 +113,9 @@ use Symfony\Component\Console\Output\BufferedOutput;
  */
 class Symfony extends Framework implements DoctrineProvider, PartedModule
 {
+    public const SWIFTMAILER = 'swiftmailer';
+    public const SYMFONY_MAILER = 'symfony_mailer';
+
     private static $possibleKernelClasses = [
         'AppKernel', // Symfony Standard
         'App\Kernel', // Symfony Flex
