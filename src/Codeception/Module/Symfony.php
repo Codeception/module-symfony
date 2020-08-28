@@ -36,6 +36,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
  * * debug: true - turn on/off debug mode
  * * cache_router: 'false' - enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
  * * rebootable_client: 'true' - reboot client's kernel before each request
+ * * mailer: 'symfony_mailer' - choose the mailer used by your application
  *
  * #### Example (`functional.suite.yml`) - Symfony 4 Directory Structure
  *
@@ -56,6 +57,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
  * * debug: true - turn on/off debug mode
  * * cache_router: 'false' - enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
  * * rebootable_client: 'true' - reboot client's kernel before each request
+ * * mailer: 'swiftmailer' - choose the mailer used by your application
  *
  * #### Example (`functional.suite.yml`) - Symfony 3 Directory Structure
  *
@@ -76,6 +78,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
  * * em_service: 'doctrine.orm.entity_manager' - use the stated EntityManager to pair with Doctrine Module.
  * * cache_router: 'false' - enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
  * * rebootable_client: 'true' - reboot client's kernel before each request
+ * * mailer: 'swiftmailer' - choose the mailer used by your application
  *
  * ### Example (`functional.suite.yml`) - Symfony 2.x Directory Structure
  *
@@ -113,6 +116,9 @@ use Symfony\Component\Console\Output\BufferedOutput;
  */
 class Symfony extends Framework implements DoctrineProvider, PartedModule
 {
+    public const SWIFTMAILER = 'swiftmailer';
+    public const SYMFONY_MAILER = 'symfony_mailer';
+
     private static $possibleKernelClasses = [
         'AppKernel', // Symfony Standard
         'App\Kernel', // Symfony Flex
@@ -132,6 +138,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         'cache_router' => false,
         'em_service' => 'doctrine.orm.entity_manager',
         'rebootable_client' => true,
+        'mailer' => self::SWIFTMAILER
     ];
 
     /**
@@ -486,8 +493,25 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if (!$profile) {
             $this->fail('Emails can\'t be tested without Profiler');
         }
-        if (!$profile->hasCollector('swiftmailer')) {
-            $this->fail('Emails can\'t be tested without SwiftMailer connector');
+        switch ($this->config['mailer']) {
+            case self::SWIFTMAILER:
+                if (!$profile->hasCollector('swiftmailer')) {
+                    $this->fail(
+                        'Emails can\'t be tested without SwiftMailer connector.
+                    If you are using Symfony Mailer define mailer: "symfony_mailer" in Symfony module config.'
+                    );
+                }
+                break;
+            case self::SYMFONY_MAILER:
+                if (!$profile->hasCollector('mailer')) {
+                    $this->fail(
+                        'Emails can\'t be tested without Symfony Mailer connector.
+                    If you are using SwiftMailer define mailer: "swiftmailer" in Symfony module config.'
+                    );
+                }
+                break;
+            default:
+                $this->fail('Invalid mailer config. Allowed Options: "swiftmailer" or "mailer"');
         }
 
         if (!is_int($expectedCount) && !is_null($expectedCount)) {
@@ -497,7 +521,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             ));
         }
 
-        $realCount = $profile->getCollector('swiftmailer')->getMessageCount();
+        if ($this->config['mailer'] === self::SWIFTMAILER) {
+            $realCount = $profile->getCollector('swiftmailer')->getMessageCount();
+        } else {
+            $realCount = count($profile->getCollector('mailer')->getEvents()->getMessages());
+        }
+
         if ($expectedCount === null) {
             $this->assertGreaterThan(0, $realCount);
         } else {
@@ -630,6 +659,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             }
             if ($profile->hasCollector('swiftmailer')) {
                 $messages = $profile->getCollector('swiftmailer')->getMessageCount();
+                if ($messages) {
+                    $this->debugSection('Emails', $messages . ' sent');
+                }
+            } elseif ($profile->hasCollector('mailer')) {
+                $messages = count($profile->getCollector('mailer')->getEvents()->getMessages());
                 if ($messages) {
                     $this->debugSection('Emails', $messages . ' sent');
                 }
