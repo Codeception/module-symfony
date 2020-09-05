@@ -6,12 +6,12 @@ use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Client;
 use Symfony\Component\HttpKernel\HttpKernelBrowser;
 use Symfony\Component\HttpKernel\Kernel;
 
-//Alias for Symfony < 4.3
-if (!class_exists(HttpKernelBrowser::class) && class_exists('Symfony\Component\HttpKernel\Client')) {
-    class_alias('Symfony\Component\HttpKernel\Client', HttpKernelBrowser::class);
+if (Kernel::VERSION_ID < 40300) {
+    class_alias(Client::class, HttpKernelBrowser::class);
 }
 
 class Symfony extends HttpKernelBrowser
