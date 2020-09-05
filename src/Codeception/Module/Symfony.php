@@ -4,20 +4,21 @@ namespace Codeception\Module;
 
 use Codeception\Configuration;
 use Codeception\Exception\ModuleException;
-use Codeception\Lib\Framework;
 use Codeception\Exception\ModuleRequireException;
 use Codeception\Lib\Connector\Symfony as SymfonyConnector;
+use Codeception\Lib\Framework;
 use Codeception\Lib\Interfaces\DoctrineProvider;
 use Codeception\Lib\Interfaces\PartedModule;
-use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Finder\SplFileInfo;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\VarDumper\Cloner\Data;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\BrowserKit\Cookie;
+use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Guard\Token\PostAuthenticationGuardToken;
+use Symfony\Component\VarDumper\Cloner\Data;
 
 /**
  * This module uses Symfony Crawler and HttpKernel to emulate requests and test response.
@@ -117,8 +118,8 @@ use Symfony\Component\Console\Output\BufferedOutput;
  */
 class Symfony extends Framework implements DoctrineProvider, PartedModule
 {
-    public const SWIFTMAILER = 'swiftmailer';
-    public const SYMFONY_MAILER = 'symfony_mailer';
+    const SWIFTMAILER = 'swiftmailer';
+    const SYMFONY_MAILER = 'symfony_mailer';
 
     private static $possibleKernelClasses = [
         'AppKernel', // Symfony Standard
@@ -139,7 +140,8 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         'cache_router' => false,
         'em_service' => 'doctrine.orm.entity_manager',
         'rebootable_client' => true,
-        'mailer' => self::SWIFTMAILER
+        'mailer' => self::SWIFTMAILER,
+        'guard' => false
     ];
 
     /**
@@ -1068,5 +1070,33 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             }
         }
         $this->fail("Action '$action' does not exist");
+    }
+
+    public function amLoggedInAs(UserInterface $user, $firewallName = 'main', $firewallContext = null)
+    {
+        $container = $this->_getContainer();
+        if (!$container->has('session')) {
+            $this->fail("Symfony container doesn't have 'session' service");
+            return;
+        }
+
+        $session = $this->grabService('session');
+
+        if ($this->config['guard']) {
+            $token = new PostAuthenticationGuardToken($user, $firewallName, $user->getRoles());
+        } else {
+            $token = new UsernamePasswordToken($user, null, $firewallName, $user->getRoles());
+        }
+
+        if ($firewallContext) {
+            $session->set('_security_'.$firewallContext, serialize($token));
+        } else {
+            $session->set('_security_'.$firewallName, serialize($token));
+        }
+
+        $session->save();
+
+        $cookie = new Cookie($session->getName(), $session->getId());
+        $this->client->getCookieJar()->set($cookie);
     }
 }
