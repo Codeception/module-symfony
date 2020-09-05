@@ -235,6 +235,23 @@ $I->amOnPage('/register');
  * `param string` $page
 
 
+### amLoggedInAs
+
+Login with the given UserInterface.
+
+```php
+<?php
+$user = $I->grabEntityFromRepository(User::class, [
+    'email' => 'john_doe@gmail.com'
+]);
+$I->amLoggedInAs($user);
+```
+
+ * `param UserInterface` $user
+ * `param string` $firewallName
+ * `param null` $firewallContext
+
+
 ### amOnRoute
  
 Opens web page using route name and parameters.
