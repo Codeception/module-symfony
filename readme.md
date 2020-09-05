@@ -1,13 +1,15 @@
-# Codeception module for Symfony framework
+# Codeception Module Symfony
+
+A Codeception module for Symfony framework.
 
 [![Build Status](https://travis-ci.org/Codeception/module-symfony.svg?branch=master)](https://travis-ci.org/Codeception/module-symfony)
 
 ## Installation
 
 ```
-composer require --dev "codeception/module-symfony"
+composer require "codeception/module-symfony" --dev
 ```
 
 ## Documentation
 
-<a href="documentation.md">Look at documentation.md file</a>
+[Look at documentation.md file](/documentation.md)

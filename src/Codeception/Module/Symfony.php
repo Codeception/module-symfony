@@ -4,19 +4,25 @@ namespace Codeception\Module;
 
 use Codeception\Configuration;
 use Codeception\Exception\ModuleException;
-use Codeception\Lib\Framework;
 use Codeception\Exception\ModuleRequireException;
 use Codeception\Lib\Connector\Symfony as SymfonyConnector;
-use Codeception\Lib\Interfaces\DoctrineProvider;
-use Codeception\Lib\Interfaces\PartedModule;
-use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Finder\SplFileInfo;
-use Symfony\Component\VarDumper\Cloner\Data;
+use Codeception\Lib\Framework;
+use Codeception\TestInterface;
+use ReflectionClass;
+use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\BrowserKit\Cookie;
+use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\HttpKernel\Profiler\Profile;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+use Symfony\Component\Routing\Route;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Guard\Token\PostAuthenticationGuardToken;
+use Symfony\Component\VarDumper\Cloner\Data;
 
 /**
  * This module uses Symfony Crawler and HttpKernel to emulate requests and test response.
@@ -114,40 +120,15 @@ use Symfony\Component\Console\Output\BufferedOutput;
  * ```
  *
  */
-class Symfony extends Framework implements DoctrineProvider, PartedModule
+class Symfony extends Framework implements SymfonyModuleInterface
 {
-    public const SWIFTMAILER = 'swiftmailer';
-    public const SYMFONY_MAILER = 'symfony_mailer';
+    const SWIFTMAILER = 'swiftmailer';
+    const SYMFONY_MAILER = 'symfony_mailer';
 
     private static $possibleKernelClasses = [
         'AppKernel', // Symfony Standard
         'App\Kernel', // Symfony Flex
     ];
-
-    /**
-     * @var \Symfony\Component\HttpKernel\Kernel
-     */
-    public $kernel;
-
-    public $config = [
-        'app_path' => 'app',
-        'var_path' => 'app',
-        'kernel_class' => null,
-        'environment' => 'test',
-        'debug' => true,
-        'cache_router' => false,
-        'em_service' => 'doctrine.orm.entity_manager',
-        'rebootable_client' => true,
-        'mailer' => self::SWIFTMAILER
-    ];
-
-    /**
-     * @return array
-     */
-    public function _parts()
-    {
-        return ['services'];
-    }
 
     /**
      * @var
@@ -168,27 +149,76 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     protected $persistentServices = [];
 
-    public function _initialize()
+    /**
+     * @var Kernel
+     */
+    public $kernel;
+
+    public $config = [
+        'app_path' => 'app',
+        'var_path' => 'app',
+        'kernel_class' => null,
+        'environment' => 'test',
+        'debug' => true,
+        'cache_router' => false,
+        'em_service' => 'doctrine.orm.entity_manager',
+        'rebootable_client' => true,
+        'mailer' => self::SWIFTMAILER,
+        'guard' => false
+    ];
+
+    /**
+     * Public API from Data changed from Symfony 3.2 to 3.3.
+     *
+     * @param Data $data
+     *
+     * @return bool
+     */
+    private function dataRevealsValue(Data $data)
     {
-
-        $this->initializeSymfonyCache();
-        $this->kernelClass = $this->getKernelClass();
-        $maxNestingLevel = 200; // Symfony may have very long nesting level
-        $xdebugMaxLevelKey = 'xdebug.max_nesting_level';
-        if (ini_get($xdebugMaxLevelKey) < $maxNestingLevel) {
-            ini_set($xdebugMaxLevelKey, $maxNestingLevel);
-        }
-
-        $this->kernel = new $this->kernelClass($this->config['environment'], $this->config['debug']);
-        $this->kernel->boot();
-
-        if ($this->config['cache_router'] === true) {
-            $this->persistService('router', true);
-        }
+        return method_exists($data, 'getValue');
     }
 
     /**
-     * Require Symfonys bootstrap.php.cache only for PHP Version < 7
+     * @param Data $data
+     * @return array
+     */
+    private function extractRawRoles(Data $data)
+    {
+        if ($this->dataRevealsValue($data)) {
+            $roles = $data->getValue();
+        } else {
+            $raw = $data->getRawData();
+            $roles = isset($raw[1]) ? $raw[1] : [];
+        }
+
+        return $roles;
+    }
+
+    /**
+     * Returns list of the possible kernel classes based on the module configuration
+     *
+     * @return array
+     * @throws ModuleException
+     */
+    private function getPossibleKernelClasses()
+    {
+        if (empty($this->config['kernel_class'])) {
+            return self::$possibleKernelClasses;
+        }
+
+        if (!is_string($this->config['kernel_class'])) {
+            throw new ModuleException(
+                __CLASS__,
+                "Parameter 'kernel_class' must have 'string' type.\n"
+            );
+        }
+
+        return [$this->config['kernel_class']];
+    }
+
+    /**
+     * Require Symfony's bootstrap.php.cache only for PHP Version < 7
      *
      * @throws ModuleRequireException
      */
@@ -213,77 +243,68 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
-     * Initialize new client instance before each test
+     * @param $url
      */
-    public function _before(\Codeception\TestInterface $test)
+    protected function debugResponse($url)
     {
-        $this->persistentServices = array_merge($this->persistentServices, $this->permanentServices);
-        $this->client = new SymfonyConnector($this->kernel, $this->persistentServices, $this->config['rebootable_client']);
-    }
+        parent::debugResponse($url);
 
-    /**
-     * Update permanent services after each test
-     */
-    public function _after(\Codeception\TestInterface $test)
-    {
-        foreach ($this->permanentServices as $serviceName => $service) {
-            $this->permanentServices[$serviceName] = $this->grabService($serviceName);
+        if ($profile = $this->getProfile()) {
+            if ($profile->hasCollector('security')) {
+                if ($profile->getCollector('security')->isAuthenticated()) {
+                    $roles = $profile->getCollector('security')->getRoles();
+
+                    if ($roles instanceof Data) {
+                        $roles = $this->extractRawRoles($roles);
+                    }
+
+                    $this->debugSection(
+                        'User',
+                        $profile->getCollector('security')->getUser()
+                        . ' [' . implode(',', $roles) . ']'
+                    );
+                } else {
+                    $this->debugSection('User', 'Anonymous');
+                }
+            }
+            if ($profile->hasCollector('swiftmailer')) {
+                $messages = $profile->getCollector('swiftmailer')->getMessageCount();
+                if ($messages) {
+                    $this->debugSection('Emails', $messages . ' sent');
+                }
+            } elseif ($profile->hasCollector('mailer')) {
+                $messages = count($profile->getCollector('mailer')->getEvents()->getMessages());
+                if ($messages) {
+                    $this->debugSection('Emails', $messages . ' sent');
+                }
+            }
+            if ($profile->hasCollector('timer')) {
+                $this->debugSection('Time', $profile->getCollector('timer')->getTime());
+            }
         }
-        parent::_after($test);
-    }
-
-    public function onReconfigure($settings = [])
-    {
-
-        parent::_beforeSuite($settings);
-        $this->_initialize();
     }
 
     /**
-     * Retrieve Entity Manager.
+     * Returns a list of recognized domain names.
      *
-     * EM service is retrieved once and then that instance returned on each call
+     * @return array
      */
-    public function _getEntityManager()
+    protected function getInternalDomains()
     {
-        if ($this->kernel === null) {
-            $this->fail('Symfony2 platform module is not loaded');
-        }
-        if (!isset($this->permanentServices[$this->config['em_service']])) {
-            // try to persist configured EM
-            $this->persistService($this->config['em_service'], true);
+        $internalDomains = [];
 
-            if ($this->_getContainer()->has('doctrine')) {
-                $this->persistService('doctrine', true);
-            }
-            if ($this->_getContainer()->has('doctrine.orm.default_entity_manager')) {
-                $this->persistService('doctrine.orm.default_entity_manager', true);
-            }
-            if ($this->_getContainer()->has('doctrine.dbal.backend_connection')) {
-                $this->persistService('doctrine.dbal.backend_connection', true);
+        $routes = $this->grabService('router')->getRouteCollection();
+        /* @var Route $route */
+        foreach ($routes as $route) {
+            if (!is_null($route->getHost())) {
+                $compiled = $route->compile();
+                if (!is_null($compiled->getHostRegex())) {
+                    $internalDomains[] = $compiled->getHostRegex();
+                }
             }
         }
-        return $this->permanentServices[$this->config['em_service']];
-    }
 
-    /**
-     * Return container.
-     *
-     * @return ContainerInterface
-     */
-    public function _getContainer()
-    {
-        $container = $this->kernel->getContainer();
-
-        if (!($container instanceof ContainerInterface)) {
-            $this->fail('Could not get Symfony container');
-        }
-
-        if ($container->has('test.service_container')) {
-            return $container->get('test.service_container');
-        }
-
-        return $container;
+        return array_unique($internalDomains);
     }
 
     /**
@@ -292,6 +313,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * When the Kernel is located, the file is required.
      *
      * @return string The Kernel class name
+     * @throws ModuleRequireException|ReflectionException|ModuleException
      */
     protected function getKernelClass()
     {
@@ -329,7 +351,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         foreach ($possibleKernelClasses as $class) {
             if (class_exists($class)) {
-                $refClass = new \ReflectionClass($class);
+                $refClass = new ReflectionClass($class);
                 if ($file = array_search($refClass->getFileName(), $filesRealPath)) {
                     return $class;
                 }
@@ -344,48 +366,122 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
-     * Get service $serviceName and add it to the lists of persistent services.
-     * If $isPermanent then service becomes persistent between tests
-     *
-     * @param string  $serviceName
-     * @param boolean $isPermanent
+     * @return Profile
      */
-    public function persistService($serviceName, $isPermanent = false)
+    protected function getProfile()
     {
-        $service = $this->grabService($serviceName);
-        $this->persistentServices[$serviceName] = $service;
-        if ($isPermanent) {
-            $this->permanentServices[$serviceName] = $service;
+        $container = $this->_getContainer();
+        if (!$container->has('profiler')) {
+            return null;
         }
-        if ($this->client) {
-            $this->client->persistentServices[$serviceName] = $service;
+
+        $profiler = $this->grabService('profiler');
+        $response = $this->client->getResponse();
+        if (null === $response) {
+            $this->fail("You must perform a request before using this method.");
+        }
+        return $profiler->loadProfileFromResponse($response);
+    }
+
+    /**
+     * Update permanent services after each test
+     * @param TestInterface $test
+     */
+    public function _after(TestInterface $test)
+    {
+        foreach ($this->permanentServices as $serviceName => $service) {
+            $this->permanentServices[$serviceName] = $this->grabService($serviceName);
+        }
+        parent::_after($test);
+    }
+
+    /**
+     * Initialize new client instance before each test
+     * @param TestInterface $test
+     */
+    public function _before(TestInterface $test)
+    {
+        $this->persistentServices = array_merge($this->persistentServices, $this->permanentServices);
+        $this->client = new SymfonyConnector($this->kernel, $this->persistentServices, $this->config['rebootable_client']);
+    }
+
+    /**
+     * Return container.
+     *
+     * @return ContainerInterface|object
+     */
+    public function _getContainer()
+    {
+        $container = $this->kernel->getContainer();
+
+        if (!($container instanceof ContainerInterface)) {
+            $this->fail('Could not get Symfony container');
+        }
+
+        if ($container->has('test.service_container')) {
+            return $container->get('test.service_container');
+        }
+
+        return $container;
+    }
+
+    /**
+     * Retrieve Entity Manager.
+     *
+     * EM service is retrieved once and then that instance returned on each call
+     */
+    public function _getEntityManager()
+    {
+        if ($this->kernel === null) {
+            $this->fail('Symfony2 platform module is not loaded');
+        }
+        if (!isset($this->permanentServices[$this->config['em_service']])) {
+            // try to persist configured EM
+            $this->persistService($this->config['em_service'], true);
+
+            if ($this->_getContainer()->has('doctrine')) {
+                $this->persistService('doctrine', true);
+            }
+            if ($this->_getContainer()->has('doctrine.orm.default_entity_manager')) {
+                $this->persistService('doctrine.orm.default_entity_manager', true);
+            }
+            if ($this->_getContainer()->has('doctrine.dbal.backend_connection')) {
+                $this->persistService('doctrine.dbal.backend_connection', true);
+            }
+        }
+        return $this->permanentServices[$this->config['em_service']];
+    }
+
+    /**
+     * @throws ModuleException
+     * @throws ModuleRequireException
+     * @throws ReflectionException
+     */
+    public function _initialize()
+    {
+
+        $this->initializeSymfonyCache();
+        $this->kernelClass = $this->getKernelClass();
+        $maxNestingLevel = 200; // Symfony may have very long nesting level
+        $xdebugMaxLevelKey = 'xdebug.max_nesting_level';
+        if (ini_get($xdebugMaxLevelKey) < $maxNestingLevel) {
+            ini_set($xdebugMaxLevelKey, $maxNestingLevel);
+        }
+
+        $this->kernel = new $this->kernelClass($this->config['environment'], $this->config['debug']);
+        $this->kernel->boot();
+
+        if ($this->config['cache_router'] === true) {
+            $this->persistService('router', true);
         }
     }
 
     /**
-     * Remove service $serviceName from the lists of persistent services.
-     *
-     * @param string $serviceName
+     * @return array
      */
-    public function unpersistService($serviceName)
+    public function _parts()
     {
-        if (isset($this->persistentServices[$serviceName])) {
-            unset($this->persistentServices[$serviceName]);
-        }
-        if (isset($this->permanentServices[$serviceName])) {
-            unset($this->permanentServices[$serviceName]);
-        }
-        if ($this->client && isset($this->client->persistentServices[$serviceName])) {
-            unset($this->client->persistentServices[$serviceName]);
-        }
-    }
-
-    /**
-     * Invalidate previously cached routes.
-     */
-    public function invalidateCachedRouter()
-    {
-        $this->unpersistService('router');
+        return ['services'];
     }
 
     /**
@@ -412,6 +508,167 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Checks that no email was sent. This is an alias for seeEmailIsSent(0).
+     *
+     * @part email
+     */
+    public function dontSeeEmailIsSent()
+    {
+        $this->seeEmailIsSent(0);
+    }
+
+    /**
+     * Grabs a service from Symfony DIC container.
+     * Recommended to use for unit testing.
+     *
+     * ``` php
+     * <?php
+     * $em = $I->grabService('doctrine');
+     * ?>
+     * ```
+     *
+     * @param $service
+     * @return mixed
+     * @part services
+     */
+    public function grabService($service)
+    {
+        $container = $this->_getContainer();
+        if (!$container->has($service)) {
+            $this->fail("Service $service is not available in container");
+        }
+        return $container->get($service);
+    }
+
+    /**
+     * Invalidate previously cached routes.
+     */
+    public function invalidateCachedRouter()
+    {
+        $this->unpersistService('router');
+    }
+
+    public function amLoggedInAs(UserInterface $user, $firewallName = 'main', $firewallContext = null)
+    {
+        $container = $this->_getContainer();
+        if (!$container->has('session')) {
+            return;
+        }
+
+        $session = $this->grabService('session');
+
+        if ($this->config['guard']) {
+            $token = new PostAuthenticationGuardToken($user, $firewallName, $user->getRoles());
+        } else {
+            $token = new UsernamePasswordToken($user, null, $firewallName, $user->getRoles());
+        }
+
+        if ($firewallContext) {
+            $session->set('_security_'.$firewallContext, serialize($token));
+        } else {
+            $session->set('_security_'.$firewallName, serialize($token));
+        }
+
+        $session->save();
+
+        $cookie = new Cookie($session->getName(), $session->getId());
+        $this->client->getCookieJar()->set($cookie);
+    }
+
+    /**
+     * @param array $settings
+     * @throws ModuleException|ModuleRequireException|ReflectionException
+     */
+    public function onReconfigure($settings = [])
+    {
+        parent::_beforeSuite($settings);
+        $this->_initialize();
+    }
+
+    /**
+     * Get service $serviceName and add it to the lists of persistent services.
+     * If $isPermanent then service becomes persistent between tests
+     *
+     * @param string  $serviceName
+     * @param boolean $isPermanent
+     */
+    public function persistService($serviceName, $isPermanent = false)
+    {
+        $service = $this->grabService($serviceName);
+        $this->persistentServices[$serviceName] = $service;
+        if ($isPermanent) {
+            $this->permanentServices[$serviceName] = $service;
+        }
+        if ($this->client) {
+            $this->client->persistentServices[$serviceName] = $service;
+        }
+    }
+
+    /**
+     * Reboot client's kernel.
+     * Can be used to manually reboot kernel when 'rebootable_client' => false
+     *
+     * ``` php
+     * <?php
+     * ...
+     * perform some requests
+     * ...
+     * $I->rebootClientKernel();
+     * ...
+     * perform other requests
+     * ...
+     *
+     * ?>
+     * ```
+     *
+     */
+    public function rebootClientKernel()
+    {
+        if ($this->client) {
+            $this->client->rebootKernel();
+        }
+    }
+
+    /**
+     * Run Symfony console command, grab response and return as string.
+     * Recommended to use for integration or functional testing.
+     *
+     * ``` php
+     * <?php
+     * $result = $I->runSymfonyConsoleCommand('hello:world', ['arg' => 'argValue', 'opt1' => 'optValue'], ['input']);
+     * ?>
+     * ```
+     *
+     * @param string $command          The console command to execute
+     * @param array  $parameters       Parameters (arguments and options) to pass to the command
+     * @param array  $consoleInputs    Console inputs (e.g. used for interactive questions)
+     * @param int    $expectedExitCode The expected exit code of the command
+     *
+     * @return string Returns the console output of the command
+     */
+    public function runSymfonyConsoleCommand($command, $parameters = [], $consoleInputs = [], $expectedExitCode = 0)
+    {
+        $kernel = $this->grabService('kernel');
+        $application = new Application($kernel);
+        $consoleCommand = $application->find($command);
+        $commandTester = new CommandTester($consoleCommand);
+        $commandTester->setInputs($consoleInputs);
+
+        $parameters = ['command' => $command] + $parameters;
+        $exitCode = $commandTester->execute($parameters);
+        $output = $commandTester->getDisplay();
+
+        $this->assertEquals(
+            $expectedExitCode,
+            $exitCode,
+            'Command did not exit with code '.$expectedExitCode
+            .' but with '.$exitCode.': '.$output
+        );
+
+        return $output;
+    }
+
+    /**
      * Checks that current url matches route.
      *
      * ``` php
@@ -434,42 +691,13 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $uri = explode('?', $this->grabFromCurrentUrl())[0];
         try {
             $match = $router->match($uri);
-        } catch (\Symfony\Component\Routing\Exception\ResourceNotFoundException $e) {
+        } catch (ResourceNotFoundException $e) {
             $this->fail(sprintf('The "%s" url does not match with any route', $uri));
         }
         $expected = array_merge(['_route' => $routeName], $params);
         $intersection = array_intersect_assoc($expected, $match);
 
         $this->assertEquals($expected, $intersection);
-    }
-
-    /**
-     * Checks that current url matches route.
-     * Unlike seeCurrentRouteIs, this can matches without exact route parameters
-     *
-     * ``` php
-     * <?php
-     * $I->seeCurrentRouteMatches('my_blog_pages');
-     * ?>
-     * ```
-     *
-     * @param $routeName
-     */
-    public function seeInCurrentRoute($routeName)
-    {
-        $router = $this->grabService('router');
-        if (!$router->getRouteCollection()->get($routeName)) {
-            $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
-        }
-
-        $uri = explode('?', $this->grabFromCurrentUrl())[0];
-        try {
-            $matchedRouteName = $router->match($uri)['_route'];
-        } catch (\Symfony\Component\Routing\Exception\ResourceNotFoundException $e) {
-            $this->fail(sprintf('The "%s" url does not match with any route', $uri));
-        }
-
-        $this->assertEquals($matchedRouteName, $routeName);
     }
 
     /**
@@ -544,230 +772,49 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
-     * Checks that no email was sent. This is an alias for seeEmailIsSent(0).
-     *
-     * @part email
-     */
-    public function dontSeeEmailIsSent()
-    {
-        $this->seeEmailIsSent(0);
-    }
-
-    /**
-     * Grabs a service from Symfony DIC container.
-     * Recommended to use for unit testing.
+     * Checks that current url matches route.
+     * Unlike seeCurrentRouteIs, this can matches without exact route parameters
      *
      * ``` php
      * <?php
-     * $em = $I->grabService('doctrine');
+     * $I->seeCurrentRouteMatches('my_blog_pages');
      * ?>
      * ```
      *
-     * @param $service
-     * @return mixed
-     * @part services
+     * @param $routeName
      */
-    public function grabService($service)
+    public function seeInCurrentRoute($routeName)
     {
-        $container = $this->_getContainer();
-        if (!$container->has($service)) {
-            $this->fail("Service $service is not available in container");
+        $router = $this->grabService('router');
+        if (!$router->getRouteCollection()->get($routeName)) {
+            $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
         }
-        return $container->get($service);
+
+        $uri = explode('?', $this->grabFromCurrentUrl())[0];
+        try {
+            $matchedRouteName = $router->match($uri)['_route'];
+        } catch (ResourceNotFoundException $e) {
+            $this->fail(sprintf('The "%s" url does not match with any route', $uri));
+        }
+
+        $this->assertEquals($matchedRouteName, $routeName);
     }
 
     /**
-     * Run Symfony console command, grab response and return as string.
-     * Recommended to use for integration or functional testing.
+     * Remove service $serviceName from the lists of persistent services.
      *
-     * ``` php
-     * <?php
-     * $result = $I->runSymfonyConsoleCommand('hello:world', ['arg' => 'argValue', 'opt1' => 'optValue'], ['input']);
-     * ?>
-     * ```
-     *
-     * @param string $command          The console command to execute
-     * @param array  $parameters       Parameters (arguments and options) to pass to the command
-     * @param array  $consoleInputs    Console inputs (e.g. used for interactive questions)
-     * @param int    $expectedExitCode The expected exit code of the command
-     *
-     * @return string Returns the console output of the command
+     * @param string $serviceName
      */
-    public function runSymfonyConsoleCommand($command, $parameters = [], $consoleInputs = [], $expectedExitCode = 0)
+    public function unpersistService($serviceName)
     {
-        $kernel = $this->grabService('kernel');
-        $application = new Application($kernel);
-        $consoleCommand = $application->find($command);
-        $commandTester = new CommandTester($consoleCommand);
-        $commandTester->setInputs($consoleInputs);
-
-        $parameters = ['command' => $command] + $parameters;
-        $exitCode = $commandTester->execute($parameters);
-        $output = $commandTester->getDisplay();
-
-        $this->assertEquals(
-            $expectedExitCode,
-            $exitCode,
-            'Command did not exit with code '.$expectedExitCode
-            .' but with '.$exitCode.': '.$output
-        );
-
-        return $output;
-    }
-    /**
-     * @return \Symfony\Component\HttpKernel\Profiler\Profile
-     */
-    protected function getProfile()
-    {
-        $container = $this->_getContainer();
-        if (!$container->has('profiler')) {
-            return null;
+        if (isset($this->persistentServices[$serviceName])) {
+            unset($this->persistentServices[$serviceName]);
         }
-
-        $profiler = $this->grabService('profiler');
-        $response = $this->client->getResponse();
-        if (null === $response) {
-            $this->fail("You must perform a request before using this method.");
+        if (isset($this->permanentServices[$serviceName])) {
+            unset($this->permanentServices[$serviceName]);
         }
-        return $profiler->loadProfileFromResponse($response);
-    }
-
-    /**
-     * @param $url
-     */
-    protected function debugResponse($url)
-    {
-        parent::debugResponse($url);
-
-        if ($profile = $this->getProfile()) {
-            if ($profile->hasCollector('security')) {
-                if ($profile->getCollector('security')->isAuthenticated()) {
-                    $roles = $profile->getCollector('security')->getRoles();
-
-                    if ($roles instanceof Data) {
-                        $roles = $this->extractRawRoles($roles);
-                    }
-
-                    $this->debugSection(
-                        'User',
-                        $profile->getCollector('security')->getUser()
-                        . ' [' . implode(',', $roles) . ']'
-                    );
-                } else {
-                    $this->debugSection('User', 'Anonymous');
-                }
-            }
-            if ($profile->hasCollector('swiftmailer')) {
-                $messages = $profile->getCollector('swiftmailer')->getMessageCount();
-                if ($messages) {
-                    $this->debugSection('Emails', $messages . ' sent');
-                }
-            } elseif ($profile->hasCollector('mailer')) {
-                $messages = count($profile->getCollector('mailer')->getEvents()->getMessages());
-                if ($messages) {
-                    $this->debugSection('Emails', $messages . ' sent');
-                }
-            }
-            if ($profile->hasCollector('timer')) {
-                $this->debugSection('Time', $profile->getCollector('timer')->getTime());
-            }
+        if ($this->client && isset($this->client->persistentServices[$serviceName])) {
+            unset($this->client->persistentServices[$serviceName]);
         }
-    }
-
-    /**
-     * @param Data $data
-     * @return array
-     */
-    private function extractRawRoles(Data $data)
-    {
-        if ($this->dataRevealsValue($data)) {
-            $roles = $data->getValue();
-        } else {
-            $raw = $data->getRawData();
-            $roles = isset($raw[1]) ? $raw[1] : [];
-        }
-
-        return $roles;
-    }
-
-    /**
-     * Returns a list of recognized domain names.
-     *
-     * @return array
-     */
-    protected function getInternalDomains()
-    {
-        $internalDomains = [];
-
-        $routes = $this->grabService('router')->getRouteCollection();
-        /* @var \Symfony\Component\Routing\Route $route */
-        foreach ($routes as $route) {
-            if (!is_null($route->getHost())) {
-                $compiled = $route->compile();
-                if (!is_null($compiled->getHostRegex())) {
-                    $internalDomains[] = $compiled->getHostRegex();
-                }
-            }
-        }
-
-        return array_unique($internalDomains);
-    }
-
-    /**
-     * Reboot client's kernel.
-     * Can be used to manually reboot kernel when 'rebootable_client' => false
-     *
-     * ``` php
-     * <?php
-     * ...
-     * perform some requests
-     * ...
-     * $I->rebootClientKernel();
-     * ...
-     * perform other requests
-     * ...
-     *
-     * ?>
-     * ```
-     *
-     */
-    public function rebootClientKernel()
-    {
-        if ($this->client) {
-            $this->client->rebootKernel();
-        }
-    }
-
-    /**
-     * Public API from Data changed from Symfony 3.2 to 3.3.
-     *
-     * @param \Symfony\Component\VarDumper\Cloner\Data $data
-     *
-     * @return bool
-     */
-    private function dataRevealsValue(Data $data)
-    {
-        return method_exists($data, 'getValue');
-    }
-
-    /**
-     * Returns list of the possible kernel classes based on the module configuration
-     *
-     * @return array
-     */
-    private function getPossibleKernelClasses()
-    {
-        if (empty($this->config['kernel_class'])) {
-            return self::$possibleKernelClasses;
-        }
-
-        if (!is_string($this->config['kernel_class'])) {
-            throw new ModuleException(
-                __CLASS__,
-                "Parameter 'kernel_class' must have 'string' type.\n"
-            );
-        }
-
-        return [$this->config['kernel_class']];
     }
 }
