@@ -787,15 +787,14 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function seeNumRecords($expectedNum, $className, $criteria = [])
     {
-        $em = $this->_getEntityManager();
+        $em         = $this->_getEntityManager();
         $repository = $em->getRepository($className);
 
         if (empty($criteria)) {
-            $currentNum = (int) $repository->createQueryBuilder('a')
+            $currentNum = (int)$repository->createQueryBuilder('a')
                 ->select('count(a.id)')
                 ->getQuery()
-                ->getSingleScalarResult()
-            ;
+                ->getSingleScalarResult();
         } else {
             $currentNum = $repository->count($criteria);
         }
@@ -808,5 +807,44 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
                 $className, $currentNum, $expectedNum, json_encode($criteria)
             )
         );
+    }
+
+    /**
+     * Invalidate the current session.
+     * ```php
+     * <?php
+     * $I->logout();
+     * ```
+     */
+    public function logout()
+    {
+        $container = $this->_getContainer();
+
+        if ($container->has('security.token_storage')) {
+            $tokenStorage = $this->grabService('security.token_storage');
+            $tokenStorage->setToken(null);
+        }
+
+        if (!$container->has('session')) {
+            $this->fail("Symfony container doesn't have 'session' service");
+            return;
+        }
+        $session = $this->grabService('session');
+
+        $sessionName = $session->getName();
+        $session->invalidate();
+
+        $cookieJar = $this->client->getCookieJar();
+        foreach ($cookieJar->all() as $cookie) {
+            $cookieName = $cookie->getName();
+            if ($cookieName === 'MOCKSESSID' ||
+                $cookieName === 'REMEMBERME' ||
+                $cookieName === $sessionName
+            ) {
+                $cookieJar->expire($cookieName);
+            }
+        }
+        $cookieJar->flushExpiredCookies();
+
     }
 }
