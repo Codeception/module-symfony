@@ -770,4 +770,41 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         return [$this->config['kernel_class']];
     }
+
+    /**
+     * Invalidate the current session.
+     * ```php
+     * <?php
+     * $I->logout();
+     * ```
+     */
+    public function logout()
+    {
+        $container = $this->_getContainer();
+
+        if ($container->has('security.token_storage')) {
+            $tokenStorage = $this->grabService('security.token_storage');
+            $tokenStorage->setToken(null);
+        }
+
+        if (!$container->has('session')) {
+            return;
+        }
+        $session = $this->grabService('session');
+
+        $sessionName = $session->getName();
+        $session->invalidate();
+
+        $cookieJar = $this->client->getCookieJar();
+        foreach ($cookieJar->all() as $cookie) {
+            $cookieName = $cookie->getName();
+            if ($cookieName === 'MOCKSESSID' ||
+                $cookieName === 'REMEMBERME' ||
+                $cookieName === $sessionName
+            ) {
+                $cookieJar->expire($cookieName);
+            }
+        }
+        $cookieJar->flushExpiredCookies();
+    }
 }

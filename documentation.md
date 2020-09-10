@@ -747,6 +747,15 @@ $I->haveHttpHeader('Client&#95;Id', 'Codeception');
 Invalidate previously cached routes.
 
 
+### logout
+ 
+Invalidate the current session.
+```php
+<?php
+$I->logout();
+```
+
+
 ### makeHtmlSnapshot
  
 Saves current page's HTML into a temprary file.
