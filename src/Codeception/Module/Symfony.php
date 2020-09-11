@@ -845,6 +845,38 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             }
         }
         $cookieJar->flushExpiredCookies();
+    }
 
+    /**
+     * Assert that a session attribute exists.
+     *
+     * ```php
+     * <?php
+     * $I->seeInSession('attrib');
+     * $I->seeInSession('attrib', 'value');
+     * ```
+     *
+     * @param string $attrib
+     * @param mixed|null $value
+     * @return void
+     */
+    public function seeInSession($attrib, $value = null)
+    {
+        $container = $this->_getContainer();
+
+        if (!$container->has('session')) {
+            $this->fail("Symfony container doesn't have 'session' service");
+            return;
+        }
+
+        $session = $this->grabService('session');
+
+        if (! $session->has($attrib)) {
+            $this->fail("No session attribute with name '$attrib'");
+        }
+
+        if (null !== $value) {
+            $this->assertEquals($value, $session->get($attrib));
+        }
     }
 }
