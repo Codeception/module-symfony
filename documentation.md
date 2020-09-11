@@ -1092,6 +1092,21 @@ $I->seeInFormFields('//form[@id=my-form]', $form);
  * `param` $params
 
 
+### seeInSession
+ 
+Assert that a session attribute exists.
+
+```php
+<?php
+$I->seeInSession('attrib');
+$I->seeInSession('attrib', 'value');
+```
+
+ * `param string` $attrib
+ * `param mixed|null` $value
+ * `return` void
+
+
 ### seeInSource
  
 Checks that the current page contains the given string in its
