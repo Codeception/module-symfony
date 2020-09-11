@@ -220,6 +220,21 @@ Authenticates user for HTTP_AUTH
  * `param` $password
 
 
+### amOnAction
+ 
+Opens web page by action name
+
+``` php
+<?php
+$I->amOnAction('PostController::index');
+$I->amOnAction('HomeController');
+$I->amOnAction('ArticleController', ['slug' => 'lorem-ipsum']);
+```
+
+ * `param string` $action
+ * `param array` $params
+
+
 ### amOnPage
  
 Opens the page for the given relative URI.
