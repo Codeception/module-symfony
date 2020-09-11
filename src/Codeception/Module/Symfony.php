@@ -13,6 +13,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\SplFileInfo;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\VarDumper\Cloner\Data;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -871,12 +872,53 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         $session = $this->grabService('session');
 
-        if (! $session->has($attrib)) {
+        if (!$session->has($attrib)) {
             $this->fail("No session attribute with name '$attrib'");
         }
 
         if (null !== $value) {
             $this->assertEquals($value, $session->get($attrib));
+        }
+    }
+
+    /**
+     * Opens web page by action name
+     *
+     * ``` php
+     * <?php
+     * $I->amOnAction('PostController::index');
+     * $I->amOnAction('HomeController');
+     * $I->amOnAction('ArticleController', ['slug' => 'lorem-ipsum']);
+     * ```
+     *
+     * @param string $action
+     * @param array $params
+     */
+    public function amOnAction($action, $params = [])
+    {
+        $container = $this->_getContainer();
+
+        if (!$container->has('router')) {
+            $this->fail("Symfony container doesn't have 'router' service");
+            return;
+        }
+
+        $router = $this->grabService('router');
+
+        $routes = $router->getRouteCollection()->getIterator();
+
+        foreach ($routes as $route) {
+            $controller = basename($route->getDefault('_controller'));
+            if ($controller === $action) {
+                $resource = $router->match($route->getPath());
+                $url = $router->generate(
+                    $resource['_route'],
+                    $params,
+                    UrlGeneratorInterface::ABSOLUTE_PATH
+                );
+                $this->amOnPage($url);
+                return;
+            }
         }
     }
 }
