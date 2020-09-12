@@ -770,4 +770,42 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         return [$this->config['kernel_class']];
     }
+
+    /**
+     * Check that the current user has a role
+     *
+     * ```php
+     * <?php
+     * $I->seeUserHasRole('ROLE_ADMIN');
+     * ```
+     *
+     * @param string $role
+     */
+    public function seeUserHasRole($role)
+    {
+        $container = $this->_getContainer();
+
+        if (!$container->has('security.helper')) {
+            $this->fail("Symfony container doesn't have 'security.helper' service");
+            return;
+        }
+
+        $security = $this->grabService('security.helper');
+
+        $user = $security->getUser();
+
+        if (!$user) {
+            $this->fail('There is no user in session');
+            return;
+        }
+
+        $this->assertTrue(
+            $security->isGranted($role),
+            sprintf(
+                "User %s has no role %s",
+                $user->getUsername(),
+                $role
+            )
+        );
+    }
 }
