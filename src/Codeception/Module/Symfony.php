@@ -998,4 +998,38 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             )
         );
     }
+
+    /**
+     * Check that user is not authenticated.
+     * You can specify whether users logged in with the 'remember me' option should be ignored by passing 'false' as a parameter.
+     *
+     * ```php
+     * <?php
+     * $I->dontSeeAuthentication();
+     * ```
+     *
+     * @param bool $remembered
+     */
+    public function dontSeeAuthentication($remembered = true)
+    {
+        $container = $this->_getContainer();
+
+        if (!$container->has('security.helper')) {
+            $this->fail("Symfony container doesn't have 'security.helper' service");
+            return;
+        }
+
+        $security = $this->grabService('security.helper');
+
+        if ($remembered) {
+            $role = 'IS_AUTHENTICATED_REMEMBERED';
+        } else {
+            $role = 'IS_AUTHENTICATED_FULLY';
+        }
+
+        $this->assertFalse(
+            $security->isGranted($role),
+            'There is an user authenticated'
+        );
+    }
 }
