@@ -948,6 +948,19 @@ $I->seeCookie('PHPSESSID');
  * `param array` $params
 
 
+### seeCurrentActionIs
+ 
+Checks that current page matches action
+
+``` php
+<?php
+$I->seeCurrentActionIs('PostController::index');
+$I->seeCurrentActionIs('HomeController');
+```
+
+ * `param string` $action
+
+
 ### seeCurrentRouteIs
  
 Checks that current url matches route.
