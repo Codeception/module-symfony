@@ -770,4 +770,43 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         return [$this->config['kernel_class']];
     }
+
+    /**
+     * Checks that a user is authenticated.
+     * You can check users logged in with the option 'remember me' passing true as parameter.
+     *
+     * ```php
+     * <?php
+     * $I->seeAuthentication();
+     * $I->seeAuthentication(true);
+     * ```
+     *
+     * @param bool $remembered
+     */
+    public function seeAuthentication($remembered = false)
+    {
+        $container = $this->_getContainer();
+
+        if (!$container->has('security.helper')) {
+            $this->fail("Symfony container doesn't have 'security.helper' service");
+            return;
+        }
+
+        $security = $this->grabService('security.helper');
+
+        $user = $security->getUser();
+
+        if (!$user) {
+            $this->fail('There is no user in session');
+            return;
+        }
+
+        if ($remembered) {
+            $role = 'IS_AUTHENTICATED_REMEMBERED';
+        } else {
+            $role = 'IS_AUTHENTICATED_FULLY';
+        }
+
+        $this->assertTrue($security->isGranted($role), 'There is no authenticated user');
+    }
 }
