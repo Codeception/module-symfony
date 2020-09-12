@@ -790,6 +790,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $container = $this->_getContainer();
 
         if (!$container->has('router')) {
+            $this->fail("Symfony container doesn't have 'router' service");
             return;
         }
 
