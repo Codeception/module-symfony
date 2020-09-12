@@ -770,4 +770,41 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         return [$this->config['kernel_class']];
     }
+
+    /**
+     * Checks that current page matches action
+     *
+     * ``` php
+     * <?php
+     * $I->seeCurrentActionIs('PostController::index');
+     * $I->seeCurrentActionIs('HomeController');
+     * ```
+     *
+     * @param string $action
+     */
+    public function seeCurrentActionIs($action)
+    {
+        $container = $this->_getContainer();
+
+        if (!$container->has('router')) {
+            $this->fail("Symfony container doesn't have 'router' service");
+            return;
+        }
+
+        $router = $this->grabService('router');
+
+        $routes = $router->getRouteCollection()->getIterator();
+
+        foreach ($routes as $route) {
+            $controller = basename($route->getDefault('_controller'));
+            if ($controller === $action) {
+                $request = $this->client->getRequest();
+                $currentAction = basename($request->attributes->get('_controller'));
+
+                $this->assertEquals($currentAction, $action, "Current action is '$currentAction'.");
+                return;
+            }
+        }
+        $this->fail("Action '$action' does not exist");
+    }
 }
