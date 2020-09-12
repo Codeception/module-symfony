@@ -789,6 +789,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $container = $this->_getContainer();
 
         if (!$container->has('session')) {
+            $this->fail("Symfony container doesn't have 'session' service");
             return;
         }
 
