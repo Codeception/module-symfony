@@ -890,6 +890,20 @@ For checking the raw source code, use `seeInSource()`.
  * `param array|string` $selector optional
 
 
+### seeAuthentication
+ 
+Checks that a user is authenticated.
+You can check users logged in with the option 'remember me' passing true as parameter.
+
+```php
+<?php
+$I->seeAuthentication();
+$I->seeAuthentication(true);
+```
+
+ * `param bool` $remembered
+
+
 ### seeCheckboxIsChecked
  
 Checks that the specified checkbox is checked.
