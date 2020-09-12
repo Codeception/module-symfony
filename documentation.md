@@ -361,6 +361,20 @@ For checking the raw source code, use `seeInSource()`.
  * `param array|string` $selector optional
 
 
+### dontSeeAuthentication
+ 
+Check that user is not authenticated.
+You can specify whether users logged in with the 'remember me' option should be ignored by passing 'false' as a parameter.
+
+```php
+<?php
+$I->dontSeeAuthentication();
+$I->dontSeeAuthentication(false);
+```
+
+ * `param bool` $remembered
+
+
 ### dontSeeCheckboxIsChecked
  
 Check that the specified checkbox is unchecked.
