@@ -1281,6 +1281,18 @@ Checks that the response code is 5xx
 Checks that the response code 2xx
 
 
+### seeUserHasRole
+ 
+Check that the current user has a role
+
+```php
+<?php
+$I->seeUserHasRole('ROLE_ADMIN');
+```
+
+ * `param string` $role
+
+
 ### selectOption
  
 Selects an option in a select tag or in radio button group.
