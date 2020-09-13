@@ -1135,6 +1135,22 @@ $I->seeLink('Logout','/logout'); // matches <a href="/logout">Logout</a>
  * `param string` $url optional
 
 
+### seeNumRecords
+ 
+Checks that number of given records were found in database.
+'id' is the default search parameter.
+
+```php
+<?php
+$I->seeNumRecords(1, User::class, ['name' => 'davert']);
+$I->seeNumRecords(80, User::class);
+```
+
+ * `param int` $expectedNum Expected number of records
+ * `param string` $className A doctrine entity
+ * `param array` $criteria Optional query criteria
+
+
 ### seeNumberOfElements
  
 Checks that there are a certain number of elements matched by the given locator on the page.

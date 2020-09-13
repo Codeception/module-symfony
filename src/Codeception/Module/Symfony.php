@@ -770,4 +770,43 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         return [$this->config['kernel_class']];
     }
+
+    /**
+     * Checks that number of given records were found in database.
+     * 'id' is the default search parameter.
+     *
+     * ```php
+     * <?php
+     * $I->seeNumRecords(1, User::class, ['name' => 'davert']);
+     * $I->seeNumRecords(80, User::class);
+     * ```
+     *
+     * @param int $expectedNum Expected number of records
+     * @param string $className A doctrine entity
+     * @param array $criteria Optional query criteria
+     */
+    public function seeNumRecords($expectedNum, $className, $criteria = [])
+    {
+        $em = $this->_getEntityManager();
+        $repository = $em->getRepository($className);
+
+        if (empty($criteria)) {
+            $currentNum = (int) $repository->createQueryBuilder('a')
+                ->select('count(a.id)')
+                ->getQuery()
+                ->getSingleScalarResult()
+            ;
+        } else {
+            $currentNum = $repository->count($criteria);
+        }
+
+        $this->assertEquals(
+            $expectedNum,
+            $currentNum,
+            sprintf(
+                'The number of found %s (%d) does not match expected number %d with %s',
+                $className, $currentNum, $expectedNum, json_encode($criteria)
+            )
+        );
+    }
 }
