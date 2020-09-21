@@ -38,6 +38,7 @@ use Symfony\Component\VarDumper\Cloner\Data;
  * * cache_router: 'false' - enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
  * * rebootable_client: 'true' - reboot client's kernel before each request
  * * mailer: 'symfony_mailer' - choose the mailer used by your application
+ * * guard: 'false' - Specifies if Guard component is used as authentication system
  *
  * #### Example (`functional.suite.yml`) - Symfony 4 Directory Structure
  *
@@ -59,6 +60,7 @@ use Symfony\Component\VarDumper\Cloner\Data;
  * * cache_router: 'false' - enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
  * * rebootable_client: 'true' - reboot client's kernel before each request
  * * mailer: 'swiftmailer' - choose the mailer used by your application
+ * * guard: 'false' - Specifies if Guard component is used as authentication system
  *
  * #### Example (`functional.suite.yml`) - Symfony 3 Directory Structure
  *
@@ -80,6 +82,7 @@ use Symfony\Component\VarDumper\Cloner\Data;
  * * cache_router: 'false' - enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
  * * rebootable_client: 'true' - reboot client's kernel before each request
  * * mailer: 'swiftmailer' - choose the mailer used by your application
+ * * guard: 'false' - Specifies if Guard component is used as authentication system
  *
  * ### Example (`functional.suite.yml`) - Symfony 2.x Directory Structure
  *
@@ -773,6 +776,22 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         return [$this->config['kernel_class']];
     }
 
+    /**
+     * Login with the given UserInterface.
+     * That UserInterface object must have a persistent identifier.
+     *
+     * ```php
+     * <?php
+     * $user = $I->grabEntityFromRepository(User::class, [
+     * 'email' => 'john_doe@gmail.com'
+     * ]);
+     * $I->amLoggedInAs($user);
+     * ```
+     *
+     * @param UserInterface $user
+     * @param string $firewallName
+     * @param null $firewallContext
+     */
     public function amLoggedInAs(UserInterface $user, $firewallName = 'main', $firewallContext = null)
     {
         $container = $this->_getContainer();

@@ -1,4 +1,24 @@
 # Symfony
+## Installation
+
+If you use Codeception installed using composer, install this module with the following command:
+
+```
+composer require --dev codeception/module-symfony
+```
+
+Alternatively, you can enable `Symfony` module in suite configuration file and run
+ 
+```
+codecept init upgrade4
+```
+
+This module was bundled with Codeception 2 and 3, but since version 4 it is necessary to install it separately.   
+Some modules are bundled with PHAR files.  
+Warning. Using PHAR file and composer in the same project can cause unexpected errors.  
+
+## Description
+
 
 
 This module uses Symfony Crawler and HttpKernel to emulate requests and test response.
@@ -18,6 +38,8 @@ This module uses Symfony Crawler and HttpKernel to emulate requests and test res
 * debug: true - turn on/off debug mode
 * cache_router: 'false' - enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
 * rebootable_client: 'true' - reboot client's kernel before each request
+* mailer: 'symfony_mailer' - choose the mailer used by your application
+* guard: 'false' - Specifies if Guard component is used as authentication system
 
 #### Example (`functional.suite.yml`) - Symfony 4 Directory Structure
 
@@ -38,6 +60,8 @@ This module uses Symfony Crawler and HttpKernel to emulate requests and test res
 * debug: true - turn on/off debug mode
 * cache_router: 'false' - enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
 * rebootable_client: 'true' - reboot client's kernel before each request
+* mailer: 'swiftmailer' - choose the mailer used by your application
+* guard: 'false' - Specifies if Guard component is used as authentication system
 
 #### Example (`functional.suite.yml`) - Symfony 3 Directory Structure
 
@@ -58,6 +82,8 @@ This module uses Symfony Crawler and HttpKernel to emulate requests and test res
 * em_service: 'doctrine.orm.entity_manager' - use the stated EntityManager to pair with Doctrine Module.
 * cache_router: 'false' - enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
 * rebootable_client: 'true' - reboot client's kernel before each request
+* mailer: 'swiftmailer' - choose the mailer used by your application
+* guard: 'false' - Specifies if Guard component is used as authentication system
 
 ### Example (`functional.suite.yml`) - Symfony 2.x Directory Structure
 
@@ -220,6 +246,24 @@ Authenticates user for HTTP_AUTH
  * `param` $password
 
 
+### amLoggedInAs
+ 
+Login with the given UserInterface.
+That UserInterface object must have a persistent identifier.
+
+```php
+<?php
+$user = $I->grabEntityFromRepository(User::class, [
+'email' => 'john_doe@gmail.com'
+]);
+$I->amLoggedInAs($user);
+```
+
+ * `param UserInterface` $user
+ * `param string` $firewallName
+ * `param null` $firewallContext
+
+
 ### amOnPage
  
 Opens the page for the given relative URI.
@@ -233,23 +277,6 @@ $I->amOnPage('/register');
 ```
 
  * `param string` $page
-
-
-### amLoggedInAs
-
-Login with the given UserInterface.
-
-```php
-<?php
-$user = $I->grabEntityFromRepository(User::class, [
-    'email' => 'john_doe@gmail.com'
-]);
-$I->amLoggedInAs($user);
-```
-
- * `param UserInterface` $user
- * `param string` $firewallName
- * `param null` $firewallContext
 
 
 ### amOnRoute
