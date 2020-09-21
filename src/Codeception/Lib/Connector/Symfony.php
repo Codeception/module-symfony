@@ -2,9 +2,9 @@
 namespace Codeception\Lib\Connector;
 
 use Symfony\Component\HttpKernel\HttpKernelBrowser;
+use Symfony\Component\HttpKernel\Kernel;
 
-//Alias for Symfony < 4.3
-if (!class_exists('Symfony\Component\HttpKernel\HttpKernelBrowser') && class_exists('Symfony\Component\HttpKernel\Client')) {
+if (Kernel::VERSION_ID < 40300) {
     class_alias('Symfony\Component\HttpKernel\Client', 'Symfony\Component\HttpKernel\HttpKernelBrowser');
 }
 
