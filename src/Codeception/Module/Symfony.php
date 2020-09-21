@@ -237,7 +237,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         parent::_after($test);
     }
 
-    public function onReconfigure($settings = [])
+    protected function onReconfigure($settings = [])
     {
 
         parent::_beforeSuite($settings);
