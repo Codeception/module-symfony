@@ -1,24 +1,4 @@
 # Symfony
-## Installation
-
-If you use Codeception installed using composer, install this module with the following command:
-
-```
-composer require --dev codeception/module-symfony
-```
-
-Alternatively, you can enable `Symfony` module in suite configuration file and run
- 
-```
-codecept init upgrade4
-```
-
-This module was bundled with Codeception 2 and 3, but since version 4 it is necessary to install it separately.   
-Some modules are bundled with PHAR files.  
-Warning. Using PHAR file and composer in the same project can cause unexpected errors.  
-
-## Description
-
 
 
 This module uses Symfony Crawler and HttpKernel to emulate requests and test response.
