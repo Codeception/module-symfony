@@ -571,7 +571,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     {
         $container = $this->_getContainer();
         if (!$container->has($service)) {
-            $this->fail("Service $service is not available in container");
+            $this->fail("Service $service is not available in container. If the service isn't injected anywhere in your app, you need to set it to `public` in `services.php`/`.yaml`");
         }
         return $container->get($service);
     }
