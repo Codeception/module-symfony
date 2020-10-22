@@ -497,8 +497,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             case self::SWIFTMAILER:
                 if (!$profile->hasCollector('swiftmailer')) {
                     $this->fail(
-                        'Emails can\'t be tested without SwiftMailer connector.
-                    If you are using Symfony Mailer define mailer: "symfony_mailer" in Symfony module config.'
+                        "Emails can't be tested without SwiftMailer connector.\nIf you are using Symfony Mailer, set this in your `functional.suite.yml`: `mailer: 'symfony_mailer'`"
                     );
                 }
                 break;
