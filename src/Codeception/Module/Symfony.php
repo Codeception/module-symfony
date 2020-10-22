@@ -554,8 +554,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
-     * Grabs a service from Symfony DIC container.
-     * Recommended to use for unit testing.
+     * Grabs a service from the Symfony container.
+     * In "test" environment, Symfony uses a special `test.service_container`, see https://symfony.com/doc/current/testing.html#accessing-the-container
+     * Services that aren't injected somewhere into your app, need to be defined as `public` to be accessible by Codeception.
      *
      * ``` php
      * <?php
