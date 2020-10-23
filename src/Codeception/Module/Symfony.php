@@ -477,7 +477,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * If no argument is provided then at least one email must be sent to satisfy the check.
      * The email is checked using Symfony's profiler, which means:
      * * If your app performs a redirect after sending the email, you need to suppress this using REST Module's [stopFollowingRedirects](https://codeception.com/docs/modules/REST#stopFollowingRedirects)
-     * * If the email is sent by a Symfony Console Command, Codeception cannot detect it.
+     * * If the email is sent by a Symfony Console Command, Codeception cannot detect it yet.
      *
      * ``` php
      * <?php
