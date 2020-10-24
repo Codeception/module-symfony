@@ -1,27 +1,32 @@
 <?php
+
 namespace Codeception\Lib\Connector;
 
+use InvalidArgumentException;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelBrowser;
+use Symfony\Component\HttpKernel\Kernel;
 
-//Alias for Symfony < 4.3
-if (!class_exists('Symfony\Component\HttpKernel\HttpKernelBrowser') && class_exists('Symfony\Component\HttpKernel\Client')) {
+if (Kernel::VERSION_ID < 40300) {
     class_alias('Symfony\Component\HttpKernel\Client', 'Symfony\Component\HttpKernel\HttpKernelBrowser');
 }
 
 class Symfony extends HttpKernelBrowser
 {
     /**
-     * @var boolean
+     * @var bool
      */
     private $rebootable = true;
 
     /**
-     * @var boolean
+     * @var bool
      */
     private $hasPerformedRequest = false;
 
     /**
-     * @var \Symfony\Component\DependencyInjection\ContainerInterface
+     * @var ContainerInterface
      */
     private $container = null;
 
@@ -33,11 +38,11 @@ class Symfony extends HttpKernelBrowser
     /**
      * Constructor.
      *
-     * @param \Symfony\Component\HttpKernel\Kernel  $kernel     A booted HttpKernel instance
-     * @param array                                 $services   An injected services
-     * @param boolean                               $rebootable
+     * @param Kernel            $kernel     A booted HttpKernel instance
+     * @param array             $services   An injected services
+     * @param bool              $rebootable
      */
-    public function __construct(\Symfony\Component\HttpKernel\Kernel $kernel, array $services = [], $rebootable = true)
+    public function __construct(Kernel $kernel, array $services = [], $rebootable = true)
     {
         parent::__construct($kernel);
         $this->followRedirects(true);
@@ -48,7 +53,8 @@ class Symfony extends HttpKernelBrowser
     }
 
     /**
-     * @param \Symfony\Component\HttpFoundation\Request $request
+     * @param Request $request
+     * @return Response
      */
     protected function doRequest($request)
     {
@@ -86,7 +92,7 @@ class Symfony extends HttpKernelBrowser
         foreach ($this->persistentServices as $serviceName => $service) {
             try {
                 $this->container->set($serviceName, $service);
-            } catch (\InvalidArgumentException $e) {
+            } catch (InvalidArgumentException $e) {
                 //Private services can't be set in Symfony 4
                 codecept_debug("[Symfony] Can't set persistent service $serviceName: " . $e->getMessage());
             }
