@@ -220,6 +220,21 @@ Authenticates user for HTTP_AUTH
  * `param` $password
 
 
+### amOnAction
+ 
+Opens web page by action name
+
+``` php
+<?php
+$I->amOnAction('PostController::index');
+$I->amOnAction('HomeController');
+$I->amOnAction('ArticleController', ['slug' => 'lorem-ipsum']);
+```
+
+ * `param string` $action
+ * `param array` $params
+
+
 ### amOnPage
  
 Opens the page for the given relative URI.
@@ -359,6 +374,20 @@ For checking the raw source code, use `seeInSource()`.
 
  * `param string` $text
  * `param array|string` $selector optional
+
+
+### dontSeeAuthentication
+ 
+Check that user is not authenticated.
+You can specify whether users logged in with the 'remember me' option should be ignored by passing 'false' as a parameter.
+
+```php
+<?php
+$I->dontSeeAuthentication();
+$I->dontSeeAuthentication(false);
+```
+
+ * `param bool` $remembered
 
 
 ### dontSeeCheckboxIsChecked
@@ -747,6 +776,15 @@ $I->haveHttpHeader('Client&#95;Id', 'Codeception');
 Invalidate previously cached routes.
 
 
+### logout
+ 
+Invalidate the current session.
+```php
+<?php
+$I->logout();
+```
+
+
 ### makeHtmlSnapshot
  
 Saves current page's HTML into a temprary file.
@@ -866,6 +904,20 @@ For checking the raw source code, use `seeInSource()`.
  * `param array|string` $selector optional
 
 
+### seeAuthentication
+ 
+Checks that a user is authenticated.
+You can check users logged in with the option 'remember me' passing true as parameter.
+
+```php
+<?php
+$I->seeAuthentication();
+$I->seeAuthentication(true);
+```
+
+ * `param bool` $remembered
+
+
 ### seeCheckboxIsChecked
  
 Checks that the specified checkbox is checked.
@@ -894,6 +946,19 @@ $I->seeCookie('PHPSESSID');
 
  * `param` $cookie
  * `param array` $params
+
+
+### seeCurrentActionIs
+ 
+Checks that current page matches action
+
+``` php
+<?php
+$I->seeCurrentActionIs('PostController::index');
+$I->seeCurrentActionIs('HomeController');
+```
+
+ * `param string` $action
 
 
 ### seeCurrentRouteIs
@@ -1092,6 +1157,21 @@ $I->seeInFormFields('//form[@id=my-form]', $form);
  * `param` $params
 
 
+### seeInSession
+ 
+Assert that a session attribute exists.
+
+```php
+<?php
+$I->seeInSession('attrib');
+$I->seeInSession('attrib', 'value');
+```
+
+ * `param string` $attrib
+ * `param mixed|null` $value
+ * `return` void
+
+
 ### seeInSource
  
 Checks that the current page contains the given string in its
@@ -1226,6 +1306,18 @@ Checks that the response code is 5xx
 ### seeResponseCodeIsSuccessful
  
 Checks that the response code 2xx
+
+
+### seeUserHasRole
+ 
+Check that the current user has a role
+
+```php
+<?php
+$I->seeUserHasRole('ROLE_ADMIN');
+```
+
+ * `param string` $role
 
 
 ### selectOption

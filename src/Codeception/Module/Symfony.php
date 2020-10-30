@@ -13,6 +13,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\SplFileInfo;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\VarDumper\Cloner\Data;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -787,15 +788,14 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function seeNumRecords($expectedNum, $className, $criteria = [])
     {
-        $em = $this->_getEntityManager();
+        $em         = $this->_getEntityManager();
         $repository = $em->getRepository($className);
 
         if (empty($criteria)) {
-            $currentNum = (int) $repository->createQueryBuilder('a')
+            $currentNum = (int)$repository->createQueryBuilder('a')
                 ->select('count(a.id)')
                 ->getQuery()
-                ->getSingleScalarResult()
-            ;
+                ->getSingleScalarResult();
         } else {
             $currentNum = $repository->count($criteria);
         }
@@ -808,5 +808,265 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
                 $className, $currentNum, $expectedNum, json_encode($criteria)
             )
         );
+    }
+
+    /**
+     * Invalidate the current session.
+     * ```php
+     * <?php
+     * $I->logout();
+     * ```
+     */
+    public function logout()
+    {
+        $container = $this->_getContainer();
+
+        if ($container->has('security.token_storage')) {
+            $tokenStorage = $this->grabService('security.token_storage');
+            $tokenStorage->setToken(null);
+        }
+
+        if (!$container->has('session')) {
+            $this->fail("Symfony container doesn't have 'session' service");
+            return;
+        }
+        $session = $this->grabService('session');
+
+        $sessionName = $session->getName();
+        $session->invalidate();
+
+        $cookieJar = $this->client->getCookieJar();
+        foreach ($cookieJar->all() as $cookie) {
+            $cookieName = $cookie->getName();
+            if ($cookieName === 'MOCKSESSID' ||
+                $cookieName === 'REMEMBERME' ||
+                $cookieName === $sessionName
+            ) {
+                $cookieJar->expire($cookieName);
+            }
+        }
+        $cookieJar->flushExpiredCookies();
+    }
+
+    /**
+     * Assert that a session attribute exists.
+     *
+     * ```php
+     * <?php
+     * $I->seeInSession('attrib');
+     * $I->seeInSession('attrib', 'value');
+     * ```
+     *
+     * @param string $attrib
+     * @param mixed|null $value
+     * @return void
+     */
+    public function seeInSession($attrib, $value = null)
+    {
+        $container = $this->_getContainer();
+
+        if (!$container->has('session')) {
+            $this->fail("Symfony container doesn't have 'session' service");
+            return;
+        }
+
+        $session = $this->grabService('session');
+
+        if (!$session->has($attrib)) {
+            $this->fail("No session attribute with name '$attrib'");
+        }
+
+        if (null !== $value) {
+            $this->assertEquals($value, $session->get($attrib));
+        }
+    }
+
+    /**
+     * Opens web page by action name
+     *
+     * ``` php
+     * <?php
+     * $I->amOnAction('PostController::index');
+     * $I->amOnAction('HomeController');
+     * $I->amOnAction('ArticleController', ['slug' => 'lorem-ipsum']);
+     * ```
+     *
+     * @param string $action
+     * @param array $params
+     */
+    public function amOnAction($action, $params = [])
+    {
+        $container = $this->_getContainer();
+
+        if (!$container->has('router')) {
+            $this->fail("Symfony container doesn't have 'router' service");
+            return;
+        }
+
+        $router = $this->grabService('router');
+
+        $routes = $router->getRouteCollection()->getIterator();
+
+        foreach ($routes as $route) {
+            $controller = basename($route->getDefault('_controller'));
+            if ($controller === $action) {
+                $resource = $router->match($route->getPath());
+                $url      = $router->generate(
+                    $resource['_route'],
+                    $params,
+                    UrlGeneratorInterface::ABSOLUTE_PATH
+                );
+                $this->amOnPage($url);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Checks that a user is authenticated.
+     * You can check users logged in with the option 'remember me' passing true as parameter.
+     *
+     * ```php
+     * <?php
+     * $I->seeAuthentication();
+     * $I->seeAuthentication(true);
+     * ```
+     *
+     * @param bool $remembered
+     */
+    public function seeAuthentication($remembered = false)
+    {
+        $container = $this->_getContainer();
+
+        if (!$container->has('security.helper')) {
+            $this->fail("Symfony container doesn't have 'security.helper' service");
+            return;
+        }
+
+        $security = $this->grabService('security.helper');
+
+        $user = $security->getUser();
+
+        if (!$user) {
+            $this->fail('There is no user in session');
+            return;
+        }
+
+        if ($remembered) {
+            $role = 'IS_AUTHENTICATED_REMEMBERED';
+        } else {
+            $role = 'IS_AUTHENTICATED_FULLY';
+        }
+
+        $this->assertTrue($security->isGranted($role), 'There is no authenticated user');
+    }
+
+    /**
+     * Check that the current user has a role
+     *
+     * ```php
+     * <?php
+     * $I->seeUserHasRole('ROLE_ADMIN');
+     * ```
+     *
+     * @param string $role
+     */
+    public function seeUserHasRole($role)
+    {
+        $container = $this->_getContainer();
+
+        if (!$container->has('security.helper')) {
+            $this->fail("Symfony container doesn't have 'security.helper' service");
+            return;
+        }
+
+        $security = $this->grabService('security.helper');
+
+        $user = $security->getUser();
+
+        if (!$user) {
+            $this->fail('There is no user in session');
+            return;
+        }
+
+        $this->assertTrue(
+            $security->isGranted($role),
+            sprintf(
+                "User %s has no role %s",
+                $user->getUsername(),
+                $role
+            )
+        );
+    }
+
+    /**
+     * Check that user is not authenticated.
+     * You can specify whether users logged in with the 'remember me' option should be ignored by passing 'false' as a parameter.
+     *
+     * ```php
+     * <?php
+     * $I->dontSeeAuthentication();
+     * ```
+     *
+     * @param bool $remembered
+     */
+    public function dontSeeAuthentication($remembered = true)
+    {
+        $container = $this->_getContainer();
+
+        if (!$container->has('security.helper')) {
+            $this->fail("Symfony container doesn't have 'security.helper' service");
+            return;
+        }
+
+        $security = $this->grabService('security.helper');
+
+        if ($remembered) {
+            $role = 'IS_AUTHENTICATED_REMEMBERED';
+        } else {
+            $role = 'IS_AUTHENTICATED_FULLY';
+        }
+
+        $this->assertFalse(
+            $security->isGranted($role),
+            'There is an user authenticated'
+        );
+    }
+
+    /**
+     * Checks that current page matches action
+     *
+     * ``` php
+     * <?php
+     * $I->seeCurrentActionIs('PostController::index');
+     * $I->seeCurrentActionIs('HomeController');
+     * ```
+     *
+     * @param string $action
+     */
+    public function seeCurrentActionIs($action)
+    {
+        $container = $this->_getContainer();
+
+        if (!$container->has('router')) {
+            $this->fail("Symfony container doesn't have 'router' service");
+            return;
+        }
+
+        $router = $this->grabService('router');
+
+        $routes = $router->getRouteCollection()->getIterator();
+
+        foreach ($routes as $route) {
+            $controller = basename($route->getDefault('_controller'));
+            if ($controller === $action) {
+                $request = $this->client->getRequest();
+                $currentAction = basename($request->attributes->get('_controller'));
+
+                $this->assertEquals($currentAction, $action, "Current action is '$currentAction'.");
+                return;
+            }
+        }
+        $this->fail("Action '$action' does not exist");
     }
 }
