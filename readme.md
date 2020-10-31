@@ -12,4 +12,4 @@ composer require "codeception/module-symfony" --dev
 
 ## Documentation
 
-[Look at documentation.md file](/documentation.md)
+[Module documentation](https://codeception.com/docs/modules/Symfony)
