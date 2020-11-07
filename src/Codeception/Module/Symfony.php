@@ -1038,6 +1038,29 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Grabs a Symfony parameter
+     *
+     * ```php
+     * <?php
+     * $I->grabParameter('app.business_name');
+     * ```
+     *
+     * @param string $name
+     * @return mixed|null
+     */
+    public function grabParameter($name)
+    {
+        $container = $this->_getContainer();
+
+        if (!$container->has('parameter_bag')) {
+            $this->fail("Symfony container doesn't have 'parameter_bag' service");
+            return null;
+        }
+        $parameterBag = $this->grabService('parameter_bag');
+        return $parameterBag->get($name);
+    }
+
+    /**
      * Checks that current page matches action
      *
      * ``` php
