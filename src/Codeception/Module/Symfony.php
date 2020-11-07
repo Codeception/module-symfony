@@ -1004,6 +1004,43 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Checks that an object is a valid \Email instance and was sent at least once.
+     *
+     * ```php
+     * <?php
+     *
+     * $email = $this->mailer->sendEmail();
+     *
+     * $this->unitTester->checkSentEmail($email);
+     * $this->unitTester->checkSentEmail($email, [new Address(
+     *     'john_doe@gmail.com', 'John Doe'
+     * )]);
+     * ```
+     *
+     * @param \Symfony\Component\Mime\Email $email
+     * @param \Symfony\Component\Mime\Address[]|null $addresses
+     * @param int $sent
+     */
+    public function checkSentEmail($email, $addresses = [], $sent = 1)
+    {
+        $emailClass = '\Symfony\Component\Mime\Email';
+        $addressClass = '\Symfony\Component\Mime\Address';
+        $recipients = $email->getTo();
+
+        $this->assertInstanceOf($emailClass, $email);
+
+        $this->assertGreaterOrEquals($sent, count($recipients));
+
+        $this->assertContainsOnlyInstancesOf($addressClass, $recipients);
+
+        if (!empty($addresses)) {
+            foreach ($recipients as $recipient) {
+                $this->assertContainsEquals($recipient, $addresses);
+            }
+        }
+    }
+
+    /**
      * Check that user is not authenticated.
      * You can specify whether users logged in with the 'remember me' option should be ignored by passing 'false' as a parameter.
      *
