@@ -966,6 +966,35 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Submits the given Symfony Form on the page, with the given form values.
+     * If you customized the CSS selectors or field names use ->submitForm() instead.
+     *
+     * ```php
+     * <?php
+     * $I->submitSymfonyForm('login_form', [
+     *     '[email]'    => 'john_doe@gmail.com',
+     *     '[password]' => 'secretForest'
+     * ]);
+     * ```
+     *
+     * @param string $name
+     * @param string[] $fields
+     */
+    public function submitSymfonyForm($name, $fields)
+    {
+        $selector = sprintf('form[name=%s]', $name);
+
+        $params = [];
+        foreach ($fields as $key => $value) {
+            $fixedKey = sprintf('%s%s', $name, $key);
+            $params[$fixedKey] = $value;
+        }
+        $button = sprintf('%s_submit', $name);
+
+        $this->submitForm($selector, $params, $button);
+    }
+
+    /**
      * Check that the current user has a role
      *
      * ```php
