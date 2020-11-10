@@ -644,38 +644,38 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     {
         parent::debugResponse($url);
 
-        if ($profile = $this->getProfile()) {
-            if ($profile->hasCollector('security')) {
-                if ($profile->getCollector('security')->isAuthenticated()) {
-                    $roles = $profile->getCollector('security')->getRoles();
+        if (!$profile = $this->getProfile()) {
+            return;
+        }
 
-                    if ($roles instanceof Data) {
-                        $roles = $this->extractRawRoles($roles);
-                    }
+        if ($profile->hasCollector('security')) {
+            $security = $profile->getCollector('security');
+            if ($security->isAuthenticated()) {
+                $roles = $security->getRoles();
 
-                    $this->debugSection(
-                        'User',
-                        $profile->getCollector('security')->getUser()
-                        . ' [' . implode(',', $roles) . ']'
-                    );
-                } else {
-                    $this->debugSection('User', 'Anonymous');
+                if ($roles instanceof Data) {
+                    $roles = $this->extractRawRoles($roles);
                 }
+
+                $this->debugSection(
+                    'User',
+                    $security->getUser()
+                    . ' [' . implode(',', $roles) . ']'
+                );
+            } else {
+                $this->debugSection('User', 'Anonymous');
             }
-            if ($profile->hasCollector('swiftmailer')) {
-                $messages = $profile->getCollector('swiftmailer')->getMessageCount();
-                if ($messages) {
-                    $this->debugSection('Emails', $messages . ' sent');
-                }
-            } elseif ($profile->hasCollector('mailer')) {
-                $messages = count($profile->getCollector('mailer')->getEvents()->getMessages());
-                if ($messages) {
-                    $this->debugSection('Emails', $messages . ' sent');
-                }
-            }
-            if ($profile->hasCollector('timer')) {
-                $this->debugSection('Time', $profile->getCollector('timer')->getTime());
-            }
+        }
+        if ($profile->hasCollector('swiftmailer')) {
+            $emails = $profile->getCollector('swiftmailer')->getMessageCount();
+        } elseif ($profile->hasCollector('mailer')) {
+            $emails = count($profile->getCollector('mailer')->getEvents()->getMessages());
+        }
+        if (isset($emails)) {
+            $this->debugSection('Emails', $emails . ' sent');
+        }
+        if ($profile->hasCollector('timer')) {
+            $this->debugSection('Time', $profile->getCollector('timer')->getTime());
         }
     }
 
