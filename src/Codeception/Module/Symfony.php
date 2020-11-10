@@ -619,6 +619,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         return $output;
     }
+
     /**
      * @return \Symfony\Component\HttpKernel\Profiler\Profile
      */
@@ -630,11 +631,15 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
 
         $profiler = $this->grabService('profiler');
-        $response = $this->client->getResponse();
-        if (null === $response) {
-            $this->fail("You must perform a request before using this method.");
+        try {
+            $response = $this->client->getResponse();
+            return $profiler->loadProfileFromResponse($response);
+        } catch (\BadMethodCallException $e) {
+            $this->fail('You must perform a request before using this method.');
+        } catch (\Exception $e) {
+            $this->fail($e->getMessage());
         }
-        return $profiler->loadProfileFromResponse($response);
+        return null;
     }
 
     /**
