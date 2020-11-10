@@ -832,7 +832,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         if (!$container->has('session')) {
             $this->fail("Symfony container doesn't have 'session' service");
-            return;
         }
         $session = $this->grabService('session');
 
@@ -871,7 +870,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         if (!$container->has('session')) {
             $this->fail("Symfony container doesn't have 'session' service");
-            return;
         }
 
         $session = $this->grabService('session');
@@ -904,7 +902,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         if (!$container->has('router')) {
             $this->fail("Symfony container doesn't have 'router' service");
-            return;
         }
 
         $router = $this->grabService('router');
@@ -944,7 +941,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         if (!$container->has('security.helper')) {
             $this->fail("Symfony container doesn't have 'security.helper' service");
-            return;
         }
 
         $security = $this->grabService('security.helper');
@@ -953,7 +949,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         if (!$user) {
             $this->fail('There is no user in session');
-            return;
         }
 
         if ($remembered) {
@@ -981,7 +976,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         if (!$container->has('security.helper')) {
             $this->fail("Symfony container doesn't have 'security.helper' service");
-            return;
         }
 
         $security = $this->grabService('security.helper');
@@ -990,7 +984,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         if (!$user) {
             $this->fail('There is no user in session');
-            return;
         }
 
         $this->assertTrue(
@@ -1020,7 +1013,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         if (!$container->has('security.helper')) {
             $this->fail("Symfony container doesn't have 'security.helper' service");
-            return;
         }
 
         $security = $this->grabService('security.helper');
@@ -1054,7 +1046,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         if (!$container->has('router')) {
             $this->fail("Symfony container doesn't have 'router' service");
-            return;
         }
 
         $router = $this->grabService('router');
@@ -1079,7 +1070,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $container = $this->_getContainer();
         if (!$container->has('session')) {
             $this->fail("Symfony container doesn't have 'session' service");
-            return;
         }
 
         $session = $this->grabService('session');
