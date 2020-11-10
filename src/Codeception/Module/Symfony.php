@@ -485,35 +485,29 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * ``` php
      * <?php
      * $I->seeEmailIsSent(2);
-     * ?>
      * ```
      *
-     * @param null|int $expectedCount
+     * @param int|null $expectedCount
      */
     public function seeEmailIsSent($expectedCount = null)
     {
-        $profile = $this->getProfile();
-        if (!$profile) {
-            $this->fail('Emails can\'t be tested without Profiler');
+        if (!$profile = $this->getProfile()) {
+            $this->fail("Emails can't be tested without Profiler");
+            return;
         }
-        switch ($this->config['mailer']) {
-            case self::SWIFTMAILER:
-                if (!$profile->hasCollector('swiftmailer')) {
-                    $this->fail(
-                        "Emails can't be tested without SwiftMailer connector.\nIf you are using Symfony Mailer, set this in your `functional.suite.yml`: `mailer: 'symfony_mailer'`"
-                    );
-                }
-                break;
-            case self::SYMFONY_MAILER:
-                if (!$profile->hasCollector('mailer')) {
-                    $this->fail(
-                        'Emails can\'t be tested without Symfony Mailer connector.
-                    If you are using SwiftMailer define mailer: "swiftmailer" in Symfony module config.'
-                    );
-                }
-                break;
-            default:
-                $this->fail('Invalid mailer config. Allowed Options: "swiftmailer" or "mailer"');
+
+        $mailer = $this->config['mailer'];
+        if ($mailer === self::SYMFONY_MAILER) {
+            $mailer = 'mailer';
+        }
+
+        if (!$profile->hasCollector($mailer)) {
+            $this->fail(
+                "Emails can't be tested without Mailer service connector.
+                Set your mailer service in `functional.suite.yml`: `mailer: swiftmailer`
+                (Or `mailer: symfony_mailer` for Symfony Mailer)."
+            );
+            return;
         }
 
         if (!is_int($expectedCount) && !is_null($expectedCount)) {
@@ -521,28 +515,24 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
                 'The required number of emails must be either an integer or null. "%s" was provided.',
                 print_r($expectedCount, true)
             ));
+            return;
         }
 
-        if ($this->config['mailer'] === self::SWIFTMAILER) {
-            $realCount = $profile->getCollector('swiftmailer')->getMessageCount();
+        $mailCollector = $profile->getCollector($mailer);
+        if ($mailer === self::SWIFTMAILER) {
+            $realCount = $mailCollector->getMessageCount();
         } else {
-            $realCount = count($profile->getCollector('mailer')->getEvents()->getMessages());
+            $realCount = count($mailCollector->getEvents()->getMessages());
         }
 
-        if ($expectedCount === null) {
-            $this->assertGreaterThan(0, $realCount);
-        } else {
-            $this->assertEquals(
-                $expectedCount,
-                $realCount,
-                sprintf(
-                    'Expected number of sent emails was %d, but in reality %d %s sent.',
-                    $expectedCount,
-                    $realCount,
-                    $realCount === 2 ? 'was' : 'were'
-                )
-            );
+        if ($expectedCount) {
+            $this->assertEquals($expectedCount, $realCount, sprintf(
+                'Expected number of sent emails was %d, but in reality %d %s sent.',
+                $expectedCount, $realCount, $realCount === 2 ? 'was' : 'were'
+            ));
+            return;
         }
+        $this->assertGreaterThan(0, $realCount);
     }
 
     /**
