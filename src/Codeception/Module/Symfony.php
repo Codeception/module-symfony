@@ -29,7 +29,7 @@ use Symfony\Component\VarDumper\Cloner\Data;
  *
  * ## Config
  *
- * ### Symfony 4.x
+ * ### Symfony 5.x or 4.x
  *
  * * app_path: 'src' - in Symfony 4 Kernel is located inside `src`
  * * environment: 'local' - environment used for load kernel
@@ -70,26 +70,6 @@ use Symfony\Component\VarDumper\Cloner\Data;
  *               var_path: 'var'
  *               environment: 'local_test'
  *
- *
- * ### Symfony 2.x
- *
- * * app_path: 'app' - specify custom path to your app dir, where bootstrap cache and kernel interface is located.
- * * environment: 'local' - environment used for load kernel
- * * kernel_class: 'AppKernel' - kernel class name
- * * debug: true - turn on/off debug mode
- * * em_service: 'doctrine.orm.entity_manager' - use the stated EntityManager to pair with Doctrine Module.
- * * cache_router: 'false' - enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
- * * rebootable_client: 'true' - reboot client's kernel before each request
- * * mailer: 'swiftmailer' - choose the mailer used by your application
- *
- * ### Example (`functional.suite.yml`) - Symfony 2.x Directory Structure
- *
- * ```
- *    modules:
- *        - Symfony:
- *            app_path: 'app/front'
- *            environment: 'local_test'
- * ```
  *
  * ## Public Properties
  *
@@ -250,7 +230,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     public function _getEntityManager()
     {
         if ($this->kernel === null) {
-            $this->fail('Symfony2 platform module is not loaded');
+            $this->fail('Symfony module is not loaded');
         }
         if (!isset($this->permanentServices[$this->config['em_service']])) {
             // try to persist configured EM
