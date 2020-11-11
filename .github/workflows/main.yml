@@ -22,31 +22,15 @@ jobs:
 
     strategy:
       matrix:
-        php: [5.6, 7.0, 7.1, 7.2, 7.3, 7.4]
-        symfony: [2.8, 3.4, 4, 5]
+        php: [7.0, 7.1, 7.2, 7.3, 7.4]
+        symfony: [3.4, 4, 5]
         exclude:
-          - php: 7.0
-            symfony: 2.8
-          - php: 7.1
-            symfony: 2.8
-          - php: 7.2
-            symfony: 2.8
-          - php: 7.3
-            symfony: 2.8
-          - php: 7.4
-            symfony: 2.8
-          - php: 5.6
-            symfony: 3.4
           - php: 7.3
             symfony: 3.4
           - php: 7.4
             symfony: 3.4
-          - php: 5.6
-            symfony: 4
           - php: 7.0
             symfony: 4
-          - php: 5.6
-            symfony: 5
           - php: 7.0
             symfony: 5
           - php: 7.1
@@ -62,14 +46,6 @@ jobs:
         php-version: ${{ matrix.php }}
         extensions: pdo, mysql, sqlite
         coverage: none
-
-    - name: Checkout Symfony 2.8 Sample
-      if: matrix.symfony == 2.8
-      uses: actions/checkout@v2
-      with:
-        repository: Codeception/symfony-demo
-        path: framework-tests
-        ref: 2.1
 
     - name: Checkout Symfony 3.4 Sample
       if: matrix.symfony == 3.4
@@ -113,13 +89,6 @@ jobs:
         composer require "symfony/browser-kit=~${{ matrix.symfony }}" --no-update --ignore-platform-reqs
         composer install --prefer-dist --no-progress --no-interaction --no-suggest
 
-    - name: Database Symfony 2.8
-      if: matrix.symfony == 2.8
-      run: |
-        php app/console doctrine:schema:create -n --env test
-        php app/console doctrine:fixtures:load -n --env test
-      working-directory: framework-tests
-
     - name: Database Symfony 3.4
       if: matrix.symfony == 3.4
       run: |
@@ -131,11 +100,5 @@ jobs:
         php bin/console doctrine:schema:update --force -n
       working-directory: framework-tests
 
-    - name: Run test suite Symfony > 2.8
-      if: matrix.symfony != 2.8
+    - name: Run test suite Symfony
       run: php vendor/bin/codecept run functional -c framework-tests
-
-    - name: Run test suite Symfony 2.8
-      if: matrix.symfony == 2.8
-      run: php vendor/bin/codecept run functional -c framework-tests/src/AppBundle
-
