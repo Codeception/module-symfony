@@ -22,7 +22,7 @@
         "codeception/module-phpbrowser": "^1.0",
         "codeception/module-rest": "^1.2",
         "codeception/module-sequence": "^1.0",
-        "vlucas/phpdotenv": "^3.6 | ^4.1"
+        "vlucas/phpdotenv": "^3.6 | ^4.1 | ^5.2"
     },
     "autoload":{
         "classmap": ["src/"]
