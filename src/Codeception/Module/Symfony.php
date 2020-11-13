@@ -1089,4 +1089,62 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $cookie = new Cookie($session->getName(), $session->getId());
         $this->client->getCookieJar()->set($cookie);
     }
+
+    /**
+     * Grab a Doctrine entity repository.
+     * Works with objects, entities, repositories, and repository interfaces.
+     *
+     * ```php
+     * <?php
+     * $I->grabRepository($user);
+     * $I->grabRepository(User::class);
+     * $I->grabRepository(UserRepository::class);
+     * $I->grabRepository(UserRepositoryInterface::class);
+     * ```
+     *
+     * @param object|string $mixed
+     * @return \Doctrine\ORM\EntityRepository|null
+     */
+    public function grabRepository($mixed)
+    {
+        $entityRepoClass = '\Doctrine\ORM\EntityRepository';
+        $isNotARepo = function () use ($mixed) {
+            $this->fail(
+                sprintf("'%s' is not an entity repository", $mixed)
+            );
+        };
+        $getRepo = function () use ($mixed, $entityRepoClass, $isNotARepo) {
+            if (!$repo = $this->grabService($mixed)) return null;
+            if (!$repo instanceof $entityRepoClass) {
+                $isNotARepo();
+                return null;
+            }
+            return $repo;
+        };
+
+        if (interface_exists($mixed)) {
+            return $getRepo();
+        }
+
+        if (is_object($mixed)) {
+            $mixed = get_class($mixed);
+        }
+
+        if (!is_string($mixed) || !class_exists($mixed) ) {
+            $isNotARepo();
+            return null;
+        }
+
+        if (is_subclass_of($mixed, $entityRepoClass)){
+            return $getRepo();
+        }
+
+        $em = $this->_getEntityManager();
+        if ($em->getMetadataFactory()->isTransient($mixed)) {
+            $isNotARepo();
+            return null;
+        }
+
+        return $em->getRepository($mixed);
+    }
 }
