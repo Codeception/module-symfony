@@ -78,7 +78,10 @@ use Symfony\Component\VarDumper\Cloner\Data;
  *
  * ## Parts
  *
- * * services - allows to use Symfony DIC only with WebDriver or PhpBrowser modules.
+ * * `services`: Symfony dependency injection container (DIC)
+ *
+ * See [WebDriver module](https://codeception.com/docs/modules/WebDriver#Loading-Parts-from-other-Modules)
+ * for general information on how to load parts of a framework module.
  *
  * Usage example:
  *
@@ -87,13 +90,16 @@ use Symfony\Component\VarDumper\Cloner\Data;
  * modules:
  *     enabled:
  *         - Symfony:
- *             part: SERVICES
+ *             part: services
  *         - Doctrine2:
  *             depends: Symfony
  *         - WebDriver:
  *             url: http://your-url.com
- *             browser: phantomjs
+ *             browser: firefox
  * ```
+ *
+ * If you're using Symfony with Eloquent ORM (instead of Doctrine), you can load the [`ORM` part of Laravel module](https://codeception.com/docs/modules/Laravel5#Parts)
+ * in addition to Symfony module.
  *
  */
 class Symfony extends Framework implements DoctrineProvider, PartedModule
