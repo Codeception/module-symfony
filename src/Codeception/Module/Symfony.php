@@ -456,6 +456,45 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Goes to a page and check that it can be accessed.
+     *
+     * ```php
+     * <?php
+     * $I->seePageIsAvailable('/dashboard');
+     * ```
+     *
+     * @param string $url
+     */
+    public function seePageIsAvailable($url)
+    {
+        $this->amOnPage($url);
+        $this->seeResponseCodeIsSuccessful();
+        $this->seeInCurrentUrl($url);
+    }
+
+    /**
+     * Goes to a page and check that it redirects to another.
+     *
+     * ```php
+     * <?php
+     * $I->seePageRedirectsTo('/admin', '/login');
+     * ```
+     *
+     * @param string $page
+     * @param string $redirectsTo
+     */
+    public function seePageRedirectsTo($page, $redirectsTo)
+    {
+        $this->client->followRedirects(false);
+        $this->amOnPage($page);
+        $this->assertTrue(
+            $this->client->getResponse()->isRedirection()
+        );
+        $this->client->followRedirect();
+        $this->seeInCurrentUrl($redirectsTo);
+    }
+
+    /**
      * Checks if the desired number of emails was sent.
      * If no argument is provided then at least one email must be sent to satisfy the check.
      * The email is checked using Symfony's profiler, which means:
