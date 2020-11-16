@@ -98,6 +98,9 @@ use Symfony\Component\VarDumper\Cloner\Data;
  *             browser: firefox
  * ```
  *
+ * If you're using Symfony with Eloquent ORM (instead of Doctrine), you can load the [`ORM` part of Laravel module](https://codeception.com/docs/modules/Laravel5#Parts)
+ * in addition to Symfony module.
+ *
  */
 class Symfony extends Framework implements DoctrineProvider, PartedModule
 {
