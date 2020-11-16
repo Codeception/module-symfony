@@ -981,6 +981,37 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Submit a form specifying the form name only once.
+     *
+     * Use this function instead of $I->submitForm() to avoid repeating the form name in the field selectors.
+     * If you customized the names of the field selectors use $I->submitForm() for full control.
+     *
+     * ```php
+     * <?php
+     * $I->submitSymfonyForm('login_form', [
+     *     '[email]'    => 'john_doe@gmail.com',
+     *     '[password]' => 'secretForest'
+     * ]);
+     * ```
+     *
+     * @param string $name
+     * @param string[] $fields
+     */
+    public function submitSymfonyForm($name, $fields)
+    {
+        $selector = sprintf('form[name=%s]', $name);
+
+        $params = [];
+        foreach ($fields as $key => $value) {
+            $fixedKey = sprintf('%s%s', $name, $key);
+            $params[$fixedKey] = $value;
+        }
+        $button = sprintf('%s_submit', $name);
+
+        $this->submitForm($selector, $params, $button);
+    }
+
+    /**
      * Check that the current user has a role
      *
      * ```php
