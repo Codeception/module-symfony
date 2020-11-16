@@ -1139,6 +1139,44 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $this->fail("Action '$action' does not exist");
     }
 
+    /**
+     * Checks that the user's password would not benefit from rehashing.
+     * If the user is not provided it is taken from the current session.
+     *
+     * You might use this function after performing tasks like registering a user or submitting a password update form.
+     *
+     * ```php
+     * <?php
+     * $I->seeUserPasswordDoesNotNeedRehash();
+     * $I->seeUserPasswordDoesNotNeedRehash($user);
+     * ```
+     *
+     * @param UserInterface|null $user
+     */
+    public function seeUserPasswordDoesNotNeedRehash(UserInterface $user = null)
+    {
+        $container = $this->_getContainer();
+
+        if (!$user) {
+            if (!$container->has('security.helper')) {
+                $this->fail("Symfony container doesn't have 'security.helper' service");
+            }
+
+            $security = $this->grabService('security.helper');
+            if (!$user = $security->getUser()) {
+                $this->fail('No user found to validate');
+            }
+        }
+
+        if (!$container->has('security.user_password_encoder.generic')) {
+            $this->fail("Symfony container doesn't have 'security.user_password_encoder.generic' service");
+        }
+
+        $encoder = $this->grabService('security.user_password_encoder.generic');
+
+        $this->assertFalse($encoder->needsRehash($user), 'User password needs rehash');
+    }
+
     public function amLoggedInAs(UserInterface $user, $firewallName = 'main', $firewallContext = null)
     {
         $container = $this->_getContainer();
