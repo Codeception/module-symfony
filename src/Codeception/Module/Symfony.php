@@ -966,8 +966,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
-     * Submits the given Symfony Form on the page, with the given form values.
-     * If you customized the CSS selectors or field names use ->submitForm() instead.
+     * Submit a form specifying the form name only once.
+     *
+     * Use this function instead of $I->submitForm() to avoid repeating the form name in the field selectors.
+     * If you customized the names of the field selectors use $I->submitForm() for full control.
      *
      * ```php
      * <?php
