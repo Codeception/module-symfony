@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Codeception\Lib\Connector;
 
 use InvalidArgumentException;
@@ -42,11 +44,11 @@ class Symfony extends HttpKernelBrowser
      * @param array             $services   An injected services
      * @param bool              $rebootable
      */
-    public function __construct(Kernel $kernel, array $services = [], $rebootable = true)
+    public function __construct(Kernel $kernel, array $services = [], bool $rebootable = true)
     {
         parent::__construct($kernel);
         $this->followRedirects(true);
-        $this->rebootable = (boolean)$rebootable;
+        $this->rebootable = $rebootable;
         $this->persistentServices = $services;
         $this->container = $this->kernel->getContainer();
         $this->rebootKernel();
@@ -56,7 +58,7 @@ class Symfony extends HttpKernelBrowser
      * @param Request $request
      * @return Response
      */
-    protected function doRequest($request)
+    protected function doRequest($request): Response
     {
         if ($this->rebootable) {
             if ($this->hasPerformedRequest) {
@@ -78,7 +80,7 @@ class Symfony extends HttpKernelBrowser
     public function rebootKernel()
     {
         if ($this->container) {
-            foreach ($this->persistentServices as $serviceName => $service) {
+            foreach (array_keys($this->persistentServices) as $serviceName) {
                 if ($this->container->has($serviceName)) {
                     $this->persistentServices[$serviceName] = $this->container->get($serviceName);
                 }
@@ -87,6 +89,7 @@ class Symfony extends HttpKernelBrowser
 
         $this->kernel->shutdown();
         $this->kernel->boot();
+
         $this->container = $this->kernel->getContainer();
 
         foreach ($this->persistentServices as $serviceName => $service) {

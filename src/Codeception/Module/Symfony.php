@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Codeception\Module;
 
+use BadMethodCallException;
 use Codeception\Configuration;
 use Codeception\Exception\ModuleException;
 use Codeception\Exception\ModuleRequireException;
@@ -9,12 +12,20 @@ use Codeception\Lib\Connector\Symfony as SymfonyConnector;
 use Codeception\Lib\Framework;
 use Codeception\Lib\Interfaces\DoctrineProvider;
 use Codeception\Lib\Interfaces\PartedModule;
+use Codeception\TestInterface;
+use Exception;
+use ReflectionClass;
+use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\HttpKernel\Profiler\Profile;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\Route;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Guard\Token\PostAuthenticationGuardToken;
@@ -105,6 +116,7 @@ use Symfony\Component\VarDumper\Cloner\Data;
 class Symfony extends Framework implements DoctrineProvider, PartedModule
 {
     const SWIFTMAILER = 'swiftmailer';
+
     const SYMFONY_MAILER = 'symfony_mailer';
 
     private static $possibleKernelClasses = [
@@ -113,7 +125,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     ];
 
     /**
-     * @var \Symfony\Component\HttpKernel\Kernel
+     * @var Kernel
      */
     public $kernel;
 
@@ -131,15 +143,15 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     ];
 
     /**
-     * @return array
+     * @return string[]
      */
-    public function _parts()
+    public function _parts(): array
     {
         return ['services'];
     }
 
     /**
-     * @var
+     * @var string|null
      */
     protected $kernelClass;
 
@@ -159,13 +171,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     public function _initialize()
     {
-
         $this->initializeSymfonyCache();
         $this->kernelClass = $this->getKernelClass();
         $maxNestingLevel = 200; // Symfony may have very long nesting level
         $xdebugMaxLevelKey = 'xdebug.max_nesting_level';
         if (ini_get($xdebugMaxLevelKey) < $maxNestingLevel) {
-            ini_set($xdebugMaxLevelKey, $maxNestingLevel);
+            ini_set($xdebugMaxLevelKey, (string) $maxNestingLevel);
         }
 
         $this->kernel = new $this->kernelClass($this->config['environment'], $this->config['debug']);
@@ -177,7 +188,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
-     * Require Symfonys bootstrap.php.cache only for PHP Version < 7
+     * Require Symfony's bootstrap.php.cache (only for PHP Version < 7)
      *
      * @throws ModuleRequireException
      */
@@ -186,7 +197,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $cache = Configuration::projectDir() . $this->config['var_path'] . DIRECTORY_SEPARATOR . 'bootstrap.php.cache';
         if (PHP_VERSION_ID < 70000 && !file_exists($cache)) {
             throw new ModuleRequireException(
-                __CLASS__,
+                self::class,
                 "Symfony bootstrap file not found in $cache\n \n" .
                 "Please specify path to bootstrap file using `var_path` config option\n \n" .
                 "If you are trying to load bootstrap from a Bundle provide path like:\n \n" .
@@ -203,8 +214,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     /**
      * Initialize new client instance before each test
+     *
+     * @param TestInterface $test
      */
-    public function _before(\Codeception\TestInterface $test)
+    public function _before(TestInterface $test)
     {
         $this->persistentServices = array_merge($this->persistentServices, $this->permanentServices);
         $this->client = new SymfonyConnector($this->kernel, $this->persistentServices, $this->config['rebootable_client']);
@@ -212,10 +225,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     /**
      * Update permanent services after each test
+     *
+     * @param TestInterface $test
      */
-    public function _after(\Codeception\TestInterface $test)
+    public function _after(TestInterface $test)
     {
-        foreach ($this->permanentServices as $serviceName => $service) {
+        foreach (array_keys($this->permanentServices) as $serviceName) {
             $this->permanentServices[$serviceName] = $this->grabService($serviceName);
         }
         parent::_after($test);
@@ -258,7 +273,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     /**
      * Return container.
      *
-     * @return ContainerInterface
+     * @return ContainerInterface|mixed
      */
     public function _getContainer()
     {
@@ -281,13 +296,14 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * When the Kernel is located, the file is required.
      *
      * @return string The Kernel class name
+     * @throws ModuleRequireException|ReflectionException|ModuleException
      */
     protected function getKernelClass()
     {
         $path = codecept_root_dir() . $this->config['app_path'];
         if (!file_exists(codecept_root_dir() . $this->config['app_path'])) {
             throw new ModuleRequireException(
-                __CLASS__,
+                self::class,
                 "Can't load Kernel from $path.\n"
                 . "Directory does not exists. Use `app_path` parameter to provide valid application path"
             );
@@ -296,9 +312,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $finder = new Finder();
         $finder->name('*Kernel.php')->depth('0')->in($path);
         $results = iterator_to_array($finder);
-        if (!count($results)) {
+        if (count($results) === 0) {
             throw new ModuleRequireException(
-                __CLASS__,
+                self::class,
                 "File with Kernel class was not found at $path. "
                 . "Specify directory where file with Kernel class for your application is located with `app_path` parameter."
             );
@@ -318,7 +334,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         foreach ($possibleKernelClasses as $class) {
             if (class_exists($class)) {
-                $refClass = new \ReflectionClass($class);
+                $refClass = new ReflectionClass($class);
                 if ($file = array_search($refClass->getFileName(), $filesRealPath)) {
                     return $class;
                 }
@@ -326,7 +342,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
 
         throw new ModuleRequireException(
-            __CLASS__,
+            self::class,
             "Kernel class was not found in $file. "
             . "Specify directory where file with Kernel class for your application is located with `app_path` parameter."
         );
@@ -339,7 +355,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string  $serviceName
      * @param boolean $isPermanent
      */
-    public function persistService($serviceName, $isPermanent = false)
+    public function persistService(string $serviceName, bool $isPermanent = false)
     {
         $service = $this->grabService($serviceName);
         $this->persistentServices[$serviceName] = $service;
@@ -356,7 +372,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $serviceName
      */
-    public function unpersistService($serviceName)
+    public function unpersistService(string $serviceName)
     {
         if (isset($this->persistentServices[$serviceName])) {
             unset($this->persistentServices[$serviceName]);
@@ -384,13 +400,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * <?php
      * $I->amOnRoute('posts.create');
      * $I->amOnRoute('posts.show', array('id' => 34));
-     * ?>
      * ```
      *
-     * @param $routeName
+     * @param string $routeName
      * @param array $params
      */
-    public function amOnRoute($routeName, array $params = [])
+    public function amOnRoute(string $routeName, array $params = [])
     {
         $router = $this->grabService('router');
         if (!$router->getRouteCollection()->get($routeName)) {
@@ -407,13 +422,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * <?php
      * $I->seeCurrentRouteIs('posts.index');
      * $I->seeCurrentRouteIs('posts.show', array('id' => 8));
-     * ?>
      * ```
      *
-     * @param $routeName
+     * @param string $routeName
      * @param array $params
      */
-    public function seeCurrentRouteIs($routeName, array $params = [])
+    public function seeCurrentRouteIs(string $routeName, array $params = [])
     {
         $router = $this->grabService('router');
         if (!$router->getRouteCollection()->get($routeName)) {
@@ -423,7 +437,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $uri = explode('?', $this->grabFromCurrentUrl())[0];
         try {
             $match = $router->match($uri);
-        } catch (\Symfony\Component\Routing\Exception\ResourceNotFoundException $e) {
+        } catch (ResourceNotFoundException $e) {
             $this->fail(sprintf('The "%s" url does not match with any route', $uri));
         }
         $expected = array_merge(['_route' => $routeName], $params);
@@ -438,13 +452,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * ``` php
      * <?php
-     * $I->seeCurrentRouteMatches('my_blog_pages');
-     * ?>
+     * $I->seeInCurrentRoute('my_blog_pages');
      * ```
      *
-     * @param $routeName
+     * @param string $routeName
      */
-    public function seeInCurrentRoute($routeName)
+    public function seeInCurrentRoute(string $routeName)
     {
         $router = $this->grabService('router');
         if (!$router->getRouteCollection()->get($routeName)) {
@@ -454,7 +467,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $uri = explode('?', $this->grabFromCurrentUrl())[0];
         try {
             $matchedRouteName = $router->match($uri)['_route'];
-        } catch (\Symfony\Component\Routing\Exception\ResourceNotFoundException $e) {
+        } catch (ResourceNotFoundException $e) {
             $this->fail(sprintf('The "%s" url does not match with any route', $uri));
         }
 
@@ -471,7 +484,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $url
      */
-    public function seePageIsAvailable($url)
+    public function seePageIsAvailable(string $url)
     {
         $this->amOnPage($url);
         $this->seeResponseCodeIsSuccessful();
@@ -489,7 +502,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string $page
      * @param string $redirectsTo
      */
-    public function seePageRedirectsTo($page, $redirectsTo)
+    public function seePageRedirectsTo(string $page, string $redirectsTo)
     {
         $this->client->followRedirects(false);
         $this->amOnPage($page);
@@ -518,7 +531,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     {
         if (!$profile = $this->getProfile()) {
             $this->fail("Emails can't be tested without Profiler");
-            return;
         }
 
         $mailer = $this->config['mailer'];
@@ -532,7 +544,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
                 Set your mailer service in `functional.suite.yml`: `mailer: swiftmailer`
                 (Or `mailer: symfony_mailer` for Symfony Mailer)."
             );
-            return;
         }
 
         if (!is_int($expectedCount) && !is_null($expectedCount)) {
@@ -540,7 +551,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
                 'The required number of emails must be either an integer or null. "%s" was provided.',
                 print_r($expectedCount, true)
             ));
-            return;
         }
 
         $mailCollector = $profile->getCollector($mailer);
@@ -578,14 +588,13 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * ``` php
      * <?php
      * $em = $I->grabService('doctrine');
-     * ?>
      * ```
      *
-     * @param $service
+     * @param string $service
      * @return mixed
      * @part services
      */
-    public function grabService($service)
+    public function grabService(string $service)
     {
         $container = $this->_getContainer();
         if (!$container->has($service)) {
@@ -603,7 +612,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * ``` php
      * <?php
      * $result = $I->runSymfonyConsoleCommand('hello:world', ['arg' => 'argValue', 'opt1' => 'optValue'], ['input']);
-     * ?>
      * ```
      *
      * @param string $command          The console command to execute
@@ -613,7 +621,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @return string Returns the console output of the command
      */
-    public function runSymfonyConsoleCommand($command, $parameters = [], $consoleInputs = [], $expectedExitCode = 0)
+    public function runSymfonyConsoleCommand(string $command, array $parameters = [], array $consoleInputs = [], int $expectedExitCode = 0): string
     {
         $kernel = $this->grabService('kernel');
         $application = new Application($kernel);
@@ -636,7 +644,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
-     * @return \Symfony\Component\HttpKernel\Profiler\Profile
+     * @return Profile|null
      */
     protected function getProfile()
     {
@@ -649,9 +657,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         try {
             $response = $this->client->getResponse();
             return $profiler->loadProfileFromResponse($response);
-        } catch (\BadMethodCallException $e) {
+        } catch (BadMethodCallException $e) {
             $this->fail('You must perform a request before using this method.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->fail($e->getMessage());
         }
         return null;
@@ -703,7 +711,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param Data $data
      * @return array
      */
-    private function extractRawRoles(Data $data)
+    private function extractRawRoles(Data $data): array
     {
         if ($this->dataRevealsValue($data)) {
             $roles = $data->getValue();
@@ -718,14 +726,14 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     /**
      * Returns a list of recognized domain names.
      *
-     * @return array
+     * @return mixed[]
      */
-    protected function getInternalDomains()
+    protected function getInternalDomains(): array
     {
         $internalDomains = [];
 
         $routes = $this->grabService('router')->getRouteCollection();
-        /* @var \Symfony\Component\Routing\Route $route */
+        /* @var Route $route */
         foreach ($routes as $route) {
             if (!is_null($route->getHost())) {
                 $compiled = $route->compile();
@@ -744,15 +752,13 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * ``` php
      * <?php
-     * ...
-     * perform some requests
-     * ...
-     * $I->rebootClientKernel();
-     * ...
-     * perform other requests
-     * ...
      *
-     * ?>
+     * // Perform some requests
+     *
+     * $I->rebootClientKernel();
+     *
+     * // Perform other requests
+     *
      * ```
      *
      */
@@ -766,11 +772,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     /**
      * Public API from Data changed from Symfony 3.2 to 3.3.
      *
-     * @param \Symfony\Component\VarDumper\Cloner\Data $data
+     * @param Data $data
      *
      * @return bool
      */
-    private function dataRevealsValue(Data $data)
+    private function dataRevealsValue(Data $data): bool
     {
         return method_exists($data, 'getValue');
     }
@@ -779,6 +785,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * Returns list of the possible kernel classes based on the module configuration
      *
      * @return array
+     * @throws ModuleException
      */
     private function getPossibleKernelClasses()
     {
@@ -788,7 +795,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         if (!is_string($this->config['kernel_class'])) {
             throw new ModuleException(
-                __CLASS__,
+                self::class,
                 "Parameter 'kernel_class' must have 'string' type.\n"
             );
         }
@@ -810,7 +817,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string $className A doctrine entity
      * @param array $criteria Optional query criteria
      */
-    public function seeNumRecords($expectedNum, $className, $criteria = [])
+    public function seeNumRecords(int $expectedNum, string $className, array $criteria = [])
     {
         $em         = $this->_getEntityManager();
         $repository = $em->getRepository($className);
@@ -884,7 +891,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param mixed|null $value
      * @return void
      */
-    public function seeInSession($attrib, $value = null)
+    public function seeInSession(string $attrib, $value = null)
     {
         $container = $this->_getContainer();
 
@@ -916,7 +923,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string $action
      * @param array $params
      */
-    public function amOnAction($action, $params = [])
+    public function amOnAction(string $action, array $params = [])
     {
         $container = $this->_getContainer();
 
@@ -955,7 +962,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param bool $remembered
      */
-    public function seeAuthentication($remembered = false)
+    public function seeAuthentication(bool $remembered = false)
     {
         $container = $this->_getContainer();
 
@@ -971,11 +978,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             $this->fail('There is no user in session');
         }
 
-        if ($remembered) {
-            $role = 'IS_AUTHENTICATED_REMEMBERED';
-        } else {
-            $role = 'IS_AUTHENTICATED_FULLY';
-        }
+        $role = $remembered ? 'IS_AUTHENTICATED_REMEMBERED' : 'IS_AUTHENTICATED_FULLY';
 
         $this->assertTrue($security->isGranted($role), 'There is no authenticated user');
     }
@@ -997,7 +1000,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string $name
      * @param string[] $fields
      */
-    public function submitSymfonyForm($name, $fields)
+    public function submitSymfonyForm(string $name, array $fields)
     {
         $selector = sprintf('form[name=%s]', $name);
 
@@ -1021,7 +1024,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $role
      */
-    public function seeUserHasRole($role)
+    public function seeUserHasRole(string $role)
     {
         $container = $this->_getContainer();
 
@@ -1058,7 +1061,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param bool $remembered
      */
-    public function dontSeeAuthentication($remembered = true)
+    public function dontSeeAuthentication(bool $remembered = true)
     {
         $container = $this->_getContainer();
 
@@ -1068,11 +1071,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         $security = $this->grabService('security.helper');
 
-        if ($remembered) {
-            $role = 'IS_AUTHENTICATED_REMEMBERED';
-        } else {
-            $role = 'IS_AUTHENTICATED_FULLY';
-        }
+        $role = $remembered ? 'IS_AUTHENTICATED_REMEMBERED' : 'IS_AUTHENTICATED_FULLY';
 
         $this->assertFalse(
             $security->isGranted($role),
@@ -1091,7 +1090,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string $name
      * @return mixed|null
      */
-    public function grabParameter($name)
+    public function grabParameter(string $name)
     {
         $container = $this->_getContainer();
 
@@ -1114,7 +1113,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $action
      */
-    public function seeCurrentActionIs($action)
+    public function seeCurrentActionIs(string $action)
     {
         $container = $this->_getContainer();
 
@@ -1157,7 +1156,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     {
         $container = $this->_getContainer();
 
-        if (!$user) {
+        if ($user === null) {
             if (!$container->has('security.helper')) {
                 $this->fail("Symfony container doesn't have 'security.helper' service");
             }
@@ -1177,7 +1176,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $this->assertFalse($encoder->needsRehash($user), 'User password needs rehash');
     }
 
-    public function amLoggedInAs(UserInterface $user, $firewallName = 'main', $firewallContext = null)
+    public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null)
     {
         $container = $this->_getContainer();
         if (!$container->has('session')) {
