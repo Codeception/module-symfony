@@ -1260,4 +1260,33 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         return $em->getRepository($mixed);
     }
+
+    /**
+     * Verifies that there is a flash message in the session.
+     * * If your app performs a redirect after setting the flash message, you need to suppress this using REST Module's [stopFollowingRedirects](https://codeception.com/docs/modules/REST#stopFollowingRedirects)
+     *
+     * ```php
+     * <?php
+     * $I->seeInFlashBag('success');
+     * $I->seeInFlashBag('success', '¡User successfully registered!');
+     * ```
+     *
+     * @param string      $type    The flash type: success|warning|info|error
+     * @param string|null $message The expected message
+     *
+     */
+    public function seeInFlashBag(string $type, $message = null)
+    {
+        $session = $this->grabService('session');
+        $flashBag = $session->getFlashBag();
+
+        $messageExist = $flashBag->has($type);
+        $this->assertTrue($messageExist);
+
+        if ($message && $messageExist) {
+            $this->assertNotFalse(
+                array_search($message, $flashBag->peek($type))
+            );
+        }
+    }
 }
