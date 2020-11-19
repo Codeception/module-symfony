@@ -851,15 +851,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     public function logout()
     {
         $container = $this->_getContainer();
-
         if ($container->has('security.token_storage')) {
             $tokenStorage = $this->grabService('security.token_storage');
             $tokenStorage->setToken(null);
         }
 
-        if (!$container->has('session')) {
-            $this->fail("Symfony container doesn't have 'session' service");
-        }
         $session = $this->grabService('session');
 
         $sessionName = $session->getName();
@@ -893,12 +889,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function seeInSession(string $attrib, $value = null)
     {
-        $container = $this->_getContainer();
-
-        if (!$container->has('session')) {
-            $this->fail("Symfony container doesn't have 'session' service");
-        }
-
         $session = $this->grabService('session');
 
         if (!$session->has($attrib)) {
@@ -925,12 +915,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function amOnAction(string $action, array $params = [])
     {
-        $container = $this->_getContainer();
-
-        if (!$container->has('router')) {
-            $this->fail("Symfony container doesn't have 'router' service");
-        }
-
         $router = $this->grabService('router');
 
         $routes = $router->getRouteCollection()->getIterator();
@@ -964,12 +948,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function seeAuthentication(bool $remembered = false)
     {
-        $container = $this->_getContainer();
-
-        if (!$container->has('security.helper')) {
-            $this->fail("Symfony container doesn't have 'security.helper' service");
-        }
-
         $security = $this->grabService('security.helper');
 
         $user = $security->getUser();
@@ -1026,12 +1004,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function seeUserHasRole(string $role)
     {
-        $container = $this->_getContainer();
-
-        if (!$container->has('security.helper')) {
-            $this->fail("Symfony container doesn't have 'security.helper' service");
-        }
-
         $security = $this->grabService('security.helper');
 
         $user = $security->getUser();
@@ -1063,12 +1035,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function dontSeeAuthentication(bool $remembered = true)
     {
-        $container = $this->_getContainer();
-
-        if (!$container->has('security.helper')) {
-            $this->fail("Symfony container doesn't have 'security.helper' service");
-        }
-
         $security = $this->grabService('security.helper');
 
         $role = $remembered ? 'IS_AUTHENTICATED_REMEMBERED' : 'IS_AUTHENTICATED_FULLY';
@@ -1092,12 +1058,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function grabParameter(string $name)
     {
-        $container = $this->_getContainer();
-
-        if (!$container->has('parameter_bag')) {
-            $this->fail("Symfony container doesn't have 'parameter_bag' service");
-            return null;
-        }
         $parameterBag = $this->grabService('parameter_bag');
         return $parameterBag->get($name);
     }
@@ -1115,12 +1075,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function seeCurrentActionIs(string $action)
     {
-        $container = $this->_getContainer();
-
-        if (!$container->has('router')) {
-            $this->fail("Symfony container doesn't have 'router' service");
-        }
-
         $router = $this->grabService('router');
 
         $routes = $router->getRouteCollection()->getIterator();
@@ -1154,23 +1108,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function seeUserPasswordDoesNotNeedRehash(UserInterface $user = null)
     {
-        $container = $this->_getContainer();
-
         if ($user === null) {
-            if (!$container->has('security.helper')) {
-                $this->fail("Symfony container doesn't have 'security.helper' service");
-            }
-
             $security = $this->grabService('security.helper');
             if (!$user = $security->getUser()) {
                 $this->fail('No user found to validate');
             }
         }
-
-        if (!$container->has('security.user_password_encoder.generic')) {
-            $this->fail("Symfony container doesn't have 'security.user_password_encoder.generic' service");
-        }
-
         $encoder = $this->grabService('security.user_password_encoder.generic');
 
         $this->assertFalse($encoder->needsRehash($user), 'User password needs rehash');
@@ -1178,11 +1121,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null)
     {
-        $container = $this->_getContainer();
-        if (!$container->has('session')) {
-            $this->fail("Symfony container doesn't have 'session' service");
-        }
-
         $session = $this->grabService('session');
 
         if ($this->config['guard']) {
