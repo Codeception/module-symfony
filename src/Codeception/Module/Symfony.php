@@ -1148,6 +1148,27 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $this->assertFalse($encoder->needsRehash($user), 'User password needs rehash');
     }
 
+    /**
+     * Verifies that there are no errors bound to the submitted form.
+     *
+     * ``` php
+     * <?php
+     * $I->dontSeeFormErrors();
+     * ```
+     *
+     * @return void
+     */
+    public function dontSeeFormErrors()
+    {
+        $formCollector = $this->grabCollector('form', __FUNCTION__);
+
+        $this->assertEquals(
+            0,
+            $formCollector->getData()->offsetGet('nb_errors'),
+            'Expecting that the form does not have errors, but there were!'
+        );
+    }
+
     public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null)
     {
         $session = $this->grabService('session');
