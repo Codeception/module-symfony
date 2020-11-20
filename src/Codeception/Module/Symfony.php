@@ -21,6 +21,7 @@ use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\Profiler\Profile;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
@@ -663,6 +664,34 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             $this->fail($e->getMessage());
         }
         return null;
+    }
+
+    /**
+     * Grabs a Symfony Data Collector
+     *
+     * @param string $collector
+     * @param string $function
+     * @param string|null $message
+     * @return DataCollectorInterface
+     */
+    protected function grabCollector(string $collector, string $function, $message = null): DataCollectorInterface
+    {
+        if (!$profile = $this->getProfile()) {
+            $this->fail(
+                sprintf("The Profile is needed to use the '%s' function.", $function)
+            );
+        }
+
+        if (!$profile->hasCollector($collector)) {
+            if ($message) {
+                $this->fail($message);
+            }
+            $this->fail(
+                sprintf("The '%s' collector is needed to use the '%s' function.", $collector, $function)
+            );
+        }
+
+        return $profile->getCollector($collector);
     }
 
     /**
