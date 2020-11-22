@@ -189,25 +189,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
-     * Require Symfony's bootstrap.php.cache (only for PHP Version < 7)
-     *
-     * @throws ModuleRequireException
+     * Require Symfony's bootstrap.php.cache
      */
     private function initializeSymfonyCache()
     {
         $cache = Configuration::projectDir() . $this->config['var_path'] . DIRECTORY_SEPARATOR . 'bootstrap.php.cache';
-        if (PHP_VERSION_ID < 70000 && !file_exists($cache)) {
-            throw new ModuleRequireException(
-                self::class,
-                "Symfony bootstrap file not found in $cache\n \n" .
-                "Please specify path to bootstrap file using `var_path` config option\n \n" .
-                "If you are trying to load bootstrap from a Bundle provide path like:\n \n" .
-                "modules:\n    enabled:\n" .
-                "    - Symfony:\n" .
-                "        var_path: '../../app'\n" .
-                "        app_path: '../../app'"
-            );
-        }
+
         if (file_exists($cache)) {
             require_once $cache;
         }
