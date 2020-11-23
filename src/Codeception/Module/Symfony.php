@@ -1158,6 +1158,27 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Verifies that there are one or more errors bound to the submitted form.
+     *
+     * ``` php
+     * <?php
+     * $I->seeFormHasErrors();
+     * ```
+     *
+     * @return void
+     */
+    public function seeFormHasErrors()
+    {
+        $formCollector = $this->grabCollector('form', __FUNCTION__);
+
+        $this->assertGreaterThan(
+            0,
+            $formCollector->getData()->offsetGet('nb_errors'),
+            'Expecting that the form has errors, but there were none!'
+        );
+    }
+
+    /**
      * Grab a Doctrine entity repository.
      * Works with objects, entities, repositories, and repository interfaces.
      *
