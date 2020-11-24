@@ -548,7 +548,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             $realCount = count($mailCollector->getEvents()->getMessages());
         }
 
-        if ($expectedCount) {
+        if ($expectedCount !== null) {
             $this->assertEquals($expectedCount, $realCount, sprintf(
                 'Expected number of sent emails was %d, but in reality %d %s sent.',
                 $expectedCount, $realCount, $realCount === 2 ? 'was' : 'were'
