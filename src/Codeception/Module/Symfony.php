@@ -1215,6 +1215,23 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         );
     }
 
+    /**
+     * Login with the given user object.
+     * The `$user` object must have a persistent identifier.
+     * If you have more than one firewall or firewall context, you can specify the desired one as a parameter.
+     *
+     * ```php
+     * <?php
+     * $user = $I->grabEntityFromRepository(User::class, [
+     *     'email' => 'john_doe@gmail.com'
+     * ]);
+     * $I->amLoggedInAs($user);
+     * ```
+     *
+     * @param UserInterface $user
+     * @param string $firewallName
+     * @param null $firewallContext
+     */
     public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null)
     {
         $session = $this->grabService('session');
