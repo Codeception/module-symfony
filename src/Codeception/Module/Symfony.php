@@ -1109,6 +1109,65 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Verifies that a form field has an error.
+     * You can specify the expected error message as second parameter.
+     *
+     * ``` php
+     * <?php
+     * $I->seeFormErrorMessage('username');
+     * $I->seeFormErrorMessage('username', 'Username is empty');
+     * ```
+     * @param string $field
+     * @param string|null $message
+     */
+    public function seeFormErrorMessage(string $field, $message = null)
+    {
+        $formCollector = $this->grabCollector('form', __FUNCTION__);
+
+        if (!$forms = $formCollector->getData()->getValue('forms')['forms']) {
+            $this->fail('There are no forms on the current page.');
+        }
+
+        $fields = [];
+        $errors = [];
+
+        foreach ($forms as $form) {
+            foreach ($form['children'] as $child) {
+                $fieldName = $child['name'];
+                $fields[] = $fieldName;
+
+                if (!array_key_exists('errors', $child)) {
+                    continue;
+                }
+                foreach ($child['errors'] as $error) {
+                    $errors[$fieldName] = $error['message'];
+                }
+            }
+        }
+
+        if (array_search($field, $fields) === false) {
+            $this->fail("the field '$field' does not exist in the form.");
+        }
+
+        if (!array_key_exists($field, $errors)) {
+            $this->fail("No form error message for field '$field'.");
+        }
+
+        if (!$message) {
+            return;
+        }
+
+        $this->assertStringContainsString(
+            $message,
+            $errors[$field],
+            sprintf(
+                "There is an error message for the field '%s', but it does not match the expected message.",
+                $field
+            )
+        );
+    }
+
+    /**
      * Checks that the user's password would not benefit from rehashing.
      * If the user is not provided it is taken from the current session.
      *
