@@ -1099,9 +1099,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             $controller = $route->getDefault('_controller');
             if (substr_compare($controller, $action, -strlen($action)) === 0) {
                 $request = $this->client->getRequest();
-                $currentAction = basename($request->attributes->get('_controller'));
+                $currentActionFqcn = $request->attributes->get('_controller');
 
-                $this->assertEquals($currentAction, $action, "Current action is '$currentAction'.");
+                $this->assertStringEndsWith($action, $currentActionFqcn, "Current action is '$currentActionFqcn'.");
                 return;
             }
         }
