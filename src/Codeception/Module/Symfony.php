@@ -936,8 +936,8 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $routes = $router->getRouteCollection()->getIterator();
 
         foreach ($routes as $route) {
-            $controller = basename($route->getDefault('_controller'));
-            if ($controller === $action) {
+            $controller = $route->getDefault('_controller');
+            if (substr_compare($controller, $action, -strlen($action)) === 0) {
                 $resource = $router->match($route->getPath());
                 $url      = $router->generate(
                     $resource['_route'],
@@ -1096,8 +1096,8 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $routes = $router->getRouteCollection()->getIterator();
 
         foreach ($routes as $route) {
-            $controller = basename($route->getDefault('_controller'));
-            if ($controller === $action) {
+            $controller = $route->getDefault('_controller');
+            if (substr_compare($controller, $action, -strlen($action)) === 0) {
                 $request = $this->client->getRequest();
                 $currentAction = basename($request->attributes->get('_controller'));
 
