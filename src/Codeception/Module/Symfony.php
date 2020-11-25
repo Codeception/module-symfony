@@ -1290,12 +1290,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             return $repo;
         };
 
-        if (interface_exists($mixed)) {
-            return $getRepo();
-        }
-
         if (is_object($mixed)) {
             $mixed = get_class($mixed);
+        }
+
+        if (interface_exists($mixed)) {
+            return $getRepo();
         }
 
         if (!is_string($mixed) || !class_exists($mixed) ) {
