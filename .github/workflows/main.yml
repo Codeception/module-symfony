@@ -22,12 +22,14 @@ jobs:
 
     strategy:
       matrix:
-        php: [7.0, 7.1, 7.2, 7.3, 7.4]
+        php: [7.0, 7.1, 7.2, 7.3, 7.4, 8.0]
         symfony: [3.4, 4, 5]
         exclude:
           - php: 7.3
             symfony: 3.4
           - php: 7.4
+            symfony: 3.4
+          - php: 8.0
             symfony: 3.4
           - php: 7.0
             symfony: 4
