@@ -72,9 +72,14 @@ jobs:
         path: framework-tests
         ref: symfony5
 
-    - name: Install Symfony Sample
-      run: |
-        composer update --no-dev --prefer-dist --no-interaction
+    - name: Install Symfony Sample on PHP7
+      if: matrix.php < 8
+      run: composer update --no-dev --prefer-dist --no-interaction
+      working-directory: framework-tests
+
+    - name: Install Symfony Sample on PHP8
+      if: matrix.php == 8.0
+      run: composer update --no-dev --prefer-dist --no-interaction --ignore-platform-req=php
       working-directory: framework-tests
 
     - name: Validate composer.json and composer.lock
