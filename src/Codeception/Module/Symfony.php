@@ -1347,6 +1347,32 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Verifies that a form has fields with errors.
+     *
+     * This method calls `seeFormErrorMessage` for each entry in the `$bindings` array.
+     *
+     * ``` php
+     * <?php
+     * $I->seeFormErrorMessages(['telephone', 'address']);
+     * $I->seeFormErrorMessages([
+     *     'telephone' => 'Phone number too short',
+     *     'address'   => null
+     * ]);
+     * ```
+     * @param string[] $bindings
+     */
+    public function seeFormErrorMessages(array $bindings)
+    {
+        foreach ($bindings as $key => $value) {
+            if (is_int($key)) {
+                $this->seeFormErrorMessage($value);
+            } else {
+                $this->seeFormErrorMessage($key, $value);
+            }
+        }
+    }
+
+    /**
      * Verifies that a form field has an error.
      * You can specify the expected error message as second parameter.
      *
