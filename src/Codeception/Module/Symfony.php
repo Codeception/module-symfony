@@ -184,7 +184,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $this->kernel->boot();
 
         if ($this->config['cache_router'] === true) {
-            $this->persistService('router', true);
+            $this->persistPermanentService('router');
         }
     }
 
@@ -243,16 +243,16 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
         if (!isset($this->permanentServices[$this->config['em_service']])) {
             // try to persist configured EM
-            $this->persistService($this->config['em_service'], true);
+            $this->persistPermanentService($this->config['em_service']);
 
             if ($this->_getContainer()->has('doctrine')) {
-                $this->persistService('doctrine', true);
+                $this->persistPermanentService('doctrine');
             }
             if ($this->_getContainer()->has('doctrine.orm.default_entity_manager')) {
-                $this->persistService('doctrine.orm.default_entity_manager', true);
+                $this->persistPermanentService('doctrine.orm.default_entity_manager');
             }
             if ($this->_getContainer()->has('doctrine.dbal.backend_connection')) {
-                $this->persistService('doctrine.dbal.backend_connection', true);
+                $this->persistPermanentService('doctrine.dbal.backend_connection');
             }
         }
         return $this->permanentServices[$this->config['em_service']];
@@ -338,18 +338,13 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     /**
      * Get service $serviceName and add it to the lists of persistent services.
-     * If $isPermanent then service becomes persistent between tests
      *
-     * @param string  $serviceName
-     * @param boolean $isPermanent
+     * @param string $serviceName
      */
-    public function persistService(string $serviceName, bool $isPermanent = false)
+    public function persistService(string $serviceName)
     {
         $service = $this->grabService($serviceName);
         $this->persistentServices[$serviceName] = $service;
-        if ($isPermanent) {
-            $this->permanentServices[$serviceName] = $service;
-        }
         if ($this->client) {
             $this->client->persistentServices[$serviceName] = $service;
         }
