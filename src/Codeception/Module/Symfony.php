@@ -951,17 +951,13 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     /**
      * Checks that a user is authenticated.
-     * You can check users logged in with the option 'remember me' passing true as parameter.
      *
      * ```php
      * <?php
      * $I->seeAuthentication();
-     * $I->seeAuthentication(true);
      * ```
-     *
-     * @param bool $remembered
      */
-    public function seeAuthentication(bool $remembered = false)
+    public function seeAuthentication()
     {
         $security = $this->grabService('security.helper');
 
@@ -971,9 +967,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             $this->fail('There is no user in session');
         }
 
-        $role = $remembered ? 'IS_AUTHENTICATED_REMEMBERED' : 'IS_AUTHENTICATED_FULLY';
-
-        $this->assertTrue($security->isGranted($role), 'There is no authenticated user');
+        $this->assertTrue($security->isGranted('IS_AUTHENTICATED_FULLY'), 'There is no authenticated user');
     }
 
     /**
@@ -1039,23 +1033,18 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     /**
      * Check that user is not authenticated.
-     * You can specify whether users logged in with the 'remember me' option should be ignored by passing 'false' as a parameter.
      *
      * ```php
      * <?php
      * $I->dontSeeAuthentication();
      * ```
-     *
-     * @param bool $remembered
      */
-    public function dontSeeAuthentication(bool $remembered = true)
+    public function dontSeeAuthentication()
     {
         $security = $this->grabService('security.helper');
 
-        $role = $remembered ? 'IS_AUTHENTICATED_REMEMBERED' : 'IS_AUTHENTICATED_FULLY';
-
         $this->assertFalse(
-            $security->isGranted($role),
+            $security->isGranted('IS_AUTHENTICATED_FULLY'),
             'There is an user authenticated'
         );
     }
