@@ -1051,6 +1051,24 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Check that user is not authenticated with the 'remember me' option.
+     *
+     * ```php
+     * <?php
+     * $I->dontSeeRememberedAuthentication();
+     * ```
+     */
+    public function dontSeeRememberedAuthentication()
+    {
+        $security = $this->grabService('security.helper');
+
+        $this->assertFalse(
+            $security->isGranted('IS_AUTHENTICATED_REMEMBERED'),
+            'There is an user authenticated'
+        );
+    }
+
+    /**
      * Check that the current user has a role
      *
      * ```php
