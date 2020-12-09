@@ -356,6 +356,22 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Get service $serviceName and add it to the lists of persistent services,
+     * making that service persistent between tests.
+     *
+     * @param string $serviceName
+     */
+    public function persistPermanentService(string $serviceName)
+    {
+        $service = $this->grabService($serviceName);
+        $this->persistentServices[$serviceName] = $service;
+        $this->permanentServices[$serviceName] = $service;
+        if ($this->client) {
+            $this->client->persistentServices[$serviceName] = $service;
+        }
+    }
+
+    /**
      * Remove service $serviceName from the lists of persistent services.
      *
      * @param string $serviceName
