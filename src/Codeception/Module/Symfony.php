@@ -917,6 +917,33 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Assert that a session attribute does not exist, or is not equal to the passed value.
+     *
+     * ```php
+     * <?php
+     * $I->dontSeeInSession('attribute');
+     * $I->dontSeeInSession('attribute', 'value');
+     * ```
+     *
+     * @param string $attribute
+     * @param mixed|null $value
+     * @return void
+     */
+    public function dontSeeInSession(string $attribute, $value = null)
+    {
+        $session = $this->grabService('session');
+
+        if (null === $value) {
+            if ($session->has($attribute)) {
+                $this->fail("Session attribute with name '$attribute' does exist");
+            }
+        }
+        else {
+            $this->assertNotEquals($value, $session->get($attribute));
+        }
+    }
+
+    /**
      * Opens web page by action name
      *
      * ``` php
