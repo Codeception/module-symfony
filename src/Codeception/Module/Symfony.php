@@ -835,17 +835,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function seeNumRecords(int $expectedNum, string $className, array $criteria = [])
     {
-        $em         = $this->_getEntityManager();
-        $repository = $em->getRepository($className);
-
-        if (empty($criteria)) {
-            $currentNum = (int)$repository->createQueryBuilder('a')
-                ->select('count(a.id)')
-                ->getQuery()
-                ->getSingleScalarResult();
-        } else {
-            $currentNum = $repository->count($criteria);
-        }
+        $currentNum = $this->grabNumRecords($className, $criteria);
 
         $this->assertEquals(
             $expectedNum,
