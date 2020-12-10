@@ -841,6 +841,33 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Retrieves number of records from database
+     * 'id' is the default search parameter.
+     *
+     * ```php
+     * <?php
+     * $I->grabNumRecords('User::class', ['name' => 'davert']);
+     * ```
+     *
+     * @param string $entityClass  The entity class
+     * @param array $criteria      Optional query criteria
+     * @return integer
+     */
+    public function grabNumRecords(string $entityClass, array $criteria = [])
+    {
+        $em         = $this->_getEntityManager();
+        $repository = $em->getRepository($entityClass);
+
+        if (empty($criteria)) {
+            return (int)$repository->createQueryBuilder('a')
+                ->select('count(a.id)')
+                ->getQuery()
+                ->getSingleScalarResult();
+        }
+        return $repository->count($criteria);
+    }
+
+    /**
      * Invalidate the current session.
      * ```php
      * <?php
