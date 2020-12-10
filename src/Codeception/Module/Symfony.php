@@ -698,7 +698,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
                 $roles = $security->getRoles();
 
                 if ($roles instanceof Data) {
-                    $roles = $this->extractRawRoles($roles);
+                    $roles = $roles->getValue();
                 }
 
                 $this->debugSection(
@@ -721,22 +721,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if ($profile->hasCollector('timer')) {
             $this->debugSection('Time', $profile->getCollector('timer')->getTime());
         }
-    }
-
-    /**
-     * @param Data $data
-     * @return array
-     */
-    private function extractRawRoles(Data $data): array
-    {
-        if ($this->dataRevealsValue($data)) {
-            $roles = $data->getValue();
-        } else {
-            $raw = $data->getRawData();
-            $roles = isset($raw[1]) ? $raw[1] : [];
-        }
-
-        return $roles;
     }
 
     /**
@@ -783,18 +767,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if ($this->client) {
             $this->client->rebootKernel();
         }
-    }
-
-    /**
-     * Public API from Data changed from Symfony 3.2 to 3.3.
-     *
-     * @param Data $data
-     *
-     * @return bool
-     */
-    private function dataRevealsValue(Data $data): bool
-    {
-        return method_exists($data, 'getValue');
     }
 
     /**
