@@ -17,20 +17,63 @@ use Exception;
 use ReflectionClass;
 use ReflectionException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Bundle\SecurityBundle\DataCollector\SecurityDataCollector;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Form\Extension\DataCollector\FormDataCollector;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
+use Symfony\Component\HttpKernel\DataCollector\EventDataCollector;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\Profiler\Profile;
+use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\Route;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Guard\Token\PostAuthenticationGuardToken;
 use Symfony\Component\VarDumper\Cloner\Data;
+use function array_intersect_assoc;
+use function array_key_exists;
+use function array_keys;
+use function array_map;
+use function array_merge;
+use function array_search;
+use function array_unique;
+use function class_exists;
+use function codecept_root_dir;
+use function count;
+use function explode;
+use function file_exists;
+use function get_class;
+use function implode;
+use function in_array;
+use function ini_get;
+use function ini_set;
+use function interface_exists;
+use function is_array;
+use function is_int;
+use function is_null;
+use function is_object;
+use function is_string;
+use function is_subclass_of;
+use function iterator_to_array;
+use function json_encode;
+use function print_r;
+use function serialize;
+use function sprintf;
+use function strlen;
+use function strpos;
+use function substr_compare;
 
 /**
  * This module uses Symfony Crawler and HttpKernel to emulate requests and test response.
@@ -116,9 +159,9 @@ use Symfony\Component\VarDumper\Cloner\Data;
  */
 class Symfony extends Framework implements DoctrineProvider, PartedModule
 {
-    const SWIFTMAILER = 'swiftmailer';
+    private const SWIFTMAILER = 'swiftmailer';
 
-    const SYMFONY_MAILER = 'symfony_mailer';
+    private const SYMFONY_MAILER = 'symfony_mailer';
 
     private static $possibleKernelClasses = [
         'AppKernel', // Symfony Standard
@@ -286,7 +329,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @return string The Kernel class name
      * @throws ModuleRequireException|ReflectionException|ModuleException
      */
-    protected function getKernelClass()
+    protected function getKernelClass(): string
     {
         $path = codecept_root_dir() . $this->config['app_path'];
         if (!file_exists(codecept_root_dir() . $this->config['app_path'])) {
@@ -341,7 +384,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $serviceName
      */
-    public function persistService(string $serviceName)
+    public function persistService(string $serviceName): void
     {
         $service = $this->grabService($serviceName);
         $this->persistentServices[$serviceName] = $service;
@@ -356,7 +399,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $serviceName
      */
-    public function persistPermanentService(string $serviceName)
+    public function persistPermanentService(string $serviceName): void
     {
         $service = $this->grabService($serviceName);
         $this->persistentServices[$serviceName] = $service;
@@ -371,7 +414,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $serviceName
      */
-    public function unpersistService(string $serviceName)
+    public function unpersistService(string $serviceName): void
     {
         if (isset($this->persistentServices[$serviceName])) {
             unset($this->persistentServices[$serviceName]);
@@ -387,7 +430,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     /**
      * Invalidate previously cached routes.
      */
-    public function invalidateCachedRouter()
+    public function invalidateCachedRouter(): void
     {
         $this->unpersistService('router');
     }
@@ -404,8 +447,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string $routeName
      * @param array $params
      */
-    public function amOnRoute(string $routeName, array $params = [])
+    public function amOnRoute(string $routeName, array $params = []): void
     {
+        /** @var RouterInterface $router */
         $router = $this->grabService('router');
         if (!$router->getRouteCollection()->get($routeName)) {
             $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
@@ -426,8 +470,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string $routeName
      * @param array $params
      */
-    public function seeCurrentRouteIs(string $routeName, array $params = [])
+    public function seeCurrentRouteIs(string $routeName, array $params = []): void
     {
+        /** @var RouterInterface $router */
         $router = $this->grabService('router');
         if (!$router->getRouteCollection()->get($routeName)) {
             $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
@@ -456,8 +501,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $routeName
      */
-    public function seeInCurrentRoute(string $routeName)
+    public function seeInCurrentRoute(string $routeName): void
     {
+        /** @var RouterInterface $router */
         $router = $this->grabService('router');
         if (!$router->getRouteCollection()->get($routeName)) {
             $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
@@ -483,7 +529,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $url
      */
-    public function seePageIsAvailable(string $url)
+    public function seePageIsAvailable(string $url): void
     {
         $this->amOnPage($url);
         $this->seeResponseCodeIsSuccessful();
@@ -501,12 +547,14 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string $page
      * @param string $redirectsTo
      */
-    public function seePageRedirectsTo(string $page, string $redirectsTo)
+    public function seePageRedirectsTo(string $page, string $redirectsTo): void
     {
         $this->client->followRedirects(false);
         $this->amOnPage($page);
+        /** @var Response $response */
+        $response = $this->client->getResponse();
         $this->assertTrue(
-            $this->client->getResponse()->isRedirection()
+            $response->isRedirection()
         );
         $this->client->followRedirect();
         $this->seeInCurrentUrl($redirectsTo);
@@ -526,9 +574,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param int|null $expectedCount
      */
-    public function seeEmailIsSent($expectedCount = null)
+    public function seeEmailIsSent(?int $expectedCount = null): void
     {
-        if (!$profile = $this->getProfile()) {
+        if (($profile = $this->getProfile()) === null) {
             $this->fail("Emails can't be tested without Profiler");
         }
 
@@ -574,7 +622,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @part email
      */
-    public function dontSeeEmailIsSent()
+    public function dontSeeEmailIsSent(): void
     {
         $this->seeEmailIsSent(0);
     }
@@ -645,15 +693,17 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     /**
      * @return Profile|null
      */
-    protected function getProfile()
+    protected function getProfile(): ?Profile
     {
         $container = $this->_getContainer();
         if (!$container->has('profiler')) {
             return null;
         }
 
+        /** @var Profiler $profiler */
         $profiler = $this->grabService('profiler');
         try {
+            /** @var Response $response */
             $response = $this->client->getResponse();
             return $profiler->loadProfileFromResponse($response);
         } catch (BadMethodCallException $e) {
@@ -672,9 +722,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string|null $message
      * @return DataCollectorInterface
      */
-    protected function grabCollector(string $collector, string $function, $message = null): DataCollectorInterface
+    protected function grabCollector(string $collector, string $function, ?string $message = null): DataCollectorInterface
     {
-        if (!$profile = $this->getProfile()) {
+        if (($profile = $this->getProfile()) === null) {
             $this->fail(
                 sprintf("The Profile is needed to use the '%s' function.", $function)
             );
@@ -695,15 +745,16 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     /**
      * @param $url
      */
-    protected function debugResponse($url)
+    protected function debugResponse($url): void
     {
         parent::debugResponse($url);
 
-        if (!$profile = $this->getProfile()) {
+        if (($profile = $this->getProfile()) === null) {
             return;
         }
 
         if ($profile->hasCollector('security')) {
+            /** @var SecurityDataCollector $security */
             $security = $profile->getCollector('security');
             if ($security->isAuthenticated()) {
                 $roles = $security->getRoles();
@@ -743,7 +794,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     {
         $internalDomains = [];
 
-        $routes = $this->grabService('router')->getRouteCollection();
+        /** @var RouterInterface $router */
+        $router = $this->grabService('router');
+        $routes = $router->getRouteCollection();
         /* @var Route $route */
         foreach ($routes as $route) {
             if (!is_null($route->getHost())) {
@@ -773,7 +826,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * ```
      *
      */
-    public function rebootClientKernel()
+    public function rebootClientKernel(): void
     {
         if ($this->client) {
             $this->client->rebootKernel();
@@ -786,7 +839,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @return array
      * @throws ModuleException
      */
-    private function getPossibleKernelClasses()
+    private function getPossibleKernelClasses(): array
     {
         if (empty($this->config['kernel_class'])) {
             return self::$possibleKernelClasses;
@@ -816,7 +869,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string $className A doctrine entity
      * @param array $criteria Optional query criteria
      */
-    public function seeNumRecords(int $expectedNum, string $className, array $criteria = [])
+    public function seeNumRecords(int $expectedNum, string $className, array $criteria = []): void
     {
         $currentNum = $this->grabNumRecords($className, $criteria);
 
@@ -841,9 +894,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $entityClass  The entity class
      * @param array $criteria      Optional query criteria
-     * @return integer
+     * @return int
      */
-    public function grabNumRecords(string $entityClass, array $criteria = [])
+    public function grabNumRecords(string $entityClass, array $criteria = []): int
     {
         $em         = $this->_getEntityManager();
         $repository = $em->getRepository($entityClass);
@@ -864,14 +917,16 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * $I->logout();
      * ```
      */
-    public function logout()
+    public function logout(): void
     {
         $container = $this->_getContainer();
         if ($container->has('security.token_storage')) {
+            /** @var TokenStorageInterface $tokenStorage */
             $tokenStorage = $this->grabService('security.token_storage');
-            $tokenStorage->setToken(null);
+            $tokenStorage->setToken();
         }
 
+        /** @var SessionInterface $session */
         $session = $this->grabService('session');
 
         $sessionName = $session->getName();
@@ -900,9 +955,8 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * ```
      *
      * @param  array $bindings
-     * @return void
      */
-    public function seeSessionHasValues(array $bindings)
+    public function seeSessionHasValues(array $bindings): void
     {
         foreach ($bindings as $key => $value) {
             if (is_int($key)) {
@@ -924,10 +978,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $attrib
      * @param mixed|null $value
-     * @return void
      */
-    public function seeInSession(string $attrib, $value = null)
+    public function seeInSession(string $attrib, $value = null): void
     {
+        /** @var SessionInterface $session */
         $session = $this->grabService('session');
 
         if (!$session->has($attrib)) {
@@ -950,10 +1004,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $attribute
      * @param mixed|null $value
-     * @return void
      */
-    public function dontSeeInSession(string $attribute, $value = null)
+    public function dontSeeInSession(string $attribute, $value = null): void
     {
+        /** @var SessionInterface $session */
         $session = $this->grabService('session');
 
         if (null === $value) {
@@ -979,8 +1033,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string $action
      * @param array $params
      */
-    public function amOnAction(string $action, array $params = [])
+    public function amOnAction(string $action, array $params = []): void
     {
+        /** @var RouterInterface $router */
         $router = $this->grabService('router');
 
         $routes = $router->getRouteCollection()->getIterator();
@@ -1008,8 +1063,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * $I->seeAuthentication();
      * ```
      */
-    public function seeAuthentication()
+    public function seeAuthentication(): void
     {
+        /** @var Security $security */
         $security = $this->grabService('security.helper');
 
         $user = $security->getUser();
@@ -1038,7 +1094,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string $name
      * @param string[] $fields
      */
-    public function submitSymfonyForm(string $name, array $fields)
+    public function submitSymfonyForm(string $name, array $fields): void
     {
         $selector = sprintf('form[name=%s]', $name);
 
@@ -1060,8 +1116,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * $I->seeRememberedAuthentication();
      * ```
      */
-    public function seeRememberedAuthentication()
+    public function seeRememberedAuthentication(): void
     {
+        /** @var Security $security */
         $security = $this->grabService('security.helper');
 
         $user = $security->getUser();
@@ -1081,8 +1138,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * $I->dontSeeRememberedAuthentication();
      * ```
      */
-    public function dontSeeRememberedAuthentication()
+    public function dontSeeRememberedAuthentication(): void
     {
+        /** @var Security $security */
         $security = $this->grabService('security.helper');
 
         $this->assertFalse(
@@ -1101,8 +1159,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $role
      */
-    public function seeUserHasRole(string $role)
+    public function seeUserHasRole(string $role): void
     {
+        /** @var Security $security */
         $security = $this->grabService('security.helper');
 
         $user = $security->getUser();
@@ -1129,8 +1188,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * $I->dontSeeAuthentication();
      * ```
      */
-    public function dontSeeAuthentication()
+    public function dontSeeAuthentication(): void
     {
+        /** @var Security $security */
         $security = $this->grabService('security.helper');
 
         $this->assertFalse(
@@ -1152,6 +1212,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function grabParameter(string $name)
     {
+        /** @var ParameterBagInterface $parameterBag */
         $parameterBag = $this->grabService('parameter_bag');
         return $parameterBag->get($name);
     }
@@ -1167,10 +1228,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * ```
      * @param string|object|string[] $expected
      */
-    public function seeEventTriggered($expected)
+    public function seeEventTriggered($expected): void
     {
+        /** @var EventDataCollector $eventCollector */
         $eventCollector = $this->grabCollector('events', __FUNCTION__);
 
+        /** @var Data $data */
         $data = $eventCollector->getCalledListeners();
 
         if ($data->count() === 0) {
@@ -1204,8 +1267,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param string $action
      */
-    public function seeCurrentActionIs(string $action)
+    public function seeCurrentActionIs(string $action): void
     {
+        /** @var RouterInterface $router */
         $router = $this->grabService('router');
 
         $routes = $router->getRouteCollection()->getIterator();
@@ -1213,6 +1277,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         foreach ($routes as $route) {
             $controller = $route->getDefault('_controller');
             if (substr_compare($controller, $action, -strlen($action)) === 0) {
+                /** @var Request $request */
                 $request = $this->client->getRequest();
                 $currentActionFqcn = $request->attributes->get('_controller');
 
@@ -1235,8 +1300,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string $field
      * @param string|null $message
      */
-    public function seeFormErrorMessage(string $field, $message = null)
+    public function seeFormErrorMessage(string $field, ?string $message = null): void
     {
+        /** @var FormDataCollector $formCollector */
         $formCollector = $this->grabCollector('form', __FUNCTION__);
 
         if (!$forms = $formCollector->getData()->getValue('forms')['forms']) {
@@ -1260,7 +1326,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             }
         }
 
-        if (array_search($field, $fields) === false) {
+        if (!in_array($field, $fields)) {
             $this->fail("the field '$field' does not exist in the form.");
         }
 
@@ -1296,9 +1362,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param UserInterface|null $user
      */
-    public function seeUserPasswordDoesNotNeedRehash(UserInterface $user = null)
+    public function seeUserPasswordDoesNotNeedRehash(UserInterface $user = null): void
     {
         if ($user === null) {
+            /** @var Security $security */
             $security = $this->grabService('security.helper');
             if (!$user = $security->getUser()) {
                 $this->fail('No user found to validate');
@@ -1316,11 +1383,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * <?php
      * $I->dontSeeFormErrors();
      * ```
-     *
-     * @return void
      */
-    public function dontSeeFormErrors()
+    public function dontSeeFormErrors(): void
     {
+        /** @var FormDataCollector $formCollector */
         $formCollector = $this->grabCollector('form', __FUNCTION__);
 
         $this->assertEquals(
@@ -1347,8 +1413,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param string $firewallName
      * @param null $firewallContext
      */
-    public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null)
+    public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null): void
     {
+        /** @var SessionInterface $session */
         $session = $this->grabService('session');
 
         if ($this->config['guard']) {
@@ -1376,11 +1443,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * <?php
      * $I->seeFormHasErrors();
      * ```
-     *
-     * @return void
      */
-    public function seeFormHasErrors()
+    public function seeFormHasErrors(): void
     {
+        /** @var FormDataCollector $formCollector */
         $formCollector = $this->grabCollector('form', __FUNCTION__);
 
         $this->assertGreaterThan(
@@ -1408,7 +1474,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     public function grabRepository($mixed)
     {
         $entityRepoClass = '\Doctrine\ORM\EntityRepository';
-        $isNotARepo = function () use ($mixed) {
+        $isNotARepo = function () use ($mixed): void {
             $this->fail(
                 sprintf("'%s' is not an entity repository", $mixed)
             );
