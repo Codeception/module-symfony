@@ -891,6 +891,29 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Assert that the session has a given list of values.
+     *
+     * ``` php
+     * <?php
+     * $I->seeSessionHasValues(['key1', 'key2']);
+     * $I->seeSessionHasValues(['key1' => 'value1', 'key2' => 'value2']);
+     * ```
+     *
+     * @param  array $bindings
+     * @return void
+     */
+    public function seeSessionHasValues(array $bindings)
+    {
+        foreach ($bindings as $key => $value) {
+            if (is_int($key)) {
+                $this->seeInSession($value);
+            } else {
+                $this->seeInSession($key, $value);
+            }
+        }
+    }
+
+    /**
      * Assert that a session attribute exists.
      *
      * ```php
