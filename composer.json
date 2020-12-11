@@ -1,13 +1,17 @@
 {
-    "name":"codeception/module-symfony",
-    "description":"Codeception module for Symfony framework",
-    "keywords":["codeception", "symfony"],
-    "homepage":"https://codeception.com/",
-    "type":"library",
-    "license":"MIT",
-    "authors":[
+    "name": "codeception/module-symfony",
+    "description": "Codeception module for Symfony framework",
+    "keywords": ["codeception", "symfony"],
+    "homepage": "https://codeception.com/",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
         {
-            "name":"Michael Bodnarchuk"
+            "name": "Michael Bodnarchuk"
+        },
+        {
+            "name": "Gustavo Nieves",
+            "homepage": "https://medium.com/@ganieves"
         }
     ],
     "minimum-stability": "RC",
@@ -25,7 +29,7 @@
         "codeception/module-sequence": "^1.0",
         "vlucas/phpdotenv": "^3.6 | ^4.1 | ^5.2"
     },
-    "autoload":{
+    "autoload": {
         "classmap": ["src/"]
     },
     "config": {
