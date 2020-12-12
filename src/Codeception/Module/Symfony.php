@@ -80,7 +80,7 @@ use function substr_compare;
  *
  * ## Demo Project
  *
- * <https://github.com/Codeception/symfony-demo>
+ * <https://github.com/Codeception/symfony-module-tests>
  *
  * ## Config
  *
