@@ -214,7 +214,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     protected $persistentServices = [];
 
-    public function _initialize()
+    public function _initialize(): void
     {
         $this->initializeSymfonyCache();
         $this->kernelClass = $this->getKernelClass();
@@ -235,7 +235,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     /**
      * Require Symfony's bootstrap.php.cache
      */
-    private function initializeSymfonyCache()
+    private function initializeSymfonyCache(): void
     {
         $cache = Configuration::projectDir() . $this->config['var_path'] . DIRECTORY_SEPARATOR . 'bootstrap.php.cache';
 
@@ -249,7 +249,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param TestInterface $test
      */
-    public function _before(TestInterface $test)
+    public function _before(TestInterface $test): void
     {
         $this->persistentServices = array_merge($this->persistentServices, $this->permanentServices);
         $this->client = new SymfonyConnector($this->kernel, $this->persistentServices, $this->config['rebootable_client']);
@@ -260,7 +260,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @param TestInterface $test
      */
-    public function _after(TestInterface $test)
+    public function _after(TestInterface $test): void
     {
         foreach (array_keys($this->permanentServices) as $serviceName) {
             $this->permanentServices[$serviceName] = $this->grabService($serviceName);
@@ -268,7 +268,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         parent::_after($test);
     }
 
-    protected function onReconfigure($settings = [])
+    protected function onReconfigure($settings = []): void
     {
 
         parent::_beforeSuite($settings);
@@ -307,7 +307,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * @return ContainerInterface|mixed
      */
-    public function _getContainer()
+    public function _getContainer(): ContainerInterface
     {
         $container = $this->kernel->getContainer();
 
@@ -337,18 +337,18 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             throw new ModuleRequireException(
                 self::class,
                 "Can't load Kernel from $path.\n"
-                . "Directory does not exists. Use `app_path` parameter to provide valid application path"
+                . 'Directory does not exists. Use `app_path` parameter to provide valid application path'
             );
         }
 
         $finder = new Finder();
         $finder->name('*Kernel.php')->depth('0')->in($path);
         $results = iterator_to_array($finder);
-        if (count($results) === 0) {
+        if ($results === []) {
             throw new ModuleRequireException(
                 self::class,
                 "File with Kernel class was not found at $path. "
-                . "Specify directory where file with Kernel class for your application is located with `app_path` parameter."
+                . 'Specify directory where file with Kernel class for your application is located with `app_path` parameter.'
             );
         }
 
@@ -376,7 +376,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         throw new ModuleRequireException(
             self::class,
             "Kernel class was not found in $file. "
-            . "Specify directory where file with Kernel class for your application is located with `app_path` parameter."
+            . 'Specify directory where file with Kernel class for your application is located with `app_path` parameter.'
         );
     }
 
@@ -389,7 +389,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     {
         $service = $this->grabService($serviceName);
         $this->persistentServices[$serviceName] = $service;
-        if ($this->client) {
+        if ($this->client instanceof SymfonyConnector) {
             $this->client->persistentServices[$serviceName] = $service;
         }
     }
@@ -405,7 +405,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $service = $this->grabService($serviceName);
         $this->persistentServices[$serviceName] = $service;
         $this->permanentServices[$serviceName] = $service;
-        if ($this->client) {
+        if ($this->client instanceof SymfonyConnector) {
             $this->client->persistentServices[$serviceName] = $service;
         }
     }
@@ -423,7 +423,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if (isset($this->permanentServices[$serviceName])) {
             unset($this->permanentServices[$serviceName]);
         }
-        if ($this->client && isset($this->client->persistentServices[$serviceName])) {
+        if ($this->client instanceof SymfonyConnector && isset($this->client->persistentServices[$serviceName])) {
             unset($this->client->persistentServices[$serviceName]);
         }
     }
@@ -452,7 +452,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     {
         /** @var RouterInterface $router */
         $router = $this->grabService('router');
-        if (!$router->getRouteCollection()->get($routeName)) {
+        if ($router->getRouteCollection()->get($routeName) === null) {
             $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
         }
         $url = $router->generate($routeName, $params);
@@ -475,7 +475,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     {
         /** @var RouterInterface $router */
         $router = $this->grabService('router');
-        if (!$router->getRouteCollection()->get($routeName)) {
+        if ($router->getRouteCollection()->get($routeName) === null) {
             $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
         }
 
@@ -506,7 +506,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     {
         /** @var RouterInterface $router */
         $router = $this->grabService('router');
-        if (!$router->getRouteCollection()->get($routeName)) {
+        if ($router->getRouteCollection()->get($routeName) === null) {
             $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
         }
 
@@ -834,7 +834,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function rebootClientKernel(): void
     {
-        if ($this->client) {
+        if ($this->client instanceof SymfonyConnector) {
             $this->client->rebootKernel();
         }
     }
@@ -1076,7 +1076,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         $user = $security->getUser();
 
-        if (!$user) {
+        if ($user === null) {
             $this->fail('There is no user in session');
         }
 
@@ -1129,7 +1129,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         $user = $security->getUser();
 
-        if (!$user) {
+        if ($user === null) {
             $this->fail('There is no user in session');
         }
 
@@ -1172,14 +1172,14 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         $user = $security->getUser();
 
-        if (!$user) {
+        if ($user === null) {
             $this->fail('There is no user in session');
         }
 
         $this->assertTrue(
             $security->isGranted($role),
             sprintf(
-                "User %s has no role %s",
+                'User %s has no role %s',
                 $user->getUsername(),
                 $role
             )
@@ -1373,7 +1373,8 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if ($user === null) {
             /** @var Security $security */
             $security = $this->grabService('security.helper');
-            if (!$user = $security->getUser()) {
+            $user = $security->getUser();
+            if ($user === null) {
                 $this->fail('No user found to validate');
             }
         }

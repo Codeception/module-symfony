@@ -8,11 +8,8 @@ jobs:
 
     strategy:
       matrix:
-        php: [7.1, 7.2, 7.3, 7.4, 8.0]
+        php: [7.3, 7.4, 8.0]
         symfony: [3.4, 4.4, 5]
-        exclude:
-          - php: 7.1
-            symfony: 5
 
     steps:
     - name: Checkout code
