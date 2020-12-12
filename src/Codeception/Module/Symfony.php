@@ -903,7 +903,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @param mixed|null $value
      * @return void
      */
-    public function seeInSession(string $attribute, $value = null)
+    public function seeInSession(string $attribute, $value = null): void
     {
         $session = $this->grabService('session');
 
