@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
 use Symfony\Component\HttpKernel\DataCollector\EventDataCollector;
+use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\Profiler\Profile;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
@@ -743,6 +744,8 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Set the data that will be displayed when running a test with the `--debug` flag
+     *
      * @param $url
      */
     protected function debugResponse($url): void
@@ -780,8 +783,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if (isset($emails)) {
             $this->debugSection('Emails', $emails . ' sent');
         }
-        if ($profile->hasCollector('timer')) {
-            $this->debugSection('Time', $profile->getCollector('timer')->getTime());
+        if ($profile->hasCollector('time')) {
+            /** @var TimeDataCollector $timeCollector */
+            $timeCollector = $profile->getCollector('time');
+            $duration = number_format($timeCollector->getDuration(), 2) . ' ms';
+            $this->debugSection('Time', $duration);
         }
     }
 
