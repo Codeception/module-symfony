@@ -39,6 +39,7 @@ use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Guard\Token\PostAuthenticationGuardToken;
@@ -1080,7 +1081,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             $this->fail('There is no user in session');
         }
 
-        $this->assertTrue($security->isGranted('IS_AUTHENTICATED_FULLY'), 'There is no authenticated user');
+        $this->assertTrue(
+            $security->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY),
+            'There is no authenticated user'
+        );
     }
 
     /**
@@ -1134,7 +1138,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
 
         $hasRememberMeCookie = $this->client->getCookieJar()->get('REMEMBERME');
-        $hasRememberMeRole = $security->isGranted('IS_AUTHENTICATED_REMEMBERED');
+        $hasRememberMeRole = $security->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED);
 
         $isRemembered = $hasRememberMeCookie && $hasRememberMeRole;
         $this->assertTrue(
@@ -1157,7 +1161,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $security = $this->grabService('security.helper');
 
         $hasRememberMeCookie = $this->client->getCookieJar()->get('REMEMBERME');
-        $hasRememberMeRole = $security->isGranted('IS_AUTHENTICATED_REMEMBERED');
+        $hasRememberMeRole = $security->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED);
 
         $isRemembered = $hasRememberMeCookie && $hasRememberMeRole;
         $this->assertFalse(
@@ -1211,7 +1215,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $security = $this->grabService('security.helper');
 
         $this->assertFalse(
-            $security->isGranted('IS_AUTHENTICATED_FULLY'),
+            $security->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY),
             'There is an user authenticated'
         );
     }
