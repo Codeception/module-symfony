@@ -1156,6 +1156,23 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Verifies that the current user has multiple roles
+     *
+     * ``` php
+     * <?php
+     * $I->seeUserHasRoles(['ROLE_USER', 'ROLE_ADMIN']);
+     * ```
+     *
+     * @param string[] $roles
+     */
+    public function seeUserHasRoles(array $roles): void
+    {
+        foreach ($roles as $role) {
+            $this->seeUserHasRole($role);
+        }
+    }
+
+    /**
      * Check that the current user has a role
      *
      * ```php
