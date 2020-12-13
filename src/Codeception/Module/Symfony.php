@@ -1133,7 +1133,14 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             $this->fail('There is no user in session');
         }
 
-        $this->assertTrue($security->isGranted('IS_AUTHENTICATED_REMEMBERED'), 'There is no authenticated user');
+        $hasRememberMeCookie = $this->client->getCookieJar()->get('REMEMBERME');
+        $hasRememberMeRole = $security->isGranted('IS_AUTHENTICATED_REMEMBERED');
+
+        $isRemembered = $hasRememberMeCookie && $hasRememberMeRole;
+        $this->assertTrue(
+            $isRemembered,
+            'User does not have remembered authentication'
+        );
     }
 
     /**
@@ -1149,9 +1156,13 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         /** @var Security $security */
         $security = $this->grabService('security.helper');
 
+        $hasRememberMeCookie = $this->client->getCookieJar()->get('REMEMBERME');
+        $hasRememberMeRole = $security->isGranted('IS_AUTHENTICATED_REMEMBERED');
+
+        $isRemembered = $hasRememberMeCookie && $hasRememberMeRole;
         $this->assertFalse(
-            $security->isGranted('IS_AUTHENTICATED_REMEMBERED'),
-            'There is an user authenticated'
+            $isRemembered,
+            'User does have remembered authentication'
         );
     }
 
