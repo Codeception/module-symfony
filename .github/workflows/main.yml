@@ -69,16 +69,6 @@ jobs:
       if: matrix.php == 8.0
       run: composer update --no-progress --ignore-platform-req=php
 
-    - name: Yarn install
-      uses: borales/actions-yarn@v2.3.0
-      with:
-        cmd: install
-
-    - name: Yarn build
-      uses: borales/actions-yarn@v2.3.0
-      with:
-        cmd: run encore production
-
     - name: Update database schema
       run: php bin/console d:s:u -f
 
