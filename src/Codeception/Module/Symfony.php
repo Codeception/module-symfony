@@ -978,24 +978,25 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *
      * ```php
      * <?php
-     * $I->seeInSession('attrib');
-     * $I->seeInSession('attrib', 'value');
+     * $I->seeInSession('attribute');
+     * $I->seeInSession('attribute', 'value');
      * ```
      *
-     * @param string $attrib
+     * @param string $attribute
      * @param mixed|null $value
      */
-    public function seeInSession(string $attrib, $value = null): void
+
+    public function seeInSession(string $attribute, $value = null): void
     {
         /** @var SessionInterface $session */
         $session = $this->grabService('session');
 
-        if (!$session->has($attrib)) {
-            $this->fail("No session attribute with name '$attrib'");
+        if (!$session->has($attribute)) {
+            $this->fail("No session attribute with name '$attribute'");
         }
 
         if (null !== $value) {
-            $this->assertEquals($value, $session->get($attrib));
+            $this->assertEquals($value, $session->get($attribute));
         }
     }
 
