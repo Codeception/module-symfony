@@ -70,7 +70,6 @@ use function is_string;
 use function is_subclass_of;
 use function iterator_to_array;
 use function json_encode;
-use function print_r;
 use function serialize;
 use function sprintf;
 use function strlen;
@@ -578,16 +577,15 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function seeEmailIsSent(?int $expectedCount = null): void
     {
-        if (($profile = $this->getProfile()) === null) {
-            $this->fail("Emails can't be tested without Profiler");
-        }
-
+        $realCount = 0;
         $mailer = $this->config['mailer'];
-        if ($mailer === self::SYMFONY_MAILER) {
-            $mailer = 'mailer';
-        }
-
-        if (!$profile->hasCollector($mailer)) {
+        if ($mailer === self::SWIFTMAILER) {
+            $mailCollector = $this->grabCollector('swiftmailer', __FUNCTION__);
+            $realCount = $mailCollector->getMessageCount();
+        } elseif ($mailer === self::SYMFONY_MAILER) {
+            $mailCollector = $this->grabCollector('mailer', __FUNCTION__);
+            $realCount = count($mailCollector->getEvents()->getMessages());
+        } else {
             $this->fail(
                 "Emails can't be tested without Mailer service connector.
                 Set your mailer service in `functional.suite.yml`: `mailer: swiftmailer`
@@ -595,24 +593,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             );
         }
 
-        if (!is_int($expectedCount) && !is_null($expectedCount)) {
-            $this->fail(sprintf(
-                'The required number of emails must be either an integer or null. "%s" was provided.',
-                print_r($expectedCount, true)
-            ));
-        }
-
-        $mailCollector = $profile->getCollector($mailer);
-        if ($mailer === self::SWIFTMAILER) {
-            $realCount = $mailCollector->getMessageCount();
-        } else {
-            $realCount = count($mailCollector->getEvents()->getMessages());
-        }
-
         if ($expectedCount !== null) {
             $this->assertEquals($expectedCount, $realCount, sprintf(
                 'Expected number of sent emails was %d, but in reality %d %s sent.',
-                $expectedCount, $realCount, $realCount === 2 ? 'was' : 'were'
+                $expectedCount, $realCount, $realCount === 1 ? 'was' : 'were'
             ));
             return;
         }
