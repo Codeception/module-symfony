@@ -74,4 +74,4 @@ If all is fine, then ...
 So you're going to improve documentation, or just do a really minor code change? Hey, you rock too!
 
 * Either just edit https://github.com/Codeception/module-symfony/blob/master/src/Codeception/Module/Symfony.php on GitHub's website.
-* Or follow steps 3 through 6 from above to do it on your local machine.
+* Or follow steps 4 through 7 from above to do it on your local machine.
