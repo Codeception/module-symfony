@@ -50,7 +50,7 @@ If all is fine, then ...
 
 ### ... Write the Test
 
-8. In the test project (`symfony-module-tests`), create a test with the same name as your new function in `tests/Functional/SymfonyModuleCest.php`, following alphabetical order.
+8. In the test project (`symfony-module-tests`), create a test with the same name as your new function in `tests/Functional/SymfonyModuleCest.php`, following alphabetical order.  
    Hint: Run this to rebuild Codeception's "Actor" classes (see [Console Commands](https://codeception.com/docs/reference/Commands#Build)) to get auto-completion in your IDE:
    ```bash
    vendor/bin/codecept clean
@@ -60,11 +60,11 @@ If all is fine, then ...
 9. Run the tests with `vendor/bin/codecept run Functional`
 
 10. Commit:
-   ```bash
-   git add --all
-   git commit --message="Add a link to the module's Pull Request you created above"
-   git push --set-upstream origin new_feature
-   ```
+    ```bash
+    git add --all
+    git commit --message="Add a link to the module's Pull Request you created above"
+    git push --set-upstream origin new_feature
+    ```
 
 11. In the CLI output, click on the link to https://github.com/YourUserName/symfony-module-test/pull/new/new_feature to create a Pull Request through GitHub.com.
 
