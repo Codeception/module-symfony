@@ -534,11 +534,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * ?>
      * ```
      *
-     * @param $service
+     * @param string $service
      * @return mixed
      * @part services
      */
-    public function grabService($service)
+    public function grabService(string $service)
     {
         $container = $this->_getContainer();
         if (!$container->has($service)) {
