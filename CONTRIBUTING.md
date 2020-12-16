@@ -28,6 +28,9 @@ You can use our prepared [Codeception/symfony-module-test](https://github.com/Co
    ```bash
    git clone https://github.com/YourUserName/module-symfony.git
    cd module-symfony
+   git remote add upstream https://github.com/Codeception/module-symfony.git
+   git pull upstream master
+   git rebase upstream/master
    git checkout -b new_feature
    ```
 
