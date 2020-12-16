@@ -1263,6 +1263,41 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
+     * Make sure events did not fire during the test.
+     *
+     * ``` php
+     * <?php
+     * $I->dontSeeEventTriggered('App\MyEvent');
+     * $I->dontSeeEventTriggered(new App\Events\MyEvent());
+     * $I->dontSeeEventTriggered(['App\MyEvent', 'App\MyOtherEvent']);
+     * ```
+     * @param string|object|string[] $expected
+     */
+    public function dontSeeEventTriggered($expected): void
+    {
+        /** @var EventDataCollector $eventCollector */
+        $eventCollector = $this->grabCollector('events', __FUNCTION__);
+
+        /** @var Data $data */
+        $data = $eventCollector->getNotCalledListeners();
+
+        $actual = $data->getValue(true);
+        $expected = is_array($expected) ? $expected : [$expected];
+
+        foreach ($expected as $expectedEvent) {
+            $notTriggered = false;
+            $expectedEvent = is_object($expectedEvent) ? get_class($expectedEvent) : $expectedEvent;
+
+            foreach ($actual as $actualEvent) {
+                if (strpos($actualEvent['pretty'], $expectedEvent) === 0) {
+                    $notTriggered = true;
+                }
+            }
+            $this->assertTrue($notTriggered, "The '$expectedEvent' event triggered");
+        }
+    }
+
+    /**
      * Checks that current page matches action
      *
      * ``` php
