@@ -14,51 +14,56 @@ You can use our prepared [Codeception/symfony-module-test](https://github.com/Co
   ```bash
   git clone https://github.com/YourUserName/symfony-module-tests.git
   cd symfony-module-tests
+  git remote add upstream https://github.com/Codeception/symfony-module-tests.git
+  git pull upstream master
+  git rebase upstream/master
   git checkout -b new_feature
   ```
 
-2. Edit the module's source code in `vendor/codeception/module-symfony/src/Codeception/Module/Symfony.php` of this project. If you want, you can already write the tests (see step 7).
+2. Continue with step 2+3 at https://github.com/Codeception/symfony-module-tests/blob/main/README.md (i.e. composer + Doctrine fixtures)
 
-3. On https://github.com/Codeception/module-symfony, click on the "Fork" button. Then, in your terminal, go to another directory, then:
+3. Edit the module's source code in `vendor/codeception/module-symfony/src/Codeception/Module/Symfony.php` of this project. If you want, you can already write the tests (see step 8).
+
+4. On https://github.com/Codeception/module-symfony, click on the "Fork" button. Then, in your terminal, go to another directory, then:
    ```bash
    git clone https://github.com/YourUserName/module-symfony.git
    cd module-symfony
    git checkout -b new_feature
    ```
 
-4. Copy your changed code parts from the test project's `Symfony.php` to this fork's `src/Codeception/Module/Symfony.php`
+5. Copy your changed code parts from the test project's `Symfony.php` to this fork's `src/Codeception/Module/Symfony.php`
 
-5. Commit:
+6. Commit:
   ```bash
   git add --all
   git commit --message="Briefly explain what your change is about"
   git push --set-upstream origin new_feature
   ```
 
-6. In the CLI output, click on the link to https://github.com/YourUserName/module-symfony/pull/new/new_feature to create a Pull Request through GitHub.com.
+7. In the CLI output, click on the link to https://github.com/YourUserName/module-symfony/pull/new/new_feature to create a Pull Request through GitHub.com.
 
 Now wait for feedback on your Pull Request.  
 If all is fine, then ...
 
 ### ... Write the Test
 
-7. In the test project (`symfony-module-tests`), create a test with the same name as your new function in `tests/Functional/SymfonyModuleCest.php`, following alphabetical order.
+8. In the test project (`symfony-module-tests`), create a test with the same name as your new function in `tests/Functional/SymfonyModuleCest.php`, following alphabetical order.
   Hint: Run this to rebuild Codeception's "Actor" classes (see [Console Commands](https://codeception.com/docs/reference/Commands#Build)) to get auto-completion in your IDE:
   ```bash
   vendor/bin/codecept clean
   vendor/bin/codecept build
   ```
 
-8. Run the tests with `vendor/bin/codecept run Functional`
+9. Run the tests with `vendor/bin/codecept run Functional`
 
-9. Commit:
+10. Commit:
   ```bash
   git add --all
   git commit --message="Add a link to the module's Pull Request you created above"
   git push --set-upstream origin new_feature
   ```
 
-10. In the CLI output, click on the link to https://github.com/YourUserName/symfony-module-test/pull/new/new_feature to create a Pull Request through GitHub.com.
+11. In the CLI output, click on the link to https://github.com/YourUserName/symfony-module-test/pull/new/new_feature to create a Pull Request through GitHub.com.
 
 
 ## No, My Change Does Not Require a Test
