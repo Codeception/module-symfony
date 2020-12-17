@@ -2,68 +2,82 @@
 
 First of all: Contributions are very welcome!
 
-Does your change require a test?
+**Does your change require a test?**
 
-## Yes, My Change Requires a Test
+## No, my change does not require a test
+So you're going to make a small change or improve the documentation? Hey, you rock!
 
-So you're going to add or modify functionality? Hey, you rock!
+- Either just edit [`Symfony.php`](https://github.com/Codeception/module-symfony/blob/master/src/Codeception/Module/Symfony.php) on GitHub's website.
+- Make sure to add a descriptive title and add an explanation for your changes.
 
-You can use our prepared [Codeception/symfony-module-test](https://github.com/Codeception/symfony-module-tests). It is a minimal (but complete) Symfony project, ready to run tests.
+> :bulb: You can also create a *fork* and *cloning it* on your local machine, as explained in the next section.
 
-1. On https://github.com/Codeception/symfony-module-tests, click on the "Fork" button. Then, in your terminal, do:
-  ```bash
-  git clone https://github.com/YourUserName/symfony-module-tests.git
-  cd symfony-module-tests
-  git checkout -b new_feature
-  ```
+## Yes, my change requires a test
 
-2. Edit the module's source code in `vendor/codeception/module-symfony/src/Codeception/Module/Symfony.php` of this project. If you want, you can already write the tests (see step 7).
+So you're going to add or modify functionality? Hey, you rock too!
 
-3. On https://github.com/Codeception/module-symfony, click on the "Fork" button. Then, in your terminal, go to another directory, then:
-   ```bash
+You can use our prepared [Codeception/symfony-module-tests](https://github.com/Codeception/symfony-module-tests).
+It is a minimal (but complete) Symfony project, ready to run tests.
+
+### 1. Edit locally
+
+- Go to [Codeception/symfony-module-tests](https://github.com/Codeception/symfony-module-tests) and fork the project.
+   Then follow the installation instructions.
+   <br/>
+- Edit the module's source code in the `vendor/codeception/module-symfony/src/Codeception/Module/Symfony.php` file.
+   <br/>
+- If you created a new method, you can test it by adding a test in the `tests/Functional/SymfonyModuleCest.php` file.
+> :bulb: Be sure to Rebuild Codeception's "Actor" classes (see [Console Commands](https://codeception.com/docs/reference/Commands#Build)):
+> ```shell
+> vendor/bin/codecept clean
+> vendor/bin/codecept build
+> ```
+> With this, your IDE will be able to recognize and autocomplete your new method.
+
+- Then, run the tests with the `vendor/bin/codecept run Functional` command.
+
+### 2. Confirm your changes
+
+- If you are satisfied with your changes, the next step is to fork [Codeception/symfony-module](https://github.com/Codeception/module-symfony).
+   In your terminal, go to another directory, then:
+   ```shell
+   # Clone the repo
    git clone https://github.com/YourUserName/module-symfony.git
+
+   # Create a new branch for your change
    cd module-symfony
    git checkout -b new_feature
    ```
+> :bulb: If you've created a fork before, make sure to [sync the changes](https://stackoverflow.com/a/7244456).
 
-4. Copy your changed code parts from the test project's `Symfony.php` to this fork's `src/Codeception/Module/Symfony.php`
+- Copy the changes from the `Symfony.php` of the test project to the `src/Codeception/Module/Symfony.php` file on your Module's fork.
+   <br/>
+- Commit:
+   ```shell
+   git add --all
+   git commit --message="Briefly explain what your change is about"
+   git push --set-upstream origin new_feature
+   ```
 
-5. Commit:
-  ```bash
-  git add --all
-  git commit --message="Briefly explain what your change is about"
-  git push --set-upstream origin new_feature
-  ```
+### 3. Create a Pull Request
 
-6. In the CLI output, click on the link to https://github.com/YourUserName/module-symfony/pull/new/new_feature to create a Pull Request through GitHub.com.
+- In the CLI output, click on the link to `https://github.com/YourUserName/module-symfony/pull/new/new_feature` to create a Pull Request through GitHub.com.
 
-Now wait for feedback on your Pull Request.  
-If all is fine, then ...
+Now wait for feedback on your Pull Request. If all is fine and gets merged...
 
-### ... Write the Test
+### 4. Send a Test
 
-7. In the test project (`symfony-module-tests`), create a test with the same name as your new function in `tests/Functional/SymfonyModuleCest.php`, following alphabetical order.
-  Hint: Run this to rebuild Codeception's "Actor" classes (see [Console Commands](https://codeception.com/docs/reference/Commands#Build)) to get auto-completion in your IDE:
-  ```bash
-  vendor/bin/codecept clean
-  vendor/bin/codecept build
-  ```
+- In the test project (`symfony-module-tests`), create a test with the same name as your new method in `tests/Functional/SymfonyModuleCest.php`, following alphabetical order.
 
-8. Run the tests with `vendor/bin/codecept run Functional`
+- Run the tests with `vendor/bin/codecept run Functional` command.
 
-9. Commit:
-  ```bash
-  git add --all
-  git commit --message="Add a link to the module's Pull Request you created above"
-  git push --set-upstream origin new_feature
-  ```
+- Commit:
+    ```shell
+    git checkout -b new_test
+    git add --all
+    git commit --message="Describe what feature you are testing"
+    git push --set-upstream origin new_test
+    ```
 
-10. In the CLI output, click on the link to https://github.com/YourUserName/symfony-module-test/pull/new/new_feature to create a Pull Request through GitHub.com.
-
-
-## No, My Change Does Not Require a Test
-
-So you're going to improve documentation, or just do a really minor code change? Hey, you rock too!
-
-* Either just edit https://github.com/Codeception/module-symfony/blob/master/src/Codeception/Module/Symfony.php on GitHub's website.
-* Or follow steps 3 through 6 from above to do it on your local machine.
+- In the CLI output, click on the link to `https://github.com/YourUserName/symfony-module-tests/pull/new/new_test` to create a Pull Request through `GitHub.com`.
+  Don't forget to add a link to the module's Pull Request you created.
