@@ -1347,27 +1347,55 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     }
 
     /**
-     * Verifies that a form has fields with errors.
+     * Verifies that multiple fields on a form have errors.
      *
-     * This method calls `seeFormErrorMessage` for each entry in the `$bindings` array.
+     * If you only specify the name of the fields, this method will
+     * verify that the field contains at least one error of any type:
      *
      * ``` php
      * <?php
      * $I->seeFormErrorMessages(['telephone', 'address']);
+     * ```
+     *
+     * If you want to specify the error messages, you can do so
+     * by sending an associative array instead, with the key being
+     * the name of the field and the error message the value.
+     *
+     * This method will validate that the expected error message
+     * is contained in the actual error message, that is,
+     * you can specify either the entire error message or just a part of it:
+     *
+     * ``` php
+     * <?php
      * $I->seeFormErrorMessages([
-     *     'telephone' => 'Phone number too short',
-     *     'address'   => null
+     *     'address'   => 'The address is too long'
+     *     'telephone' => 'too short', // the full error message is 'The telephone is too short'
      * ]);
      * ```
-     * @param string[] $bindings
+     *
+     * If you don't want to specify the error message for some fields,
+     * you can pass `null` as value instead of the message string,
+     * or you can directly omit the value of that field. If that is the case,
+     * it will be validated that that field has at least one error of any type:
+     *
+     * ``` php
+     * <?php
+     * $I->seeFormErrorMessages([
+     *     'telephone' => 'too short',
+     *     'address'   => null,
+     *     'postal code',
+     * ]);
+     * ```
+     *
+     * @param string[] $expectedErrors
      */
-    public function seeFormErrorMessages(array $bindings)
+    public function seeFormErrorMessages(array $expectedErrors): void
     {
-        foreach ($bindings as $key => $value) {
-            if (is_int($key)) {
-                $this->seeFormErrorMessage($value);
+        foreach ($expectedErrors as $field => $message) {
+            if (is_int($field)) {
+                $this->seeFormErrorMessage($message);
             } else {
-                $this->seeFormErrorMessage($key, $value);
+                $this->seeFormErrorMessage($field, $message);
             }
         }
     }
