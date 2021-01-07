@@ -22,7 +22,22 @@ It is a minimal (but complete) Symfony project, ready to run tests.
 ### 1. Edit locally
 
 - Go to [Codeception/symfony-module-tests](https://github.com/Codeception/symfony-module-tests) and fork the project.
-   Then follow the installation instructions.
+   <br/>
+- Clone your fork locally:
+   ```shell
+   git clone https://github.com/YourUserName/symfony-module-tests.git
+   ```
+   <br/>
+- Install Composer dependencies
+   ```shell
+   composer update
+   ```
+   <br/>
+- Update database schema and load Doctrine fixtures
+   ```shell
+   php bin/console doctrine:schema:update --force  
+   php bin/console doctrine:fixtures:load --quiet
+   ```  
    <br/>
 - Edit the module's source code in the `vendor/codeception/module-symfony/src/Codeception/Module/Symfony.php` file.
    <br/>
