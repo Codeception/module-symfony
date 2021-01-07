@@ -7,10 +7,10 @@ First of all: Contributions are very welcome!
 ## No, my change does not require a test
 So you're going to make a small change or improve the documentation? Hey, you rock!
 
-- Either just edit [`Symfony.php`](https://github.com/Codeception/module-symfony/blob/master/src/Codeception/Module/Symfony.php) on GitHub's website.
+- Just edit [`Symfony.php`](https://github.com/Codeception/module-symfony/blob/master/src/Codeception/Module/Symfony.php) on GitHub's website.
 - Make sure to add a descriptive title and add an explanation for your changes.
 
-> :bulb: You can also create a *fork* and *cloning it* on your local machine, as explained in the next section.
+> :bulb: You can also create a *fork* and *clone it* on your local machine, as explained in the next section.
 
 ## Yes, my change requires a test
 
@@ -26,8 +26,8 @@ It is a minimal (but complete) Symfony project, ready to run tests.
    <br/>
 - Edit the module's source code in the `vendor/codeception/module-symfony/src/Codeception/Module/Symfony.php` file.
    <br/>
-- If you created a new method, you can test it by adding a test in the `tests/Functional/SymfonyModuleCest.php` file.
-> :bulb: Be sure to Rebuild Codeception's "Actor" classes (see [Console Commands](https://codeception.com/docs/reference/Commands#Build)):
+- If you create a new method, you can test it by adding a test in the `tests/Functional/SymfonyModuleCest.php` file.
+> :bulb: Be sure to rebuild Codeception's "Actor" classes (see [Console Commands](https://codeception.com/docs/reference/Commands#Build)):
 > ```shell
 > vendor/bin/codecept clean
 > vendor/bin/codecept build
@@ -63,7 +63,7 @@ It is a minimal (but complete) Symfony project, ready to run tests.
 
 - In the CLI output, click on the link to `https://github.com/YourUserName/module-symfony/pull/new/new_feature` to create a Pull Request through GitHub.com.
 
-Now wait for feedback on your Pull Request. If all is fine and gets merged...
+Now wait for feedback on your Pull Request. If all is fine and it gets merged...
 
 ### 4. Send a Test
 
@@ -80,4 +80,4 @@ Now wait for feedback on your Pull Request. If all is fine and gets merged...
     ```
 
 - In the CLI output, click on the link to `https://github.com/YourUserName/symfony-module-tests/pull/new/new_test` to create a Pull Request through `GitHub.com`.
-  Don't forget to add a link to the module's Pull Request you created.
+  Don't forget to add a link to the module's Pull Request you created earlier.
