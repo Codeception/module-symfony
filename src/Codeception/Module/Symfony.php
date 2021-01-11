@@ -77,7 +77,14 @@ use function strpos;
 use function substr_compare;
 
 /**
- * This module uses Symfony Crawler and HttpKernel to emulate requests and test response.
+ * This module uses [Symfony's DomCrawler](https://symfony.com/doc/current/components/dom_crawler.html)
+ * and [HttpKernel Component](https://symfony.com/doc/current/components/http_kernel.html) to emulate requests and test response.
+ *
+ * * Access Symfony services through the dependency injection container: [`$I->grabService(...)`](#grabService)
+ * * Use Doctrine to test against the database: `$I->seeInRepository(...)` - see [Doctrine Module](https://codeception.com/docs/modules/Doctrine2)
+ * * Assert that emails would have been sent: [`$I->seeEmailIsSent()`](#seeEmailIsSent)
+ * * Tests are wrapped into Doctrine transaction to speed them up.
+ * * Symfony Router can be cached between requests to speed up testing.
  *
  * ## Demo Project
  *
