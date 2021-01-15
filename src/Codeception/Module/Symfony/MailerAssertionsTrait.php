@@ -10,8 +10,6 @@ trait MailerAssertionsTrait
 {
     /**
      * Checks that no email was sent. This is an alias for seeEmailIsSent(0).
-     *
-     * @part email
      */
     public function dontSeeEmailIsSent(): void
     {
