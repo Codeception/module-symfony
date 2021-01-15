@@ -18,9 +18,9 @@ trait ServicesAssertionsTrait
      * $em = $I->grabService('doctrine');
      * ```
      *
+     * @part services
      * @param string $service
      * @return mixed
-     * @part services
      */
     public function grabService(string $service)
     {
@@ -36,6 +36,7 @@ trait ServicesAssertionsTrait
     /**
      * Get service $serviceName and add it to the lists of persistent services.
      *
+     * @part services
      * @param string $serviceName
      */
     public function persistService(string $serviceName): void
@@ -51,6 +52,7 @@ trait ServicesAssertionsTrait
      * Get service $serviceName and add it to the lists of persistent services,
      * making that service persistent between tests.
      *
+     * @part services
      * @param string $serviceName
      */
     public function persistPermanentService(string $serviceName): void
@@ -66,6 +68,7 @@ trait ServicesAssertionsTrait
     /**
      * Remove service $serviceName from the lists of persistent services.
      *
+     * @part services
      * @param string $serviceName
      */
     public function unpersistService(string $serviceName): void
