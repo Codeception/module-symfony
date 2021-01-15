@@ -3,58 +3,55 @@
 declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
-use function count;
-use function sprintf;
+
+use Symfony\Component\Mailer\Event\MessageEvents;
+use Symfony\Component\Mailer\EventListener\MessageLoggerListener;
+use Symfony\Component\Mailer\Test\Constraint as MailerConstraint;
 
 trait MailerAssertionsTrait
 {
     /**
-     * Checks that no email was sent. This is an alias for seeEmailIsSent(0).
+     * Checks that no email was sent.
      */
     public function dontSeeEmailIsSent(): void
     {
-        $this->seeEmailIsSent(0);
+        $this->assertThat($this->getMessageMailerEvents(), new MailerConstraint\EmailCount(0));
     }
 
     /**
      * Checks if the desired number of emails was sent.
-     * If no argument is provided then at least one email must be sent to satisfy the check.
-     * The email is checked using Symfony's profiler, which means:
+     * Asserts that 1 email was sent by default, specify the `expectedCount` parameter to modify it.
+     * The email is checked using Symfony message logger, which means:
      * * If your app performs a redirect after sending the email, you need to suppress this using REST Module's [stopFollowingRedirects](https://codeception.com/docs/modules/REST#stopFollowingRedirects)
-     * * If the email is sent by a Symfony Console Command, Codeception cannot detect it yet.
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->seeEmailIsSent(2);
      * ```
      *
-     * @param int|null $expectedCount
+     * @param int $expectedCount The expected number of emails sent
      */
-    public function seeEmailIsSent(?int $expectedCount = null): void
+    public function seeEmailIsSent(int $expectedCount = 1): void
     {
-        $realCount = 0;
-        $mailer = $this->config['mailer'];
-        if ($mailer === self::SWIFTMAILER) {
-            $mailCollector = $this->grabCollector('swiftmailer', __FUNCTION__);
-            $realCount = $mailCollector->getMessageCount();
-        } elseif ($mailer === self::SYMFONY_MAILER) {
-            $mailCollector = $this->grabCollector('mailer', __FUNCTION__);
-            $realCount = count($mailCollector->getEvents()->getMessages());
-        } else {
-            $this->fail(
-                "Emails can't be tested without Mailer service connector.
-                Set your mailer service in `functional.suite.yml`: `mailer: swiftmailer`
-                (Or `mailer: symfony_mailer` for Symfony Mailer)."
-            );
+        $this->assertThat($this->getMessageMailerEvents(), new MailerConstraint\EmailCount($expectedCount));
+    }
+
+    protected function getMessageMailerEvents(): MessageEvents
+    {
+        $container = $this->_getContainer();
+
+        if ($container->has('mailer.message_logger_listener')) {
+            /** @var MessageLoggerListener $messageLogger */
+            $messageLogger = $container->get('mailer.message_logger_listener');
+            return $messageLogger->getEvents();
         }
 
-        if ($expectedCount !== null) {
-            $this->assertEquals($expectedCount, $realCount, sprintf(
-                'Expected number of sent emails was %d, but in reality %d %s sent.',
-                $expectedCount, $realCount, $realCount === 1 ? 'was' : 'were'
-            ));
-            return;
+        if ($container->has('mailer.logger_message_listener')) {
+            /** @var MessageLoggerListener $messageLogger */
+            $messageLogger = $container->get('mailer.logger_message_listener');
+            return $messageLogger->getEvents();
         }
-        $this->assertGreaterThan(0, $realCount);
+
+        $this->fail("Emails can't be tested without Symfony Mailer service.");
     }
 }
