@@ -32,8 +32,7 @@ trait RouterAssertionsTrait
      */
     public function amOnAction(string $action, array $params = []): void
     {
-        /** @var RouterInterface $router */
-        $router = $this->grabService('router');
+        $router = $this->grabRouterService();
 
         $routes = $router->getRouteCollection()->getIterator();
 
@@ -66,8 +65,7 @@ trait RouterAssertionsTrait
      */
     public function amOnRoute(string $routeName, array $params = []): void
     {
-        /** @var RouterInterface $router */
-        $router = $this->grabService('router');
+        $router = $this->grabRouterService();
         if ($router->getRouteCollection()->get($routeName) === null) {
             $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
         }
@@ -96,8 +94,7 @@ trait RouterAssertionsTrait
      */
     public function seeCurrentActionIs(string $action): void
     {
-        /** @var RouterInterface $router */
-        $router = $this->grabService('router');
+        $router = $this->grabRouterService();
 
         $routes = $router->getRouteCollection()->getIterator();
 
@@ -129,8 +126,7 @@ trait RouterAssertionsTrait
      */
     public function seeCurrentRouteIs(string $routeName, array $params = []): void
     {
-        /** @var RouterInterface $router */
-        $router = $this->grabService('router');
+        $router = $this->grabRouterService();
         if ($router->getRouteCollection()->get($routeName) === null) {
             $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
         }
@@ -160,8 +156,7 @@ trait RouterAssertionsTrait
      */
     public function seeInCurrentRoute(string $routeName): void
     {
-        /** @var RouterInterface $router */
-        $router = $this->grabService('router');
+        $router = $this->grabRouterService();
         if ($router->getRouteCollection()->get($routeName) === null) {
             $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
         }
@@ -174,5 +169,10 @@ trait RouterAssertionsTrait
         }
 
         $this->assertEquals($matchedRouteName, $routeName);
+    }
+
+    protected function grabRouterService(): RouterInterface
+    {
+        return $this->grabService('router');
     }
 }

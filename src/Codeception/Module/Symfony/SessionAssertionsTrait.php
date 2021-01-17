@@ -34,8 +34,7 @@ trait SessionAssertionsTrait
      */
     public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null): void
     {
-        /** @var SessionInterface $session */
-        $session = $this->grabService('session');
+        $session = $this->grabSessionService();
 
         if ($this->config['guard']) {
             $token = new PostAuthenticationGuardToken($user, $firewallName, $user->getRoles());
@@ -69,8 +68,7 @@ trait SessionAssertionsTrait
      */
     public function dontSeeInSession(string $attribute, $value = null): void
     {
-        /** @var SessionInterface $session */
-        $session = $this->grabService('session');
+        $session = $this->grabSessionService();
 
         if (null === $value) {
             if ($session->has($attribute)) {
@@ -92,15 +90,11 @@ trait SessionAssertionsTrait
      */
     public function logout(): void
     {
-        $container = $this->_getContainer();
-        if ($container->has('security.token_storage')) {
-            /** @var TokenStorageInterface $tokenStorage */
-            $tokenStorage = $this->grabService('security.token_storage');
+        if ($tokenStorage = $this->getTokenStorage()) {
             $tokenStorage->setToken();
         }
 
-        /** @var SessionInterface $session */
-        $session = $this->grabService('session');
+        $session = $this->grabSessionService();
 
         $sessionName = $session->getName();
         $session->invalidate();
@@ -132,8 +126,7 @@ trait SessionAssertionsTrait
      */
     public function seeInSession(string $attribute, $value = null): void
     {
-        /** @var SessionInterface $session */
-        $session = $this->grabService('session');
+        $session = $this->grabSessionService();
 
         if (!$session->has($attribute)) {
             $this->fail("No session attribute with name '$attribute'");
@@ -164,5 +157,15 @@ trait SessionAssertionsTrait
                 $this->seeInSession($key, $value);
             }
         }
+    }
+
+    protected function getTokenStorage(): ?TokenStorageInterface
+    {
+        return $this->getService('security.token_storage');
+    }
+
+    protected function grabSessionService(): SessionInterface
+    {
+        return $this->grabService('session');
     }
 }

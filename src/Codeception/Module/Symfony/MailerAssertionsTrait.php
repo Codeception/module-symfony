@@ -38,17 +38,13 @@ trait MailerAssertionsTrait
 
     protected function getMessageMailerEvents(): MessageEvents
     {
-        $container = $this->_getContainer();
-
-        if ($container->has('mailer.message_logger_listener')) {
+        if ($messageLogger = $this->getService('mailer.message_logger_listener')) {
             /** @var MessageLoggerListener $messageLogger */
-            $messageLogger = $container->get('mailer.message_logger_listener');
             return $messageLogger->getEvents();
         }
 
-        if ($container->has('mailer.logger_message_listener')) {
+        if ($messageLogger = $this->getService('mailer.logger_message_listener')) {
             /** @var MessageLoggerListener $messageLogger */
-            $messageLogger = $container->get('mailer.logger_message_listener');
             return $messageLogger->getEvents();
         }
 

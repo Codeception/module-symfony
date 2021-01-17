@@ -27,8 +27,7 @@ trait EventsAssertionsTrait
      */
     public function dontSeeEventTriggered($expected): void
     {
-        /** @var EventDataCollector $eventCollector */
-        $eventCollector = $this->grabCollector('events', __FUNCTION__);
+        $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
         /** @var Data $data */
         $data = $eventCollector->getNotCalledListeners();
@@ -63,8 +62,7 @@ trait EventsAssertionsTrait
      */
     public function seeEventTriggered($expected): void
     {
-        /** @var EventDataCollector $eventCollector */
-        $eventCollector = $this->grabCollector('events', __FUNCTION__);
+        $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
         /** @var Data $data */
         $data = $eventCollector->getCalledListeners();
@@ -87,5 +85,10 @@ trait EventsAssertionsTrait
             }
             $this->assertTrue($triggered, "The '$expectedEvent' event did not trigger");
         }
+    }
+
+    protected function grabEventCollector(string $function): EventDataCollector
+    {
+        return $this->grabCollector('events', $function);
     }
 }

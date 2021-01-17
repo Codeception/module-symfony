@@ -22,8 +22,7 @@ trait FormAssertionsTrait
      */
     public function dontSeeFormErrors(): void
     {
-        /** @var FormDataCollector $formCollector */
-        $formCollector = $this->grabCollector('form', __FUNCTION__);
+        $formCollector = $this->grabFormCollector(__FUNCTION__);
 
         $this->assertEquals(
             0,
@@ -47,8 +46,7 @@ trait FormAssertionsTrait
      */
     public function seeFormErrorMessage(string $field, ?string $message = null): void
     {
-        /** @var FormDataCollector $formCollector */
-        $formCollector = $this->grabCollector('form', __FUNCTION__);
+        $formCollector = $this->grabFormCollector(__FUNCTION__);
 
         if (!$forms = $formCollector->getData()->getValue('forms')['forms']) {
             $this->fail('There are no forms on the current page.');
@@ -157,13 +155,17 @@ trait FormAssertionsTrait
      */
     public function seeFormHasErrors(): void
     {
-        /** @var FormDataCollector $formCollector */
-        $formCollector = $this->grabCollector('form', __FUNCTION__);
+        $formCollector = $this->grabFormCollector(__FUNCTION__);
 
         $this->assertGreaterThan(
             0,
             $formCollector->getData()->offsetGet('nb_errors'),
             'Expecting that the form has errors, but there were none!'
         );
+    }
+
+    protected function grabFormCollector(string $function): FormDataCollector
+    {
+        return $this->grabCollector('form', $function);
     }
 }

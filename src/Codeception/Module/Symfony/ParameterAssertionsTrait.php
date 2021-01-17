@@ -21,8 +21,12 @@ trait ParameterAssertionsTrait
      */
     public function grabParameter(string $name)
     {
-        /** @var ParameterBagInterface $parameterBag */
-        $parameterBag = $this->grabService('parameter_bag');
+        $parameterBag = $this->grabParameterBagService();
         return $parameterBag->get($name);
+    }
+
+    protected function grabParameterBagService(): ParameterBagInterface
+    {
+        return $this->grabService('parameter_bag');
     }
 }

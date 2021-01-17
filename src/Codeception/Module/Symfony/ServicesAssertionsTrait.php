@@ -19,18 +19,17 @@ trait ServicesAssertionsTrait
      * ```
      *
      * @part services
-     * @param string $service
-     * @return mixed
+     * @param string $serviceId
+     * @return object
      */
-    public function grabService(string $service)
+    public function grabService(string $serviceId): object
     {
-        $container = $this->_getContainer();
-        if (!$container->has($service)) {
-            $this->fail("Service $service is not available in container.
+        if (!$service = $this->getService($serviceId)) {
+            $this->fail("Service $serviceId is not available in container.
             If the service isn't injected anywhere in your app, you need to set it to `public` in your `config/services_test.php`/`.yaml`,
             see https://symfony.com/doc/current/testing.html#accessing-the-container");
         }
-        return $container->get($service);
+        return $service;
     }
 
     /**
@@ -82,5 +81,14 @@ trait ServicesAssertionsTrait
         if ($this->client instanceof SymfonyConnector && isset($this->client->persistentServices[$serviceName])) {
             unset($this->client->persistentServices[$serviceName]);
         }
+    }
+
+    protected function getService(string $serviceId): ?object
+    {
+        $container = $this->_getContainer();
+        if ($container->has($serviceId)) {
+            return $container->get($serviceId);
+        }
+        return null;
     }
 }
