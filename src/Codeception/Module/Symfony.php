@@ -36,6 +36,7 @@ use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\Profiler\Profile;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
+use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\VarDumper\Cloner\Data;
@@ -74,7 +75,6 @@ use function sprintf;
  * * debug: true - turn on/off debug mode
  * * cache_router: 'false' - enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
  * * rebootable_client: 'true' - reboot client's kernel before each request
- * * mailer: 'symfony_mailer' - choose the mailer used by your application
  *
  * #### Example (`functional.suite.yml`) - Symfony 4 Directory Structure
  *
@@ -95,7 +95,6 @@ use function sprintf;
  * * debug: true - turn on/off debug mode
  * * cache_router: 'false' - enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
  * * rebootable_client: 'true' - reboot client's kernel before each request
- * * mailer: 'swiftmailer' - choose the mailer used by your application
  *
  * #### Example (`functional.suite.yml`) - Symfony 3 Directory Structure
  *
@@ -158,10 +157,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         SessionAssertionsTrait
     ;
 
-    private const SWIFTMAILER = 'swiftmailer';
-
-    private const SYMFONY_MAILER = 'symfony_mailer';
-
     private static $possibleKernelClasses = [
         'AppKernel', // Symfony Standard
         'App\Kernel', // Symfony Flex
@@ -181,7 +176,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         'cache_router' => false,
         'em_service' => 'doctrine.orm.entity_manager',
         'rebootable_client' => true,
-        'mailer' => self::SWIFTMAILER,
         'guard' => false
     ];
 
@@ -462,12 +456,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
                 $this->debugSection('User', 'Anonymous');
             }
         }
-        if ($profile->hasCollector('swiftmailer')) {
-            $emails = $profile->getCollector('swiftmailer')->getMessageCount();
-        } elseif ($profile->hasCollector('mailer')) {
-            $emails = count($profile->getCollector('mailer')->getEvents()->getMessages());
-        }
-        if (isset($emails)) {
+        if ($profile->hasCollector('mailer')) {
+            /** @var MessageDataCollector $mailerCollector */
+            $mailerCollector = $profile->getCollector('mailer');
+            $emails = count($mailerCollector->getEvents()->getMessages());
             $this->debugSection('Emails', $emails . ' sent');
         }
         if ($profile->hasCollector('time')) {
