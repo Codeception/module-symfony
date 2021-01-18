@@ -38,7 +38,6 @@ use Symfony\Component\HttpKernel\Profiler\Profile;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
 use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\VarDumper\Cloner\Data;
 use function array_keys;
 use function array_map;
@@ -280,14 +279,14 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if (!isset($this->permanentServices[$this->config['em_service']])) {
             // try to persist configured EM
             $this->persistPermanentService($this->config['em_service']);
-
-            if ($this->_getContainer()->has('doctrine')) {
+            $container = $this->_getContainer();
+            if ($container->has('doctrine')) {
                 $this->persistPermanentService('doctrine');
             }
-            if ($this->_getContainer()->has('doctrine.orm.default_entity_manager')) {
+            if ($container->has('doctrine.orm.default_entity_manager')) {
                 $this->persistPermanentService('doctrine.orm.default_entity_manager');
             }
-            if ($this->_getContainer()->has('doctrine.dbal.backend_connection')) {
+            if ($container->has('doctrine.dbal.backend_connection')) {
                 $this->persistPermanentService('doctrine.dbal.backend_connection');
             }
         }
@@ -377,13 +376,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     protected function getProfile(): ?Profile
     {
-        $container = $this->_getContainer();
-        if (!$container->has('profiler')) {
+        /** @var Profiler $profiler */
+        if (!$profiler = $this->getService('profiler')) {
             return null;
         }
-
-        /** @var Profiler $profiler */
-        $profiler = $this->grabService('profiler');
         try {
             /** @var Response $response */
             $response = $this->client->getResponse();
@@ -479,8 +475,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     {
         $internalDomains = [];
 
-        /** @var RouterInterface $router */
-        $router = $this->grabService('router');
+        $router = $this->grabRouterService();
         $routes = $router->getRouteCollection();
         /* @var Route $route */
         foreach ($routes as $route) {

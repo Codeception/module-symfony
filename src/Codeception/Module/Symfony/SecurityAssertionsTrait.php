@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\User\UserInterface;
 use function sprintf;
@@ -21,8 +22,7 @@ trait SecurityAssertionsTrait
      */
     public function dontSeeAuthentication(): void
     {
-        /** @var Security $security */
-        $security = $this->grabService('security.helper');
+        $security = $this->grabSecurityService();
 
         $this->assertFalse(
             $security->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY),
@@ -40,8 +40,7 @@ trait SecurityAssertionsTrait
      */
     public function dontSeeRememberedAuthentication(): void
     {
-        /** @var Security $security */
-        $security = $this->grabService('security.helper');
+        $security = $this->grabSecurityService();
 
         $hasRememberMeCookie = $this->client->getCookieJar()->get('REMEMBERME');
         $hasRememberMeRole = $security->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED);
@@ -63,8 +62,7 @@ trait SecurityAssertionsTrait
      */
     public function seeAuthentication(): void
     {
-        /** @var Security $security */
-        $security = $this->grabService('security.helper');
+        $security = $this->grabSecurityService();
 
         $user = $security->getUser();
 
@@ -88,8 +86,7 @@ trait SecurityAssertionsTrait
      */
     public function seeRememberedAuthentication(): void
     {
-        /** @var Security $security */
-        $security = $this->grabService('security.helper');
+        $security = $this->grabSecurityService();
 
         $user = $security->getUser();
 
@@ -119,8 +116,7 @@ trait SecurityAssertionsTrait
      */
     public function seeUserHasRole(string $role): void
     {
-        /** @var Security $security */
-        $security = $this->grabService('security.helper');
+        $security = $this->grabSecurityService();
 
         $user = $security->getUser();
 
@@ -172,15 +168,24 @@ trait SecurityAssertionsTrait
     public function seeUserPasswordDoesNotNeedRehash(UserInterface $user = null): void
     {
         if ($user === null) {
-            /** @var Security $security */
-            $security = $this->grabService('security.helper');
+            $security = $this->grabSecurityService();
             $user = $security->getUser();
             if ($user === null) {
                 $this->fail('No user found to validate');
             }
         }
-        $encoder = $this->grabService('security.user_password_encoder.generic');
+        $hasher = $this->grabPasswordHasherService();
 
-        $this->assertFalse($encoder->needsRehash($user), 'User password needs rehash');
+        $this->assertFalse($hasher->needsRehash($user), 'User password needs rehash');
+    }
+
+    protected function grabSecurityService(): Security
+    {
+        return $this->grabService('security.helper');
+    }
+
+    protected function grabPasswordHasherService(): UserPasswordEncoderInterface
+    {
+        return $this->grabService('security.user_password_encoder.generic');
     }
 }

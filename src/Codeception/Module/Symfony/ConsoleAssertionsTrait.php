@@ -6,6 +6,7 @@ namespace Codeception\Module\Symfony;
 
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 trait ConsoleAssertionsTrait
 {
@@ -26,7 +27,7 @@ trait ConsoleAssertionsTrait
      */
     public function runSymfonyConsoleCommand(string $command, array $parameters = [], array $consoleInputs = [], int $expectedExitCode = 0): string
     {
-        $kernel = $this->grabService('kernel');
+        $kernel = $this->grabKernelService();
         $application = new Application($kernel);
         $consoleCommand = $application->find($command);
         $commandTester = new CommandTester($consoleCommand);
@@ -44,5 +45,10 @@ trait ConsoleAssertionsTrait
         );
 
         return $output;
+    }
+
+    protected function grabKernelService(): KernelInterface
+    {
+        return $this->grabService('kernel');
     }
 }
