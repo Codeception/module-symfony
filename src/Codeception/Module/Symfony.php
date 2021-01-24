@@ -23,6 +23,7 @@ use Codeception\Module\Symfony\RouterAssertionsTrait;
 use Codeception\Module\Symfony\SecurityAssertionsTrait;
 use Codeception\Module\Symfony\ServicesAssertionsTrait;
 use Codeception\Module\Symfony\SessionAssertionsTrait;
+use Codeception\Module\Symfony\TwigAssertionsTrait;
 use Codeception\TestInterface;
 use Exception;
 use ReflectionClass;
@@ -153,7 +154,8 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         RouterAssertionsTrait,
         SecurityAssertionsTrait,
         ServicesAssertionsTrait,
-        SessionAssertionsTrait
+        SessionAssertionsTrait,
+        TwigAssertionsTrait
     ;
 
     private static $possibleKernelClasses = [
