@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         php: [7.3, 7.4, 8.0]
-        symfony: [3.4, 4.4, 5.2]
+        symfony: [4.4, 5.2]
 
     steps:
       - name: Checkout code
@@ -22,14 +22,6 @@ jobs:
           tools: composer:v2
           extensions: ctype, iconv, intl, json, mbstring, pdo, pdo_sqlite
           coverage: none
-
-      - name: Checkout Symfony 3.4 Sample
-        if: matrix.symfony == 3.4
-        uses: actions/checkout@v2
-        with:
-          repository: Codeception/symfony-module-tests
-          path: framework-tests
-          ref: 3.4
 
       - name: Checkout Symfony 4.4 Sample
         if: matrix.symfony == 4.4

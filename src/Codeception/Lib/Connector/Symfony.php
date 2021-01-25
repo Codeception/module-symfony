@@ -11,12 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelBrowser;
 use Symfony\Component\HttpKernel\Kernel;
 use function array_keys;
-use function class_alias;
 use function codecept_debug;
-
-if (Kernel::VERSION_ID < 40300) {
-    class_alias('Symfony\Component\HttpKernel\Client', 'Symfony\Component\HttpKernel\HttpKernelBrowser');
-}
 
 class Symfony extends HttpKernelBrowser
 {
