@@ -16,7 +16,7 @@ trait EventsAssertionsTrait
     /**
      * Make sure events did not fire during the test.
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->dontSeeEventTriggered('App\MyEvent');
      * $I->dontSeeEventTriggered(new App\Events\MyEvent());
@@ -40,18 +40,18 @@ trait EventsAssertionsTrait
             $expectedEvent = is_object($expectedEvent) ? get_class($expectedEvent) : $expectedEvent;
 
             foreach ($actual as $actualEvent) {
-                if (strpos($actualEvent['pretty'], $expectedEvent) === 0) {
+                if (strpos($actualEvent['pretty'], (string) $expectedEvent) === 0) {
                     $notTriggered = true;
                 }
             }
-            $this->assertTrue($notTriggered, "The '$expectedEvent' event triggered");
+            $this->assertTrue($notTriggered, "The '{$expectedEvent}' event triggered");
         }
     }
 
     /**
      * Make sure events fired during the test.
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->seeEventTriggered('App\MyEvent');
      * $I->seeEventTriggered(new App\Events\MyEvent());
@@ -79,11 +79,11 @@ trait EventsAssertionsTrait
             $expectedEvent = is_object($expectedEvent) ? get_class($expectedEvent) : $expectedEvent;
 
             foreach ($actual as $actualEvent) {
-                if (strpos($actualEvent['pretty'], $expectedEvent) === 0) {
+                if (strpos($actualEvent['pretty'], (string) $expectedEvent) === 0) {
                     $triggered = true;
                 }
             }
-            $this->assertTrue($triggered, "The '$expectedEvent' event did not trigger");
+            $this->assertTrue($triggered, "The '{$expectedEvent}' event did not trigger");
         }
     }
 

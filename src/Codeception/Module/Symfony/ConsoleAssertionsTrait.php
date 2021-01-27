@@ -14,7 +14,7 @@ trait ConsoleAssertionsTrait
      * Run Symfony console command, grab response and return as string.
      * Recommended to use for integration or functional testing.
      *
-     * ``` php
+     * ```php
      * <?php
      * $result = $I->runSymfonyConsoleCommand('hello:world', ['arg' => 'argValue', 'opt1' => 'optValue'], ['input']);
      * ```

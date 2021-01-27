@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use Symfony\Bridge\Twig\DataCollector\TwigDataCollector;
+use function array_key_first;
 
 trait TwigAssertionsTrait
 {

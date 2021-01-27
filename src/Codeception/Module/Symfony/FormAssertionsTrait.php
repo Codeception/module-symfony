@@ -15,7 +15,7 @@ trait FormAssertionsTrait
     /**
      * Verifies that there are no errors bound to the submitted form.
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->dontSeeFormErrors();
      * ```
@@ -35,7 +35,7 @@ trait FormAssertionsTrait
      * Verifies that a form field has an error.
      * You can specify the expected error message as second parameter.
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->seeFormErrorMessage('username');
      * $I->seeFormErrorMessage('username', 'Username is empty');
@@ -70,11 +70,11 @@ trait FormAssertionsTrait
         }
 
         if (!in_array($field, $fields)) {
-            $this->fail("the field '$field' does not exist in the form.");
+            $this->fail("the field '{$field}' does not exist in the form.");
         }
 
         if (!array_key_exists($field, $errors)) {
-            $this->fail("No form error message for field '$field'.");
+            $this->fail("No form error message for field '{$field}'.");
         }
 
         if (!$message) {
@@ -97,7 +97,7 @@ trait FormAssertionsTrait
      * If you only specify the name of the fields, this method will
      * verify that the field contains at least one error of any type:
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->seeFormErrorMessages(['telephone', 'address']);
      * ```
@@ -110,7 +110,7 @@ trait FormAssertionsTrait
      * is contained in the actual error message, that is,
      * you can specify either the entire error message or just a part of it:
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->seeFormErrorMessages([
      *     'address'   => 'The address is too long'
@@ -123,7 +123,7 @@ trait FormAssertionsTrait
      * or you can directly omit the value of that field. If that is the case,
      * it will be validated that that field has at least one error of any type:
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->seeFormErrorMessages([
      *     'telephone' => 'too short',
@@ -148,7 +148,7 @@ trait FormAssertionsTrait
     /**
      * Verifies that there are one or more errors bound to the submitted form.
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->seeFormHasErrors();
      * ```

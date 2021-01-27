@@ -72,7 +72,7 @@ trait SessionAssertionsTrait
 
         if (null === $value) {
             if ($session->has($attribute)) {
-                $this->fail("Session attribute with name '$attribute' does exist");
+                $this->fail("Session attribute with name '{$attribute}' does exist");
             }
         }
         else {
@@ -129,7 +129,7 @@ trait SessionAssertionsTrait
         $session = $this->grabSessionService();
 
         if (!$session->has($attribute)) {
-            $this->fail("No session attribute with name '$attribute'");
+            $this->fail("No session attribute with name '{$attribute}'");
         }
 
         if (null !== $value) {
