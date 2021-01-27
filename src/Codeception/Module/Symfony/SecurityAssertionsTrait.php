@@ -137,7 +137,7 @@ trait SecurityAssertionsTrait
     /**
      * Verifies that the current user has multiple roles
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->seeUserHasRoles(['ROLE_USER', 'ROLE_ADMIN']);
      * ```

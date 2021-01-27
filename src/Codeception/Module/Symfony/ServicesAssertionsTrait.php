@@ -10,10 +10,11 @@ trait ServicesAssertionsTrait
 {
     /**
      * Grabs a service from the Symfony dependency injection container (DIC).
-     * In "test" environment, Symfony uses a special `test.service_container`, see https://symfony.com/doc/current/testing.html#accessing-the-container
+     * In "test" environment, Symfony uses a special `test.service_container`.
+     * See the "[Accessing the Container](https://symfony.com/doc/current/testing.html#accessing-the-container)" documentation.
      * Services that aren't injected somewhere into your app, need to be defined as `public` to be accessible by Codeception.
      *
-     * ``` php
+     * ```php
      * <?php
      * $em = $I->grabService('doctrine');
      * ```
@@ -25,7 +26,7 @@ trait ServicesAssertionsTrait
     public function grabService(string $serviceId): object
     {
         if (!$service = $this->getService($serviceId)) {
-            $this->fail("Service $serviceId is not available in container.
+            $this->fail("Service {$serviceId} is not available in container.
             If the service isn't injected anywhere in your app, you need to set it to `public` in your `config/services_test.php`/`.yaml`,
             see https://symfony.com/doc/current/testing.html#accessing-the-container");
         }

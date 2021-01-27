@@ -120,20 +120,18 @@ use function sprintf;
  */
 class Symfony extends Framework implements DoctrineProvider, PartedModule
 {
-    use
-        BrowserAssertionsTrait,
-        ConsoleAssertionsTrait,
-        DoctrineAssertionsTrait,
-        EventsAssertionsTrait,
-        FormAssertionsTrait,
-        MailerAssertionsTrait,
-        ParameterAssertionsTrait,
-        RouterAssertionsTrait,
-        SecurityAssertionsTrait,
-        ServicesAssertionsTrait,
-        SessionAssertionsTrait,
-        TwigAssertionsTrait
-    ;
+    use BrowserAssertionsTrait;
+    use ConsoleAssertionsTrait;
+    use DoctrineAssertionsTrait;
+    use EventsAssertionsTrait;
+    use FormAssertionsTrait;
+    use MailerAssertionsTrait;
+    use ParameterAssertionsTrait;
+    use RouterAssertionsTrait;
+    use SecurityAssertionsTrait;
+    use ServicesAssertionsTrait;
+    use SessionAssertionsTrait;
+    use TwigAssertionsTrait;
 
     /**
      * @var Kernel
@@ -219,7 +217,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         parent::_after($test);
     }
 
-    protected function onReconfigure($settings = []): void
+    protected function onReconfigure(array $settings = []): void
     {
         parent::_beforeSuite($settings);
         $this->_initialize();
@@ -235,9 +233,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if ($this->kernel === null) {
             $this->fail('Symfony module is not loaded');
         }
-        if (!isset($this->permanentServices[$this->config['em_service']])) {
-            // try to persist configured EM
-            $this->persistPermanentService($this->config['em_service']);
+        $emService = $this->config['em_service'];
+        if (!isset($this->permanentServices[$emService])) {
+            // Try to persist configured entity manager
+            $this->persistPermanentService($emService);
             $container = $this->_getContainer();
             if ($container->has('doctrine')) {
                 $this->persistPermanentService('doctrine');
@@ -249,7 +248,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
                 $this->persistPermanentService('doctrine.dbal.backend_connection');
             }
         }
-        return $this->permanentServices[$this->config['em_service']];
+        return $this->permanentServices[$emService];
     }
 
     /**
@@ -277,19 +276,18 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     /**
      * Attempts to guess the kernel location.
-     *
      * When the Kernel is located, the file is required.
      *
      * @return string The Kernel class name
-     * @throws ModuleRequireException|ReflectionException|ModuleException
+     * @throws ModuleRequireException|ReflectionException
      */
     protected function getKernelClass(): string
     {
         $path = codecept_root_dir() . $this->config['app_path'];
-        if (!file_exists(codecept_root_dir() . $this->config['app_path'])) {
+        if (!file_exists($path)) {
             throw new ModuleRequireException(
                 self::class,
-                "Can't load Kernel from $path.\n"
+                "Can't load Kernel from {$path}.\n"
                 . 'Directory does not exists. Use `app_path` parameter to provide valid application path'
             );
         }
@@ -300,15 +298,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if ($results === []) {
             throw new ModuleRequireException(
                 self::class,
-                "File with Kernel class was not found at $path. "
+                "File with Kernel class was not found at {$path}.\n"
                 . 'Specify directory where file with Kernel class for your application is located with `app_path` parameter.'
             );
         }
 
-        if (file_exists(codecept_root_dir() . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php')) {
-            // ensure autoloader from this dir is loaded
-            require_once codecept_root_dir() . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
-        }
+        $this->requireAdditionalAutoloader();
 
         $filesRealPath = array_map(function ($file) {
             require_once $file;
@@ -333,9 +328,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         );
     }
 
-    /**
-     * @return Profile|null
-     */
     protected function getProfile(): ?Profile
     {
         /** @var Profiler $profiler */
@@ -450,5 +442,17 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
 
         return array_unique($internalDomains);
+    }
+
+    /**
+     * Ensures autoloader loading of additional directories.
+     * It is only required for CI jobs to run correctly.
+     */
+    private function requireAdditionalAutoloader(): void
+    {
+        $autoLoader = codecept_root_dir() . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+        if (file_exists($autoLoader)) {
+            require_once $autoLoader;
+        }
     }
 }

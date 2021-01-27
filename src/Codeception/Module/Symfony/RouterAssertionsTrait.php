@@ -20,7 +20,7 @@ trait RouterAssertionsTrait
     /**
      * Opens web page by action name
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->amOnAction('PostController::index');
      * $I->amOnAction('HomeController');
@@ -54,10 +54,10 @@ trait RouterAssertionsTrait
     /**
      * Opens web page using route name and parameters.
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->amOnRoute('posts.create');
-     * $I->amOnRoute('posts.show', array('id' => 34));
+     * $I->amOnRoute('posts.show', ['id' => 34]);
      * ```
      *
      * @param string $routeName
@@ -84,7 +84,7 @@ trait RouterAssertionsTrait
     /**
      * Checks that current page matches action
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->seeCurrentActionIs('PostController::index');
      * $I->seeCurrentActionIs('HomeController');
@@ -105,20 +105,20 @@ trait RouterAssertionsTrait
                 $request = $this->client->getRequest();
                 $currentActionFqcn = $request->attributes->get('_controller');
 
-                $this->assertStringEndsWith($action, $currentActionFqcn, "Current action is '$currentActionFqcn'.");
+                $this->assertStringEndsWith($action, $currentActionFqcn, "Current action is '{$currentActionFqcn}'.");
                 return;
             }
         }
-        $this->fail("Action '$action' does not exist");
+        $this->fail("Action '{$action}' does not exist");
     }
 
     /**
      * Checks that current url matches route.
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->seeCurrentRouteIs('posts.index');
-     * $I->seeCurrentRouteIs('posts.show', array('id' => 8));
+     * $I->seeCurrentRouteIs('posts.show', ['id' => 8]);
      * ```
      *
      * @param string $routeName
@@ -147,7 +147,7 @@ trait RouterAssertionsTrait
      * Checks that current url matches route.
      * Unlike seeCurrentRouteIs, this can matches without exact route parameters
      *
-     * ``` php
+     * ```php
      * <?php
      * $I->seeInCurrentRoute('my_blog_pages');
      * ```

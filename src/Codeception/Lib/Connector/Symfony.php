@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelBrowser;
 use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\HttpKernel\Profiler\Profiler;
 use function array_keys;
 use function codecept_debug;
 
@@ -79,8 +80,8 @@ class Symfony extends HttpKernelBrowser
     {
         if ($this->container) {
             foreach (array_keys($this->persistentServices) as $serviceName) {
-                if ($this->container->has($serviceName)) {
-                    $this->persistentServices[$serviceName] = $this->container->get($serviceName);
+                if ($service = $this->getService($serviceName)) {
+                    $this->persistentServices[$serviceName] = $service;
                 }
             }
         }
@@ -95,12 +96,30 @@ class Symfony extends HttpKernelBrowser
                 $this->container->set($serviceName, $service);
             } catch (InvalidArgumentException $e) {
                 //Private services can't be set in Symfony 4
-                codecept_debug("[Symfony] Can't set persistent service $serviceName: " . $e->getMessage());
+                codecept_debug("[Symfony] Can't set persistent service {$serviceName}: " . $e->getMessage());
             }
         }
 
-        if ($this->container->has('profiler')) {
-            $this->container->get('profiler')->enable();
+        if ($profiler = $this->getProfiler()) {
+            $profiler->enable();
         }
+    }
+
+    private function getProfiler(): ?Profiler
+    {
+        if ($this->container->has('profiler')) {
+            /** @var Profiler $profiler */
+            $profiler = $this->container->get('profiler');
+            return $profiler;
+        }
+        return null;
+    }
+
+    private function getService(string $serviceName): ?object
+    {
+        if ($this->container->has($serviceName)) {
+            return $this->container->get($serviceName);
+        }
+        return null;
     }
 }
