@@ -7,6 +7,7 @@ namespace Codeception\Module\Symfony;
 use Symfony\Component\Mailer\Event\MessageEvents;
 use Symfony\Component\Mailer\EventListener\MessageLoggerListener;
 use Symfony\Component\Mailer\Test\Constraint as MailerConstraint;
+use Symfony\Component\Mime\Email;
 
 trait MailerAssertionsTrait
 {
@@ -34,6 +35,45 @@ trait MailerAssertionsTrait
     public function seeEmailIsSent(int $expectedCount = 1): void
     {
         $this->assertThat($this->getMessageMailerEvents(), new MailerConstraint\EmailCount($expectedCount));
+    }
+
+    /**
+     * Returns the last sent email.
+     *
+     * ```php
+     * <?php
+     * $email = $I->grabLastSentEmail();
+     * $address = $email->getTo()[0];
+     * $I->assertSame('john_doe@user.com', $address->getAddress());
+     * ```
+     *
+     * @return \Symfony\Component\Mime\Email|null
+     */
+    public function grabLastSentEmail(): ?Email
+    {
+        $emails = $this->getMessageMailerEvents()->getMessages();
+        /** @var Email|false $lastEmail */
+        if ($lastEmail = end($emails)) {
+            return $lastEmail;
+        }
+        return null;
+    }
+
+    /**
+     * Returns an array of all sent emails.
+     *
+     * ```php
+     * <?php
+     * $emails = $I->grabSentEmails();
+     * $address = $emails[0]->getTo()[0];
+     * $I->assertSame('john_doe@user.com', $address->getAddress());
+     * ```
+     *
+     * @return \Symfony\Component\Mime\Email[]
+     */
+    public function grabSentEmails(): array
+    {
+        return $this->getMessageMailerEvents()->getMessages();
     }
 
     protected function getMessageMailerEvents(): MessageEvents
