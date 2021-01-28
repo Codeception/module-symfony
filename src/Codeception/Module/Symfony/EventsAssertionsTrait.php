@@ -14,7 +14,7 @@ use function strpos;
 trait EventsAssertionsTrait
 {
     /**
-     * Make sure events did not fire during the test.
+     * Verifies that one or more event listeners were not called during the test.
      *
      * ```php
      * <?php
@@ -30,26 +30,14 @@ trait EventsAssertionsTrait
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
         /** @var Data $data */
-        $data = $eventCollector->getNotCalledListeners();
-
-        $actual = $data->getValue(true);
+        $data = $eventCollector->getCalledListeners();
         $expected = is_array($expected) ? $expected : [$expected];
 
-        foreach ($expected as $expectedEvent) {
-            $notTriggered = false;
-            $expectedEvent = is_object($expectedEvent) ? get_class($expectedEvent) : $expectedEvent;
-
-            foreach ($actual as $actualEvent) {
-                if (strpos($actualEvent['pretty'], (string) $expectedEvent) === 0) {
-                    $notTriggered = true;
-                }
-            }
-            $this->assertTrue($notTriggered, "The '{$expectedEvent}' event triggered");
-        }
+        $this->assertEventNotTriggered($data, $expected);
     }
 
     /**
-     * Make sure events fired during the test.
+     * Verifies that one or more event listeners were called during the test.
      *
      * ```php
      * <?php
@@ -66,25 +54,51 @@ trait EventsAssertionsTrait
 
         /** @var Data $data */
         $data = $eventCollector->getCalledListeners();
+        $expected = is_array($expected) ? $expected : [$expected];
 
+        $this->assertEventTriggered($data, $expected);
+    }
+
+    protected function assertEventNotTriggered(Data $data, array $expected): void
+    {
         if ($data->count() === 0) {
             $this->fail('No event was triggered');
         }
 
         $actual = $data->getValue(true);
-        $expected = is_array($expected) ? $expected : [$expected];
 
         foreach ($expected as $expectedEvent) {
-            $triggered = false;
             $expectedEvent = is_object($expectedEvent) ? get_class($expectedEvent) : $expectedEvent;
-
-            foreach ($actual as $actualEvent) {
-                if (strpos($actualEvent['pretty'], (string) $expectedEvent) === 0) {
-                    $triggered = true;
-                }
-            }
-            $this->assertTrue($triggered, "The '{$expectedEvent}' event did not trigger");
+            $this->assertFalse(
+                $this->eventWasTriggered($actual, (string) $expectedEvent),
+                "The '{$expectedEvent}' event triggered"
+            );
         }
+    }
+
+    protected function assertEventTriggered(Data $data, array $expected): void
+    {
+        $actual = $data->getValue(true);
+
+        foreach ($expected as $expectedEvent) {
+            $expectedEvent = is_object($expectedEvent) ? get_class($expectedEvent) : $expectedEvent;
+            $this->assertTrue(
+                $this->eventWasTriggered($actual, (string) $expectedEvent),
+                "The '{$expectedEvent}' event did not trigger"
+            );
+        }
+    }
+
+    protected function eventWasTriggered(array $actual, string $expectedEvent): bool
+    {
+        $triggered = false;
+
+        foreach ($actual as $actualEvent) {
+            if (strpos($actualEvent['pretty'], $expectedEvent) === 0) {
+                $triggered = true;
+            }
+        }
+        return $triggered;
     }
 
     protected function grabEventCollector(string $function): EventDataCollector
