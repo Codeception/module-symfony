@@ -19,7 +19,7 @@ class Symfony extends HttpKernelBrowser
     /**
      * @var bool
      */
-    private $rebootable = true;
+    private $rebootable;
 
     /**
      * @var bool
@@ -29,7 +29,7 @@ class Symfony extends HttpKernelBrowser
     /**
      * @var ContainerInterface
      */
-    private $container = null;
+    private $container;
 
     /**
      * @var array
@@ -49,7 +49,7 @@ class Symfony extends HttpKernelBrowser
         $this->followRedirects(true);
         $this->rebootable = $rebootable;
         $this->persistentServices = $services;
-        $this->container = $this->kernel->getContainer();
+        $this->container = $this->getContainer();
         $this->rebootKernel();
     }
 
@@ -86,10 +86,9 @@ class Symfony extends HttpKernelBrowser
             }
         }
 
-        $this->kernel->shutdown();
-        $this->kernel->boot();
+        $this->kernel->reboot(null);
 
-        $this->container = $this->kernel->getContainer();
+        $this->container = $this->getContainer();
 
         foreach ($this->persistentServices as $serviceName => $service) {
             try {
@@ -103,6 +102,16 @@ class Symfony extends HttpKernelBrowser
         if ($profiler = $this->getProfiler()) {
             $profiler->enable();
         }
+    }
+
+    private function getContainer(): ?ContainerInterface
+    {
+        /** @var ContainerInterface $container */
+        $container = $this->kernel->getContainer();
+        if ($container->has('test.service_container')) {
+            $container = $container->get('test.service_container');
+        }
+        return $container;
     }
 
     private function getProfiler(): ?Profiler
