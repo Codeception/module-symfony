@@ -14,6 +14,33 @@ use function strpos;
 trait EventsAssertionsTrait
 {
     /**
+     * Verifies that one or more orphan events were not dispatched during the test.
+     *
+     * An orphan event is an event that is triggered by manually executing the
+     * [`dispatch()`](https://symfony.com/doc/current/components/event_dispatcher.html#dispatch-the-event) method
+     * of the EventDispatcher, in other words, it is an event that is not handled by any listener.
+     *
+     * ```php
+     * <?php
+     * $I->dontSeeOrphanEventTriggered('App\MyEvent');
+     * $I->dontSeeOrphanEventTriggered(new App\Events\MyEvent());
+     * $I->dontSeeOrphanEventTriggered(['App\MyEvent', 'App\MyOtherEvent']);
+     * ```
+     *
+     * @param string|object|string[] $expected
+     */
+    public function dontSeeOrphanEventTriggered($expected): void
+    {
+        $eventCollector = $this->grabEventCollector(__FUNCTION__);
+
+        /** @var Data $data */
+        $data = $eventCollector->getOrphanedEvents();
+        $expected = is_array($expected) ? $expected : [$expected];
+
+        $this->assertEventNotTriggered($data, $expected);
+    }
+
+    /**
      * Verifies that one or more event listeners were not called during the test.
      *
      * ```php
@@ -34,6 +61,33 @@ trait EventsAssertionsTrait
         $expected = is_array($expected) ? $expected : [$expected];
 
         $this->assertEventNotTriggered($data, $expected);
+    }
+
+    /**
+     * Verifies that one or more orphan events were dispatched during the test.
+     *
+     * An orphan event is an event that is triggered by manually executing the
+     * [`dispatch()`](https://symfony.com/doc/current/components/event_dispatcher.html#dispatch-the-event) method
+     * of the EventDispatcher, in other words, it is an event that is not handled by any listener.
+     *
+     * ```php
+     * <?php
+     * $I->seeOrphanEventTriggered('App\MyEvent');
+     * $I->seeOrphanEventTriggered(new App\Events\MyEvent());
+     * $I->seeOrphanEventTriggered(['App\MyEvent', 'App\MyOtherEvent']);
+     * ```
+     *
+     * @param string|object|string[] $expected
+     */
+    public function seeOrphanEventTriggered($expected): void
+    {
+        $eventCollector = $this->grabEventCollector(__FUNCTION__);
+
+        /** @var Data $data */
+        $data = $eventCollector->getOrphanedEvents();
+        $expected = is_array($expected) ? $expected : [$expected];
+
+        $this->assertEventTriggered($data, $expected);
     }
 
     /**
