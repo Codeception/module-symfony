@@ -118,7 +118,7 @@ trait DoctrineAssertionsTrait
     {
         $currentNum = $this->grabNumRecords($className, $criteria);
 
-        $this->assertEquals(
+        $this->assertSame(
             $expectedNum,
             $currentNum,
             sprintf(

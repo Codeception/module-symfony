@@ -37,7 +37,7 @@ trait ConsoleAssertionsTrait
         $exitCode = $commandTester->execute($parameters);
         $output = $commandTester->getDisplay();
 
-        $this->assertEquals(
+        $this->assertSame(
             $expectedExitCode,
             $exitCode,
             'Command did not exit with code '.$expectedExitCode

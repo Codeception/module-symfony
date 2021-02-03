@@ -47,9 +47,9 @@ trait TwigAssertionsTrait
         $twigCollector = $this->grabTwigCollector(__FUNCTION__);
 
         $templates = (array) $twigCollector->getTemplates();
-        $actualTemplate = array_key_first($templates);
+        $actualTemplate = (string) array_key_first($templates);
 
-        $this->assertEquals(
+        $this->assertSame(
             $expectedTemplate,
             $actualTemplate,
             "Actual template {$actualTemplate} does not match expected template {$expectedTemplate}."
