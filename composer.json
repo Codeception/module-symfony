@@ -27,6 +27,10 @@
         "codeception/module-rest": "^1.2",
         "vlucas/phpdotenv": "^4.2 | ^5.3"
     },
+    "suggest": {
+        "codeception/module-asserts": "Include traditional PHPUnit assertions in your tests",
+        "symfony/web-profiler-bundle": "Tool that gives information about the execution of requests"
+    },
     "autoload": {
         "classmap": ["src/"]
     },
