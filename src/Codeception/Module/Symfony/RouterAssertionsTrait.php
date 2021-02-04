@@ -140,7 +140,7 @@ trait RouterAssertionsTrait
         $expected = array_merge(['_route' => $routeName], $params);
         $intersection = array_intersect_assoc($expected, $match);
 
-        $this->assertEquals($expected, $intersection);
+        $this->assertSame($expected, $intersection);
     }
 
     /**
@@ -163,12 +163,12 @@ trait RouterAssertionsTrait
 
         $uri = explode('?', $this->grabFromCurrentUrl())[0];
         try {
-            $matchedRouteName = $router->match($uri)['_route'];
+            $matchedRouteName = (string) $router->match($uri)['_route'];
         } catch (ResourceNotFoundException $e) {
             $this->fail(sprintf('The "%s" url does not match with any route', $uri));
         }
 
-        $this->assertEquals($matchedRouteName, $routeName);
+        $this->assertSame($matchedRouteName, $routeName);
     }
 
     protected function grabRouterService(): RouterInterface

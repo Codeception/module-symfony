@@ -24,9 +24,11 @@ trait FormAssertionsTrait
     {
         $formCollector = $this->grabFormCollector(__FUNCTION__);
 
-        $this->assertEquals(
+        $errors = (int) $formCollector->getData()->offsetGet('nb_errors');
+
+        $this->assertSame(
             0,
-            $formCollector->getData()->offsetGet('nb_errors'),
+            $errors,
             'Expecting that the form does not have errors, but there were!'
         );
     }

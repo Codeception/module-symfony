@@ -76,7 +76,7 @@ trait SessionAssertionsTrait
             }
         }
         else {
-            $this->assertNotEquals($value, $session->get($attribute));
+            $this->assertNotSame($value, $session->get($attribute));
         }
     }
 
@@ -133,7 +133,7 @@ trait SessionAssertionsTrait
         }
 
         if (null !== $value) {
-            $this->assertEquals($value, $session->get($attribute));
+            $this->assertSame($value, $session->get($attribute));
         }
     }
 
