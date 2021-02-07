@@ -34,20 +34,26 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Goes to a page and check that it can be accessed.
+     * Verifies that a page is available.
+     * By default it checks the current page, specify the `$url` parameter to change it.
      *
      * ```php
      * <?php
-     * $I->seePageIsAvailable('/dashboard');
+     * $I->amOnPage('/dashboard');
+     * $I->seePageIsAvailable();
+     *
+     * $I->seePageIsAvailable('/dashboard'); // Same as above
      * ```
      *
-     * @param string $url
+     * @param string|null $url
      */
-    public function seePageIsAvailable(string $url): void
+    public function seePageIsAvailable(string $url = null): void
     {
-        $this->amOnPage($url);
+        if ($url !== null) {
+            $this->amOnPage($url);
+            $this->seeInCurrentUrl($url);
+        }
         $this->seeResponseCodeIsSuccessful();
-        $this->seeInCurrentUrl($url);
     }
 
     /**
