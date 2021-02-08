@@ -227,6 +227,8 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * Retrieve Entity Manager.
      *
      * EM service is retrieved once and then that instance returned on each call
+     *
+     * @return \Doctrine\ORM\EntityManagerInterface
      */
     public function _getEntityManager()
     {
@@ -256,22 +258,14 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function _getContainer(): ContainerInterface
     {
-        $testContainer = $this->getTestContainer();
-        if ($testContainer instanceof ContainerInterface) {
-            return $testContainer;
-        }
-
         $container = $this->kernel->getContainer();
         if (!$container instanceof ContainerInterface) {
             $this->fail('Could not get Symfony container');
         }
+        if ($container->has('test.service_container')) {
+            $container = $container->get('test.service_container');
+        }
         return $container;
-    }
-
-    protected function getTestContainer(): ?object
-    {
-        $container = $this->kernel->getContainer();
-        return $container->get('test.service_container');
     }
 
     /**
