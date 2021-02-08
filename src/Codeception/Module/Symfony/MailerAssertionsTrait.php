@@ -23,7 +23,7 @@ trait MailerAssertionsTrait
      * Checks if the desired number of emails was sent.
      * Asserts that 1 email was sent by default, specify the `expectedCount` parameter to modify it.
      * The email is checked using Symfony message logger, which means:
-     * * If your app performs a redirect after sending the email, you need to suppress this using REST Module's [stopFollowingRedirects](https://codeception.com/docs/modules/REST#stopFollowingRedirects)
+     * * If your app performs a redirect after sending the email, you need to suppress it using [stopFollowingRedirects](https://codeception.com/docs/modules/Symfony#stopFollowingRedirects).
      *
      * ```php
      * <?php
