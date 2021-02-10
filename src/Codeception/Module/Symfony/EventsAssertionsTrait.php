@@ -22,14 +22,15 @@ trait EventsAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->dontSeeOrphanEventTriggered('App\MyEvent');
-     * $I->dontSeeOrphanEventTriggered(new App\Events\MyEvent());
-     * $I->dontSeeOrphanEventTriggered(['App\MyEvent', 'App\MyOtherEvent']);
+     * $I->dontSeeOrphanEvent();
+     * $I->dontSeeOrphanEvent('App\MyEvent');
+     * $I->dontSeeOrphanEvent(new App\Events\MyEvent());
+     * $I->dontSeeOrphanEvent(['App\MyEvent', 'App\MyOtherEvent']);
      * ```
      *
      * @param string|object|string[] $expected
      */
-    public function dontSeeOrphanEventTriggered($expected): void
+    public function dontSeeOrphanEvent($expected = null): void
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -37,7 +38,11 @@ trait EventsAssertionsTrait
         $data = $eventCollector->getOrphanedEvents();
         $expected = is_array($expected) ? $expected : [$expected];
 
-        $this->assertEventNotTriggered($data, $expected);
+        if ($expected === null) {
+            $this->assertSame(0, $data->count());
+        } else {
+            $this->assertEventNotTriggered($data, $expected);
+        }
     }
 
     /**
@@ -72,14 +77,14 @@ trait EventsAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->seeOrphanEventTriggered('App\MyEvent');
-     * $I->seeOrphanEventTriggered(new App\Events\MyEvent());
-     * $I->seeOrphanEventTriggered(['App\MyEvent', 'App\MyOtherEvent']);
+     * $I->seeOrphanEvent('App\MyEvent');
+     * $I->seeOrphanEvent(new App\Events\MyEvent());
+     * $I->seeOrphanEvent(['App\MyEvent', 'App\MyOtherEvent']);
      * ```
      *
      * @param string|object|string[] $expected
      */
-    public function seeOrphanEventTriggered($expected): void
+    public function seeOrphanEvent($expected): void
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -115,10 +120,6 @@ trait EventsAssertionsTrait
 
     protected function assertEventNotTriggered(Data $data, array $expected): void
     {
-        if ($data->count() === 0) {
-            $this->fail('No event was triggered');
-        }
-
         $actual = $data->getValue(true);
 
         foreach ($expected as $expectedEvent) {
@@ -132,6 +133,10 @@ trait EventsAssertionsTrait
 
     protected function assertEventTriggered(Data $data, array $expected): void
     {
+        if ($data->count() === 0) {
+            $this->fail('No event was triggered');
+        }
+
         $actual = $data->getValue(true);
 
         foreach ($expected as $expectedEvent) {
@@ -148,8 +153,14 @@ trait EventsAssertionsTrait
         $triggered = false;
 
         foreach ($actual as $actualEvent) {
-            if (strpos($actualEvent['pretty'], $expectedEvent) === 0) {
-                $triggered = true;
+            if (is_array($actualEvent)) { // Called Listeners
+                if (strpos($actualEvent['pretty'], $expectedEvent) === 0) {
+                    $triggered = true;
+                }
+            } else { // Orphan Events
+                if ($actualEvent === $expectedEvent) {
+                    $triggered = true;
+                }
             }
         }
         return $triggered;
