@@ -39,6 +39,7 @@ trait MailerAssertionsTrait
 
     /**
      * Returns the last sent email.
+     * See also: [grabSentEmails()](https://codeception.com/docs/modules/Symfony#grabSentEmails)
      *
      * ```php
      * <?php
@@ -61,12 +62,12 @@ trait MailerAssertionsTrait
 
     /**
      * Returns an array of all sent emails.
+     * See also: [grabLastSentEmail()](https://codeception.com/docs/modules/Symfony#grabLastSentEmail).
      *
      * ```php
      * <?php
+     * /** @var array<int, \Symfony\Component\Mime\Email> $emails */
      * $emails = $I->grabSentEmails();
-     * $address = $emails[0]->getTo()[0];
-     * $I->assertSame('john_doe@user.com', $address->getAddress());
      * ```
      *
      * @return \Symfony\Component\Mime\Email[]
