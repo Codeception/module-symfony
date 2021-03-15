@@ -66,7 +66,7 @@ trait MailerAssertionsTrait
      *
      * ```php
      * <?php
-     * /** @var array<int, \Symfony\Component\Mime\Email> $emails */
+     * /** @var array<int, \Symfony\Component\Mime\Email> $emails {@*}
      * $emails = $I->grabSentEmails();
      * ```
      *
