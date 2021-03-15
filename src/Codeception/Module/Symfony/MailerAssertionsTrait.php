@@ -42,9 +42,10 @@ trait MailerAssertionsTrait
      *
      * ```php
      * <?php
+     * /** @var ?\Symfony\Component\Mime\Email $email */
      * $email = $I->grabLastSentEmail();
      * $address = $email->getTo()[0];
-     * $I->assertSame('john_doe@user.com', $address->getAddress());
+     * $I->assertSame('john_doe@example.com', $address->getAddress());
      * ```
      *
      * @return \Symfony\Component\Mime\Email|null
