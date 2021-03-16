@@ -42,6 +42,7 @@ trait MailerAssertionsTrait
      * Returns the last sent email.
      * The function is based on `\Symfony\Component\Mailer\EventListener\MessageLoggerListener`, which means:
      * If your app performs a HTTP redirect after sending the email, you need to suppress it using [stopFollowingRedirects()](https://codeception.com/docs/modules/Symfony#stopFollowingRedirects) first.
+     * See also: [grabSentEmails()](https://codeception.com/docs/modules/Symfony#grabSentEmails)
      *
      * ```php
      * <?php
@@ -66,6 +67,7 @@ trait MailerAssertionsTrait
      * Returns an array of all sent emails.
      * The function is based on `\Symfony\Component\Mailer\EventListener\MessageLoggerListener`, which means:
      * If your app performs a HTTP redirect after sending the email, you need to suppress it using [stopFollowingRedirects()](https://codeception.com/docs/modules/Symfony#stopFollowingRedirects) first.
+     * See also: [grabLastSentEmail()](https://codeception.com/docs/modules/Symfony#grabLastSentEmail)
      *
      * ```php
      * <?php
