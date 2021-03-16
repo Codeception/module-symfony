@@ -23,7 +23,7 @@ trait SessionAssertionsTrait
      * ```php
      * <?php
      * $user = $I->grabEntityFromRepository(User::class, [
-     *     'email' => 'john_doe@gmail.com'
+     *     'email' => 'john_doe@example.com'
      * ]);
      * $I->amLoggedInAs($user);
      * ```

@@ -89,7 +89,7 @@ trait BrowserAssertionsTrait
      * ```php
      * <?php
      * $I->submitSymfonyForm('login_form', [
-     *     '[email]'    => 'john_doe@gmail.com',
+     *     '[email]'    => 'john_doe@example.com',
      *     '[password]' => 'secretForest'
      * ]);
      * ```

@@ -48,7 +48,7 @@ trait MailerAssertionsTrait
      * <?php
      * $email = $I->grabLastSentEmail();
      * $address = $email->getTo()[0];
-     * $I->assertSame('john_doe@user.com', $address->getAddress());
+     * $I->assertSame('john_doe@example.com', $address->getAddress());
      * ```
      *
      * @return \Symfony\Component\Mime\Email|null
@@ -72,8 +72,6 @@ trait MailerAssertionsTrait
      * ```php
      * <?php
      * $emails = $I->grabSentEmails();
-     * $address = $emails[0]->getTo()[0];
-     * $I->assertSame('john_doe@user.com', $address->getAddress());
      * ```
      *
      * @return \Symfony\Component\Mime\Email[]

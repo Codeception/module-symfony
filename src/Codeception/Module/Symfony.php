@@ -110,7 +110,7 @@ use function sprintf;
  *         - Doctrine2:
  *             depends: Symfony
  *         - WebDriver:
- *             url: http://your-url.com
+ *             url: http://example.com
  *             browser: firefox
  * ```
  *
