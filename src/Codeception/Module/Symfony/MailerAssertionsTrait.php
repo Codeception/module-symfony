@@ -93,6 +93,9 @@ trait MailerAssertionsTrait
             return $messageLogger->getEvents();
         }
 
-        $this->fail("Emails can't be tested without Symfony Mailer service.");
+        $this->fail("codeception/module-symfony requires Symfony Mailer https://symfony.com/doc/current/mailer.html to test emails. If your app still uses Swift Mailer, downgrade codeception/module-symfony to ^1.6
+        
+        
+        Emails can't be tested without Symfony Mailer service.");
     }
 }
