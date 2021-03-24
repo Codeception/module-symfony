@@ -25,6 +25,7 @@ trait MailerAssertionsTrait
      * Checks if the given number of emails was sent (default `$expectedCount`: 1).
      * The check is based on `\Symfony\Component\Mailer\EventListener\MessageLoggerListener`, which means:
      * If your app performs a HTTP redirect after sending the email, you need to suppress it using [stopFollowingRedirects()](https://codeception.com/docs/modules/Symfony#stopFollowingRedirects) first.
+     * Starting with version 2.0.0, `codeception/module-symfony` requires your app to use [Symfony Mailer](https://symfony.com/doc/current/mailer.html). If your app still uses [Swift Mailer](https://symfony.com/doc/current/email.html), set your version constraint to `^1.6`.
      *
      * ```php
      * <?php
