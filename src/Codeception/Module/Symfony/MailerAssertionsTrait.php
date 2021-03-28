@@ -15,6 +15,7 @@ trait MailerAssertionsTrait
      * Checks that no email was sent.
      * The check is based on `\Symfony\Component\Mailer\EventListener\MessageLoggerListener`, which means:
      * If your app performs a HTTP redirect, you need to suppress it using [stopFollowingRedirects()](https://codeception.com/docs/modules/Symfony#stopFollowingRedirects) first; otherwise this check will *always* pass.
+     * Starting with version 2.0.0, `codeception/module-symfony` requires your app to use [Symfony Mailer](https://symfony.com/doc/current/mailer.html). If your app still uses [Swift Mailer](https://symfony.com/doc/current/email.html), set your version constraint to `^1.6`.
      */
     public function dontSeeEmailIsSent(): void
     {
@@ -43,6 +44,7 @@ trait MailerAssertionsTrait
      * Returns the last sent email.
      * The function is based on `\Symfony\Component\Mailer\EventListener\MessageLoggerListener`, which means:
      * If your app performs a HTTP redirect after sending the email, you need to suppress it using [stopFollowingRedirects()](https://codeception.com/docs/modules/Symfony#stopFollowingRedirects) first.
+     * Starting with version 2.0.0, `codeception/module-symfony` requires your app to use [Symfony Mailer](https://symfony.com/doc/current/mailer.html). If your app still uses [Swift Mailer](https://symfony.com/doc/current/email.html), set your version constraint to `^1.6`.
      * See also: [grabSentEmails()](https://codeception.com/docs/modules/Symfony#grabSentEmails)
      *
      * ```php
@@ -68,6 +70,7 @@ trait MailerAssertionsTrait
      * Returns an array of all sent emails.
      * The function is based on `\Symfony\Component\Mailer\EventListener\MessageLoggerListener`, which means:
      * If your app performs a HTTP redirect after sending the email, you need to suppress it using [stopFollowingRedirects()](https://codeception.com/docs/modules/Symfony#stopFollowingRedirects) first.
+     * Starting with version 2.0.0, `codeception/module-symfony` requires your app to use [Symfony Mailer](https://symfony.com/doc/current/mailer.html). If your app still uses [Swift Mailer](https://symfony.com/doc/current/email.html), set your version constraint to `^1.6`.
      * See also: [grabLastSentEmail()](https://codeception.com/docs/modules/Symfony#grabLastSentEmail)
      *
      * ```php
