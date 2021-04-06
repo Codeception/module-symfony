@@ -83,8 +83,8 @@ trait BrowserAssertionsTrait
     /**
      * Submit a form specifying the form name only once.
      *
-     * Use this function instead of $I->submitForm() to avoid repeating the form name in the field selectors.
-     * If you customized the names of the field selectors use $I->submitForm() for full control.
+     * Use this function instead of [`$I->submitForm()`](#submitForm) to avoid repeating the form name in the field selectors.
+     * If you customized the names of the field selectors use `$I->submitForm()` for full control.
      *
      * ```php
      * <?php
@@ -94,7 +94,7 @@ trait BrowserAssertionsTrait
      * ]);
      * ```
      *
-     * @param string $name
+     * @param string $name The `name` attribute of the `<form>` (you cannot use an array as selector here)
      * @param string[] $fields
      */
     public function submitSymfonyForm(string $name, array $fields): void
