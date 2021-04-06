@@ -83,7 +83,7 @@ trait BrowserAssertionsTrait
     /**
      * Submit a form specifying the form name only once.
      *
-     * Use this function instead of `$I->submitForm()` to avoid repeating the form name in the field selectors.
+     * Use this function instead of [`$I->submitForm()`](#submitForm) to avoid repeating the form name in the field selectors.
      * If you customized the names of the field selectors use `$I->submitForm()` for full control.
      *
      * ```php
