@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Codeception\Lib\Connector;
 
 use InvalidArgumentException;
+use Symfony\Bundle\FrameworkBundle\Test\TestContainer;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -86,6 +87,7 @@ class Symfony extends HttpKernelBrowser
             }
         }
 
+        $this->persistDoctrineConnections();
         $this->kernel->reboot(null);
 
         $this->container = $this->getContainer();
@@ -130,5 +132,29 @@ class Symfony extends HttpKernelBrowser
             return $this->container->get($serviceName);
         }
         return null;
+    }
+
+    private function persistDoctrineConnections()
+    {
+        if (!$this->container->hasParameter('doctrine.connections')) {
+            return;
+        }
+
+        if ($this->container instanceof TestContainer) {
+            $reflectedTestContainer = new \ReflectionMethod($this->container, 'getPublicContainer');
+            $reflectedTestContainer->setAccessible(true);
+            $publicContainer = $reflectedTestContainer->invoke($this->container);
+        } else {
+            $publicContainer = $this->container;
+        }
+
+        $reflectedContainer = new \ReflectionClass($publicContainer);
+        $reflectionTarget = $reflectedContainer->hasProperty('parameters') ? $publicContainer : $publicContainer->getParameterBag();
+
+        $reflectedParameters = new \ReflectionProperty($reflectionTarget, 'parameters');
+        $reflectedParameters->setAccessible(true);
+        $parameters = $reflectedParameters->getValue($reflectionTarget);
+        unset($parameters['doctrine.connections']);
+        $reflectedParameters->setValue($reflectionTarget, $parameters);
     }
 }
