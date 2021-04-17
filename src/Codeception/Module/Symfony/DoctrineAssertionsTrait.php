@@ -113,8 +113,9 @@ trait DoctrineAssertionsTrait
      * @param int $expectedNum Expected number of records
      * @param string $className A doctrine entity
      * @param array $criteria Optional query criteria
+     * @return self
      */
-    public function seeNumRecords(int $expectedNum, string $className, array $criteria = []): void
+    public function seeNumRecords(int $expectedNum, string $className, array $criteria = []): self
     {
         $currentNum = $this->grabNumRecords($className, $criteria);
 
@@ -126,5 +127,7 @@ trait DoctrineAssertionsTrait
                 $className, $currentNum, $expectedNum, json_encode($criteria)
             )
         );
+
+        return $this;
     }
 }

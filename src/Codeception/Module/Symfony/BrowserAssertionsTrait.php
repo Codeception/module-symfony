@@ -25,12 +25,15 @@ trait BrowserAssertionsTrait
      *
      * ```
      *
+     * @return self
      */
-    public function rebootClientKernel(): void
+    public function rebootClientKernel(): self
     {
         if ($this->client instanceof SymfonyConnector) {
             $this->client->rebootKernel();
         }
+
+        return $this;
     }
 
     /**
@@ -46,14 +49,17 @@ trait BrowserAssertionsTrait
      * ```
      *
      * @param string|null $url
+     * @return self
      */
-    public function seePageIsAvailable(string $url = null): void
+    public function seePageIsAvailable(string $url = null): self
     {
         if ($url !== null) {
             $this->amOnPage($url);
             $this->seeInCurrentUrl($url);
         }
         $this->seeResponseCodeIsSuccessful();
+
+        return $this;
     }
 
     /**
@@ -66,8 +72,9 @@ trait BrowserAssertionsTrait
      *
      * @param string $page
      * @param string $redirectsTo
+     * @return self
      */
-    public function seePageRedirectsTo(string $page, string $redirectsTo): void
+    public function seePageRedirectsTo(string $page, string $redirectsTo): self
     {
         $this->client->followRedirects(false);
         $this->amOnPage($page);
@@ -78,6 +85,8 @@ trait BrowserAssertionsTrait
         );
         $this->client->followRedirect();
         $this->seeInCurrentUrl($redirectsTo);
+
+        return $this;
     }
 
     /**
@@ -96,8 +105,9 @@ trait BrowserAssertionsTrait
      *
      * @param string $name The `name` attribute of the `<form>` (you cannot use an array as selector here)
      * @param string[] $fields
+     * @return self
      */
-    public function submitSymfonyForm(string $name, array $fields): void
+    public function submitSymfonyForm(string $name, array $fields): self
     {
         $selector = sprintf('form[name=%s]', $name);
 
@@ -109,5 +119,7 @@ trait BrowserAssertionsTrait
         $button = sprintf('%s_submit', $name);
 
         $this->submitForm($selector, $params, $button);
+
+        return $this;
     }
 }

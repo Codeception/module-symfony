@@ -29,8 +29,9 @@ trait RouterAssertionsTrait
      *
      * @param string $action
      * @param array $params
+     * @return self
      */
-    public function amOnAction(string $action, array $params = []): void
+    public function amOnAction(string $action, array $params = []): self
     {
         $router = $this->grabRouterService();
 
@@ -46,9 +47,11 @@ trait RouterAssertionsTrait
                     UrlGeneratorInterface::ABSOLUTE_PATH
                 );
                 $this->amOnPage($url);
-                return;
+                return $this;
             }
         }
+
+        return $this;
     }
 
     /**
@@ -62,8 +65,9 @@ trait RouterAssertionsTrait
      *
      * @param string $routeName
      * @param array $params
+     * @return self
      */
-    public function amOnRoute(string $routeName, array $params = []): void
+    public function amOnRoute(string $routeName, array $params = []): self
     {
         $router = $this->grabRouterService();
         if ($router->getRouteCollection()->get($routeName) === null) {
@@ -71,14 +75,20 @@ trait RouterAssertionsTrait
         }
         $url = $router->generate($routeName, $params);
         $this->amOnPage($url);
+
+        return $this;
     }
 
     /**
      * Invalidate previously cached routes.
+     *
+     * @return self
      */
-    public function invalidateCachedRouter(): void
+    public function invalidateCachedRouter(): self
     {
         $this->unpersistService('router');
+
+        return $this;
     }
 
     /**
@@ -91,8 +101,9 @@ trait RouterAssertionsTrait
      * ```
      *
      * @param string $action
+     * @return self
      */
-    public function seeCurrentActionIs(string $action): void
+    public function seeCurrentActionIs(string $action): self
     {
         $router = $this->grabRouterService();
 
@@ -106,7 +117,7 @@ trait RouterAssertionsTrait
                 $currentActionFqcn = $request->attributes->get('_controller');
 
                 $this->assertStringEndsWith($action, $currentActionFqcn, "Current action is '{$currentActionFqcn}'.");
-                return;
+                return $this;
             }
         }
         $this->fail("Action '{$action}' does not exist");
@@ -123,8 +134,9 @@ trait RouterAssertionsTrait
      *
      * @param string $routeName
      * @param array $params
+     * @return self
      */
-    public function seeCurrentRouteIs(string $routeName, array $params = []): void
+    public function seeCurrentRouteIs(string $routeName, array $params = []): self
     {
         $router = $this->grabRouterService();
         if ($router->getRouteCollection()->get($routeName) === null) {
@@ -141,6 +153,8 @@ trait RouterAssertionsTrait
         $intersection = array_intersect_assoc($expected, $match);
 
         $this->assertSame($expected, $intersection);
+
+        return $this;
     }
 
     /**
@@ -153,8 +167,9 @@ trait RouterAssertionsTrait
      * ```
      *
      * @param string $routeName
+     * @return self
      */
-    public function seeInCurrentRoute(string $routeName): void
+    public function seeInCurrentRoute(string $routeName): self
     {
         $router = $this->grabRouterService();
         if ($router->getRouteCollection()->get($routeName) === null) {
@@ -169,6 +184,7 @@ trait RouterAssertionsTrait
         }
 
         $this->assertSame($matchedRouteName, $routeName);
+        return $this;
     }
 
     protected function grabRouterService(): RouterInterface

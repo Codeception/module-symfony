@@ -19,8 +19,10 @@ trait SecurityAssertionsTrait
      * <?php
      * $I->dontSeeAuthentication();
      * ```
+     *
+     * @return self
      */
-    public function dontSeeAuthentication(): void
+    public function dontSeeAuthentication(): self
     {
         $security = $this->grabSecurityService();
 
@@ -28,6 +30,8 @@ trait SecurityAssertionsTrait
             $security->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY),
             'There is an user authenticated'
         );
+
+        return $this;
     }
 
     /**
@@ -37,8 +41,10 @@ trait SecurityAssertionsTrait
      * <?php
      * $I->dontSeeRememberedAuthentication();
      * ```
+     *
+     * @return self
      */
-    public function dontSeeRememberedAuthentication(): void
+    public function dontSeeRememberedAuthentication(): self
     {
         $security = $this->grabSecurityService();
 
@@ -50,6 +56,8 @@ trait SecurityAssertionsTrait
             $isRemembered,
             'User does have remembered authentication'
         );
+
+        return $this;
     }
 
     /**
@@ -59,8 +67,10 @@ trait SecurityAssertionsTrait
      * <?php
      * $I->seeAuthentication();
      * ```
+     *
+     * @return self
      */
-    public function seeAuthentication(): void
+    public function seeAuthentication(): self
     {
         $security = $this->grabSecurityService();
 
@@ -74,6 +84,8 @@ trait SecurityAssertionsTrait
             $security->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY),
             'There is no authenticated user'
         );
+
+        return $this;
     }
 
     /**
@@ -83,8 +95,10 @@ trait SecurityAssertionsTrait
      * <?php
      * $I->seeRememberedAuthentication();
      * ```
+     *
+     * @return self
      */
-    public function seeRememberedAuthentication(): void
+    public function seeRememberedAuthentication(): self
     {
         $security = $this->grabSecurityService();
 
@@ -102,6 +116,8 @@ trait SecurityAssertionsTrait
             $isRemembered,
             'User does not have remembered authentication'
         );
+
+        return $this;
     }
 
     /**
@@ -113,8 +129,9 @@ trait SecurityAssertionsTrait
      * ```
      *
      * @param string $role
+     * @return self
      */
-    public function seeUserHasRole(string $role): void
+    public function seeUserHasRole(string $role): self
     {
         $security = $this->grabSecurityService();
 
@@ -132,6 +149,8 @@ trait SecurityAssertionsTrait
                 $role
             )
         );
+
+        return $this;
     }
 
     /**
@@ -143,12 +162,16 @@ trait SecurityAssertionsTrait
      * ```
      *
      * @param string[] $roles
+     *
+     * @return self
      */
-    public function seeUserHasRoles(array $roles): void
+    public function seeUserHasRoles(array $roles): self
     {
         foreach ($roles as $role) {
             $this->seeUserHasRole($role);
         }
+
+        return $this;
     }
 
     /**
@@ -164,8 +187,9 @@ trait SecurityAssertionsTrait
      * ```
      *
      * @param UserInterface|null $user
+     * @return self
      */
-    public function seeUserPasswordDoesNotNeedRehash(UserInterface $user = null): void
+    public function seeUserPasswordDoesNotNeedRehash(UserInterface $user = null): self
     {
         if ($user === null) {
             $security = $this->grabSecurityService();
@@ -177,6 +201,8 @@ trait SecurityAssertionsTrait
         $hasher = $this->grabPasswordHasherService();
 
         $this->assertFalse($hasher->needsRehash($user), 'User password needs rehash');
+
+        return $this;
     }
 
     protected function grabSecurityService(): Security

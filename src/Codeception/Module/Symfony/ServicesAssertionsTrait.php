@@ -38,14 +38,17 @@ trait ServicesAssertionsTrait
      *
      * @part services
      * @param string $serviceName
+     * @return self
      */
-    public function persistService(string $serviceName): void
+    public function persistService(string $serviceName): self
     {
         $service = $this->grabService($serviceName);
         $this->persistentServices[$serviceName] = $service;
         if ($this->client instanceof SymfonyConnector) {
             $this->client->persistentServices[$serviceName] = $service;
         }
+
+        return $this;
     }
 
     /**
@@ -54,8 +57,9 @@ trait ServicesAssertionsTrait
      *
      * @part services
      * @param string $serviceName
+     * @return self
      */
-    public function persistPermanentService(string $serviceName): void
+    public function persistPermanentService(string $serviceName): self
     {
         $service = $this->grabService($serviceName);
         $this->persistentServices[$serviceName] = $service;
@@ -63,6 +67,8 @@ trait ServicesAssertionsTrait
         if ($this->client instanceof SymfonyConnector) {
             $this->client->persistentServices[$serviceName] = $service;
         }
+
+        return $this;
     }
 
     /**
@@ -70,8 +76,9 @@ trait ServicesAssertionsTrait
      *
      * @part services
      * @param string $serviceName
+     * @return self
      */
-    public function unpersistService(string $serviceName): void
+    public function unpersistService(string $serviceName): self
     {
         if (isset($this->persistentServices[$serviceName])) {
             unset($this->persistentServices[$serviceName]);
@@ -82,6 +89,8 @@ trait ServicesAssertionsTrait
         if ($this->client instanceof SymfonyConnector && isset($this->client->persistentServices[$serviceName])) {
             unset($this->client->persistentServices[$serviceName]);
         }
+
+        return $this;
     }
 
     protected function getService(string $serviceId): ?object

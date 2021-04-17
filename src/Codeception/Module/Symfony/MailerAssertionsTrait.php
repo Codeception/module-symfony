@@ -16,10 +16,14 @@ trait MailerAssertionsTrait
      * The check is based on `\Symfony\Component\Mailer\EventListener\MessageLoggerListener`, which means:
      * If your app performs a HTTP redirect, you need to suppress it using [stopFollowingRedirects()](https://codeception.com/docs/modules/Symfony#stopFollowingRedirects) first; otherwise this check will *always* pass.
      * Starting with version 2.0.0, `codeception/module-symfony` requires your app to use [Symfony Mailer](https://symfony.com/doc/current/mailer.html). If your app still uses [Swift Mailer](https://symfony.com/doc/current/email.html), set your version constraint to `^1.6`.
+     *
+     * @return self
      */
-    public function dontSeeEmailIsSent(): void
+    public function dontSeeEmailIsSent(): self
     {
         $this->assertThat($this->getMessageMailerEvents(), new MailerConstraint\EmailCount(0));
+
+        return $this;
     }
 
     /**
@@ -34,10 +38,14 @@ trait MailerAssertionsTrait
      * ```
      *
      * @param int $expectedCount The expected number of emails sent
+     *
+     * @return self
      */
-    public function seeEmailIsSent(int $expectedCount = 1): void
+    public function seeEmailIsSent(int $expectedCount = 1): self
     {
         $this->assertThat($this->getMessageMailerEvents(), new MailerConstraint\EmailCount($expectedCount));
+
+        return $this;
     }
 
     /**

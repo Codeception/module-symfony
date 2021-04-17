@@ -19,8 +19,10 @@ trait FormAssertionsTrait
      * <?php
      * $I->dontSeeFormErrors();
      * ```
+     *
+     * @return self
      */
-    public function dontSeeFormErrors(): void
+    public function dontSeeFormErrors(): self
     {
         $formCollector = $this->grabFormCollector(__FUNCTION__);
 
@@ -31,6 +33,8 @@ trait FormAssertionsTrait
             $errors,
             'Expecting that the form does not have errors, but there were!'
         );
+
+        return $this;
     }
 
     /**
@@ -45,8 +49,9 @@ trait FormAssertionsTrait
      *
      * @param string $field
      * @param string|null $message
+     * @return self
      */
-    public function seeFormErrorMessage(string $field, ?string $message = null): void
+    public function seeFormErrorMessage(string $field, ?string $message = null): self
     {
         $formCollector = $this->grabFormCollector(__FUNCTION__);
 
@@ -80,7 +85,7 @@ trait FormAssertionsTrait
         }
 
         if (!$message) {
-            return;
+            return $this;
         }
 
         $this->assertStringContainsString(
@@ -91,6 +96,8 @@ trait FormAssertionsTrait
                 $field
             )
         );
+
+        return $this;
     }
 
     /**
@@ -135,8 +142,9 @@ trait FormAssertionsTrait
      * ```
      *
      * @param string[] $expectedErrors
+     * @return self
      */
-    public function seeFormErrorMessages(array $expectedErrors): void
+    public function seeFormErrorMessages(array $expectedErrors): self
     {
         foreach ($expectedErrors as $field => $message) {
             if (is_int($field)) {
@@ -145,6 +153,8 @@ trait FormAssertionsTrait
                 $this->seeFormErrorMessage($field, $message);
             }
         }
+
+        return $this;
     }
 
     /**
@@ -154,8 +164,10 @@ trait FormAssertionsTrait
      * <?php
      * $I->seeFormHasErrors();
      * ```
+     *
+     * @return self
      */
-    public function seeFormHasErrors(): void
+    public function seeFormHasErrors(): self
     {
         $formCollector = $this->grabFormCollector(__FUNCTION__);
 
@@ -164,6 +176,8 @@ trait FormAssertionsTrait
             $formCollector->getData()->offsetGet('nb_errors'),
             'Expecting that the form has errors, but there were none!'
         );
+
+        return $this;
     }
 
     protected function grabFormCollector(string $function): FormDataCollector

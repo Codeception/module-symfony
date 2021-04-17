@@ -31,8 +31,9 @@ trait SessionAssertionsTrait
      * @param UserInterface $user
      * @param string $firewallName
      * @param null $firewallContext
+     * @return self
      */
-    public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null): void
+    public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null): self
     {
         $session = $this->grabSessionService();
 
@@ -52,6 +53,8 @@ trait SessionAssertionsTrait
 
         $cookie = new Cookie($session->getName(), $session->getId());
         $this->client->getCookieJar()->set($cookie);
+
+        return $this;
     }
 
     /**
@@ -65,8 +68,9 @@ trait SessionAssertionsTrait
      *
      * @param string $attribute
      * @param mixed|null $value
+     * @return self
      */
-    public function dontSeeInSession(string $attribute, $value = null): void
+    public function dontSeeInSession(string $attribute, $value = null): self
     {
         $session = $this->grabSessionService();
 
@@ -78,6 +82,8 @@ trait SessionAssertionsTrait
         else {
             $this->assertNotSame($value, $session->get($attribute));
         }
+
+        return $this;
     }
 
     /**
@@ -87,8 +93,10 @@ trait SessionAssertionsTrait
      * <?php
      * $I->logout();
      * ```
+     *
+     * @return self
      */
-    public function logout(): void
+    public function logout(): self
     {
         if ($tokenStorage = $this->getTokenStorage()) {
             $tokenStorage->setToken();
@@ -110,6 +118,8 @@ trait SessionAssertionsTrait
             }
         }
         $cookieJar->flushExpiredCookies();
+
+        return $this;
     }
 
     /**
@@ -123,8 +133,9 @@ trait SessionAssertionsTrait
      *
      * @param string $attribute
      * @param mixed|null $value
+     * @return self
      */
-    public function seeInSession(string $attribute, $value = null): void
+    public function seeInSession(string $attribute, $value = null): self
     {
         $session = $this->grabSessionService();
 
@@ -135,6 +146,8 @@ trait SessionAssertionsTrait
         if (null !== $value) {
             $this->assertSame($value, $session->get($attribute));
         }
+
+        return $this;
     }
 
     /**
@@ -147,8 +160,9 @@ trait SessionAssertionsTrait
      * ```
      *
      * @param array $bindings
+     * @return self
      */
-    public function seeSessionHasValues(array $bindings): void
+    public function seeSessionHasValues(array $bindings): self
     {
         foreach ($bindings as $key => $value) {
             if (is_int($key)) {
@@ -157,6 +171,8 @@ trait SessionAssertionsTrait
                 $this->seeInSession($key, $value);
             }
         }
+
+        return $this;
     }
 
     protected function getTokenStorage(): ?TokenStorageInterface

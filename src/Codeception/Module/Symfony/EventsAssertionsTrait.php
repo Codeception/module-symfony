@@ -29,8 +29,9 @@ trait EventsAssertionsTrait
      * ```
      *
      * @param string|object|string[] $expected
+     * @return self
      */
-    public function dontSeeOrphanEvent($expected = null): void
+    public function dontSeeOrphanEvent($expected = null): self
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -43,6 +44,8 @@ trait EventsAssertionsTrait
         } else {
             $this->assertEventNotTriggered($data, $expected);
         }
+
+        return $this;
     }
 
     /**
@@ -56,8 +59,9 @@ trait EventsAssertionsTrait
      * ```
      *
      * @param string|object|string[] $expected
+     * @return self
      */
-    public function dontSeeEventTriggered($expected): void
+    public function dontSeeEventTriggered($expected): self
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -66,6 +70,8 @@ trait EventsAssertionsTrait
         $expected = is_array($expected) ? $expected : [$expected];
 
         $this->assertEventNotTriggered($data, $expected);
+
+        return $this;
     }
 
     /**
@@ -83,8 +89,9 @@ trait EventsAssertionsTrait
      * ```
      *
      * @param string|object|string[] $expected
+     * @return self
      */
-    public function seeOrphanEvent($expected): void
+    public function seeOrphanEvent($expected): self
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -93,6 +100,8 @@ trait EventsAssertionsTrait
         $expected = is_array($expected) ? $expected : [$expected];
 
         $this->assertEventTriggered($data, $expected);
+
+        return $this;
     }
 
     /**
@@ -106,8 +115,9 @@ trait EventsAssertionsTrait
      * ```
      *
      * @param string|object|string[] $expected
+     * @return self
      */
-    public function seeEventTriggered($expected): void
+    public function seeEventTriggered($expected): self
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -116,6 +126,8 @@ trait EventsAssertionsTrait
         $expected = is_array($expected) ? $expected : [$expected];
 
         $this->assertEventTriggered($data, $expected);
+
+        return $this;
     }
 
     protected function assertEventNotTriggered(Data $data, array $expected): void

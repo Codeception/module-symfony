@@ -18,8 +18,9 @@ trait TwigAssertionsTrait
      * ```
      *
      * @param string $template
+     * @return self
      */
-    public function dontSeeRenderedTemplate(string $template): void
+    public function dontSeeRenderedTemplate(string $template): self
     {
         $twigCollector = $this->grabTwigCollector(__FUNCTION__);
 
@@ -30,6 +31,8 @@ trait TwigAssertionsTrait
             $templates,
             "Template {$template} was rendered."
         );
+
+        return $this;
     }
 
     /**
@@ -41,8 +44,9 @@ trait TwigAssertionsTrait
      * ```
      *
      * @param string $expectedTemplate
+     * @return self
      */
-    public function seeCurrentTemplateIs(string $expectedTemplate): void
+    public function seeCurrentTemplateIs(string $expectedTemplate): self
     {
         $twigCollector = $this->grabTwigCollector(__FUNCTION__);
 
@@ -54,6 +58,8 @@ trait TwigAssertionsTrait
             $actualTemplate,
             "Actual template {$actualTemplate} does not match expected template {$expectedTemplate}."
         );
+
+        return $this;
     }
 
     /**
@@ -67,8 +73,9 @@ trait TwigAssertionsTrait
      * ```
      *
      * @param string $template
+     * @return self
      */
-    public function seeRenderedTemplate(string $template): void
+    public function seeRenderedTemplate(string $template): self
     {
         $twigCollector = $this->grabTwigCollector(__FUNCTION__);
 
@@ -79,6 +86,8 @@ trait TwigAssertionsTrait
             $templates,
             "Template {$template} was not rendered."
         );
+
+        return $this;
     }
 
     protected function grabTwigCollector(string $function): TwigDataCollector
