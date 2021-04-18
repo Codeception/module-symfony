@@ -115,7 +115,7 @@ trait DoctrineAssertionsTrait
      * @param array $criteria Optional query criteria
      * @return self
      */
-    public function seeNumRecords(int $expectedNum, string $className, array $criteria = []): self
+    public function seeNumRecords(int $expectedNum, string $className, array $criteria = [])
     {
         $currentNum = $this->grabNumRecords($className, $criteria);
 

@@ -33,7 +33,7 @@ trait SessionAssertionsTrait
      * @param null $firewallContext
      * @return self
      */
-    public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null): self
+    public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null)
     {
         $session = $this->grabSessionService();
 
@@ -70,7 +70,7 @@ trait SessionAssertionsTrait
      * @param mixed|null $value
      * @return self
      */
-    public function dontSeeInSession(string $attribute, $value = null): self
+    public function dontSeeInSession(string $attribute, $value = null)
     {
         $session = $this->grabSessionService();
 
@@ -96,7 +96,7 @@ trait SessionAssertionsTrait
      *
      * @return self
      */
-    public function logout(): self
+    public function logout()
     {
         if ($tokenStorage = $this->getTokenStorage()) {
             $tokenStorage->setToken();
@@ -135,7 +135,7 @@ trait SessionAssertionsTrait
      * @param mixed|null $value
      * @return self
      */
-    public function seeInSession(string $attribute, $value = null): self
+    public function seeInSession(string $attribute, $value = null)
     {
         $session = $this->grabSessionService();
 
@@ -162,7 +162,7 @@ trait SessionAssertionsTrait
      * @param array $bindings
      * @return self
      */
-    public function seeSessionHasValues(array $bindings): self
+    public function seeSessionHasValues(array $bindings)
     {
         foreach ($bindings as $key => $value) {
             if (is_int($key)) {

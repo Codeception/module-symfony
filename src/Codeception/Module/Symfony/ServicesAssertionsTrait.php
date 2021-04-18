@@ -40,7 +40,7 @@ trait ServicesAssertionsTrait
      * @param string $serviceName
      * @return self
      */
-    public function persistService(string $serviceName): self
+    public function persistService(string $serviceName)
     {
         $service = $this->grabService($serviceName);
         $this->persistentServices[$serviceName] = $service;
@@ -59,7 +59,7 @@ trait ServicesAssertionsTrait
      * @param string $serviceName
      * @return self
      */
-    public function persistPermanentService(string $serviceName): self
+    public function persistPermanentService(string $serviceName)
     {
         $service = $this->grabService($serviceName);
         $this->persistentServices[$serviceName] = $service;
@@ -78,7 +78,7 @@ trait ServicesAssertionsTrait
      * @param string $serviceName
      * @return self
      */
-    public function unpersistService(string $serviceName): self
+    public function unpersistService(string $serviceName)
     {
         if (isset($this->persistentServices[$serviceName])) {
             unset($this->persistentServices[$serviceName]);

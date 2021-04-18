@@ -27,7 +27,7 @@ trait BrowserAssertionsTrait
      *
      * @return self
      */
-    public function rebootClientKernel(): self
+    public function rebootClientKernel()
     {
         if ($this->client instanceof SymfonyConnector) {
             $this->client->rebootKernel();
@@ -51,7 +51,7 @@ trait BrowserAssertionsTrait
      * @param string|null $url
      * @return self
      */
-    public function seePageIsAvailable(string $url = null): self
+    public function seePageIsAvailable(string $url = null)
     {
         if ($url !== null) {
             $this->amOnPage($url);
@@ -74,7 +74,7 @@ trait BrowserAssertionsTrait
      * @param string $redirectsTo
      * @return self
      */
-    public function seePageRedirectsTo(string $page, string $redirectsTo): self
+    public function seePageRedirectsTo(string $page, string $redirectsTo)
     {
         $this->client->followRedirects(false);
         $this->amOnPage($page);
@@ -107,7 +107,7 @@ trait BrowserAssertionsTrait
      * @param string[] $fields
      * @return self
      */
-    public function submitSymfonyForm(string $name, array $fields): self
+    public function submitSymfonyForm(string $name, array $fields)
     {
         $selector = sprintf('form[name=%s]', $name);
 

@@ -31,7 +31,7 @@ trait EventsAssertionsTrait
      * @param string|object|string[] $expected
      * @return self
      */
-    public function dontSeeOrphanEvent($expected = null): self
+    public function dontSeeOrphanEvent($expected = null)
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -61,7 +61,7 @@ trait EventsAssertionsTrait
      * @param string|object|string[] $expected
      * @return self
      */
-    public function dontSeeEventTriggered($expected): self
+    public function dontSeeEventTriggered($expected)
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -91,7 +91,7 @@ trait EventsAssertionsTrait
      * @param string|object|string[] $expected
      * @return self
      */
-    public function seeOrphanEvent($expected): self
+    public function seeOrphanEvent($expected)
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -117,7 +117,7 @@ trait EventsAssertionsTrait
      * @param string|object|string[] $expected
      * @return self
      */
-    public function seeEventTriggered($expected): self
+    public function seeEventTriggered($expected)
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 

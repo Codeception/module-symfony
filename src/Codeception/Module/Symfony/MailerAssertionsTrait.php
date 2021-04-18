@@ -19,7 +19,7 @@ trait MailerAssertionsTrait
      *
      * @return self
      */
-    public function dontSeeEmailIsSent(): self
+    public function dontSeeEmailIsSent()
     {
         $this->assertThat($this->getMessageMailerEvents(), new MailerConstraint\EmailCount(0));
 
@@ -41,7 +41,7 @@ trait MailerAssertionsTrait
      *
      * @return self
      */
-    public function seeEmailIsSent(int $expectedCount = 1): self
+    public function seeEmailIsSent(int $expectedCount = 1)
     {
         $this->assertThat($this->getMessageMailerEvents(), new MailerConstraint\EmailCount($expectedCount));
 

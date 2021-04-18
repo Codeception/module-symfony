@@ -20,7 +20,7 @@ trait TwigAssertionsTrait
      * @param string $template
      * @return self
      */
-    public function dontSeeRenderedTemplate(string $template): self
+    public function dontSeeRenderedTemplate(string $template)
     {
         $twigCollector = $this->grabTwigCollector(__FUNCTION__);
 
@@ -46,7 +46,7 @@ trait TwigAssertionsTrait
      * @param string $expectedTemplate
      * @return self
      */
-    public function seeCurrentTemplateIs(string $expectedTemplate): self
+    public function seeCurrentTemplateIs(string $expectedTemplate)
     {
         $twigCollector = $this->grabTwigCollector(__FUNCTION__);
 
@@ -75,7 +75,7 @@ trait TwigAssertionsTrait
      * @param string $template
      * @return self
      */
-    public function seeRenderedTemplate(string $template): self
+    public function seeRenderedTemplate(string $template)
     {
         $twigCollector = $this->grabTwigCollector(__FUNCTION__);
 

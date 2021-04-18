@@ -22,7 +22,7 @@ trait FormAssertionsTrait
      *
      * @return self
      */
-    public function dontSeeFormErrors(): self
+    public function dontSeeFormErrors()
     {
         $formCollector = $this->grabFormCollector(__FUNCTION__);
 
@@ -51,7 +51,7 @@ trait FormAssertionsTrait
      * @param string|null $message
      * @return self
      */
-    public function seeFormErrorMessage(string $field, ?string $message = null): self
+    public function seeFormErrorMessage(string $field, ?string $message = null)
     {
         $formCollector = $this->grabFormCollector(__FUNCTION__);
 
@@ -144,7 +144,7 @@ trait FormAssertionsTrait
      * @param string[] $expectedErrors
      * @return self
      */
-    public function seeFormErrorMessages(array $expectedErrors): self
+    public function seeFormErrorMessages(array $expectedErrors)
     {
         foreach ($expectedErrors as $field => $message) {
             if (is_int($field)) {
@@ -167,7 +167,7 @@ trait FormAssertionsTrait
      *
      * @return self
      */
-    public function seeFormHasErrors(): self
+    public function seeFormHasErrors()
     {
         $formCollector = $this->grabFormCollector(__FUNCTION__);
 

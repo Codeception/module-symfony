@@ -31,7 +31,7 @@ trait RouterAssertionsTrait
      * @param array $params
      * @return self
      */
-    public function amOnAction(string $action, array $params = []): self
+    public function amOnAction(string $action, array $params = [])
     {
         $router = $this->grabRouterService();
 
@@ -67,7 +67,7 @@ trait RouterAssertionsTrait
      * @param array $params
      * @return self
      */
-    public function amOnRoute(string $routeName, array $params = []): self
+    public function amOnRoute(string $routeName, array $params = [])
     {
         $router = $this->grabRouterService();
         if ($router->getRouteCollection()->get($routeName) === null) {
@@ -84,7 +84,7 @@ trait RouterAssertionsTrait
      *
      * @return self
      */
-    public function invalidateCachedRouter(): self
+    public function invalidateCachedRouter()
     {
         $this->unpersistService('router');
 
@@ -103,7 +103,7 @@ trait RouterAssertionsTrait
      * @param string $action
      * @return self
      */
-    public function seeCurrentActionIs(string $action): self
+    public function seeCurrentActionIs(string $action)
     {
         $router = $this->grabRouterService();
 
@@ -136,7 +136,7 @@ trait RouterAssertionsTrait
      * @param array $params
      * @return self
      */
-    public function seeCurrentRouteIs(string $routeName, array $params = []): self
+    public function seeCurrentRouteIs(string $routeName, array $params = [])
     {
         $router = $this->grabRouterService();
         if ($router->getRouteCollection()->get($routeName) === null) {
@@ -169,7 +169,7 @@ trait RouterAssertionsTrait
      * @param string $routeName
      * @return self
      */
-    public function seeInCurrentRoute(string $routeName): self
+    public function seeInCurrentRoute(string $routeName)
     {
         $router = $this->grabRouterService();
         if ($router->getRouteCollection()->get($routeName) === null) {

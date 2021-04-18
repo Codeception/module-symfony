@@ -22,7 +22,7 @@ trait SecurityAssertionsTrait
      *
      * @return self
      */
-    public function dontSeeAuthentication(): self
+    public function dontSeeAuthentication()
     {
         $security = $this->grabSecurityService();
 
@@ -44,7 +44,7 @@ trait SecurityAssertionsTrait
      *
      * @return self
      */
-    public function dontSeeRememberedAuthentication(): self
+    public function dontSeeRememberedAuthentication()
     {
         $security = $this->grabSecurityService();
 
@@ -70,7 +70,7 @@ trait SecurityAssertionsTrait
      *
      * @return self
      */
-    public function seeAuthentication(): self
+    public function seeAuthentication()
     {
         $security = $this->grabSecurityService();
 
@@ -98,7 +98,7 @@ trait SecurityAssertionsTrait
      *
      * @return self
      */
-    public function seeRememberedAuthentication(): self
+    public function seeRememberedAuthentication()
     {
         $security = $this->grabSecurityService();
 
@@ -131,7 +131,7 @@ trait SecurityAssertionsTrait
      * @param string $role
      * @return self
      */
-    public function seeUserHasRole(string $role): self
+    public function seeUserHasRole(string $role)
     {
         $security = $this->grabSecurityService();
 
@@ -165,7 +165,7 @@ trait SecurityAssertionsTrait
      *
      * @return self
      */
-    public function seeUserHasRoles(array $roles): self
+    public function seeUserHasRoles(array $roles)
     {
         foreach ($roles as $role) {
             $this->seeUserHasRole($role);
@@ -189,7 +189,7 @@ trait SecurityAssertionsTrait
      * @param UserInterface|null $user
      * @return self
      */
-    public function seeUserPasswordDoesNotNeedRehash(UserInterface $user = null): self
+    public function seeUserPasswordDoesNotNeedRehash(UserInterface $user = null)
     {
         if ($user === null) {
             $security = $this->grabSecurityService();
