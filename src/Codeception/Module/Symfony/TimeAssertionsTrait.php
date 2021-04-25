@@ -13,9 +13,15 @@ trait TimeAssertionsTrait
     /**
      * Asserts that the time a request lasted is less than expected (`$expectedTime`).
      *
+     * If the page performed a HTTP redirect, only the time of the last request will be taken into account.
+     * You can modify this behavior using [stopFollowingRedirects()](https://codeception.com/docs/modules/Symfony#stopFollowingRedirects) first.
+     *
+     * Also, note that using code coverage can significantly increase the time it takes to resolve a request,
+     * which could lead to unreliable results when used together.
+     *
      * @param float $expectedTime The expected time in milliseconds
      */
-    public function seeRequestElapsedTimeLessThan(float $expectedTime): void
+    public function seeRequestTimeIsLessThan(float $expectedTime): void
     {
         $timeCollector = $this->grabTimeCollector(__FUNCTION__);
 
