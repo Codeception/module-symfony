@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
-use function number_format;
+use function round;
 use function sprintf;
 
 trait TimeAssertionsTrait
 {
     /**
-     * Asserts that the time a request lasted is less than expected (`$expectedTime`).
+     * Asserts that the time a request lasted is less than expected.
      *
      * If the page performed a HTTP redirect, only the time of the last request will be taken into account.
      * You can modify this behavior using [stopFollowingRedirects()](https://codeception.com/docs/modules/Symfony#stopFollowingRedirects) first.
@@ -19,21 +19,23 @@ trait TimeAssertionsTrait
      * Also, note that using code coverage can significantly increase the time it takes to resolve a request,
      * which could lead to unreliable results when used together.
      *
-     * @param float $expectedMilliseconds The expected time in milliseconds
+     * @param int|float $expectedMilliseconds The expected time in milliseconds
      */
-    public function seeRequestTimeIsLessThan(float $expectedMilliseconds): void
+    public function seeRequestTimeIsLessThan($expectedMilliseconds): void
     {
+        $expectedMilliseconds = round($expectedMilliseconds, 2);
+
         $timeCollector = $this->grabTimeCollector(__FUNCTION__);
 
-        $actualMilliseconds = $timeCollector->getDuration();
+        $actualMilliseconds = round($timeCollector->getDuration(), 2);
 
         $this->assertLessThan(
             $expectedMilliseconds,
             $actualMilliseconds,
             sprintf(
-                'The request was expected to last less than %s ms, but it actually lasted %s ms.',
-                number_format($expectedMilliseconds, 2),
-                number_format($actualMilliseconds, 2)
+                'The request was expected to last less than %d ms, but it actually lasted %d ms.',
+                $expectedMilliseconds,
+                $actualMilliseconds
             )
         );
     }
