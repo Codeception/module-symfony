@@ -19,21 +19,21 @@ trait TimeAssertionsTrait
      * Also, note that using code coverage can significantly increase the time it takes to resolve a request,
      * which could lead to unreliable results when used together.
      *
-     * @param float $expectedTime The expected time in milliseconds
+     * @param float $expectedMilliseconds The expected time in milliseconds
      */
-    public function seeRequestTimeIsLessThan(float $expectedTime): void
+    public function seeRequestTimeIsLessThan(float $expectedMilliseconds): void
     {
         $timeCollector = $this->grabTimeCollector(__FUNCTION__);
 
-        $realTime = $timeCollector->getDuration();
+        $actualMilliseconds = $timeCollector->getDuration();
 
         $this->assertLessThan(
-            $expectedTime,
-            $realTime,
+            $expectedMilliseconds,
+            $actualMilliseconds,
             sprintf(
                 'The request was expected to last less than %s ms, but it actually lasted %s ms.',
-                number_format($expectedTime, 2),
-                number_format($realTime, 2)
+                number_format($expectedMilliseconds, 2),
+                number_format($actualMilliseconds, 2)
             )
         );
     }
