@@ -19,6 +19,9 @@ trait TimeAssertionsTrait
      * Also, note that using code coverage can significantly increase the time it takes to resolve a request,
      * which could lead to unreliable results when used together.
      *
+     * It is recommended to set [`rebootable_client`](https://codeception.com/docs/modules/Symfony#Config) to `true` (=default),
+     * cause otherwise this assertion gives false results if you access multiple pages in a row, or if your app performs a redirect.
+     *
      * @param int|float $expectedMilliseconds The expected time in milliseconds
      */
     public function seeRequestTimeIsLessThan($expectedMilliseconds): void
