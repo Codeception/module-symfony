@@ -10,6 +10,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Guard\Token\PostAuthenticationGuardToken;
+use Symfony\Component\Security\Http\Logout\LogoutUrlGenerator;
 use function is_int;
 use function serialize;
 
@@ -81,7 +82,20 @@ trait SessionAssertionsTrait
     }
 
     /**
-     * Invalidate the current session.
+     * Go to the configured logout url (by default: `/logout`).
+     * This method includes redirection to the destination page configured after logout.
+     *
+     * See the Symfony documentation on ['Logging Out'](https://symfony.com/doc/current/security.html#logging-out).
+     */
+    public function goToLogoutPath(): void
+    {
+        $logoutUrlGenerator = $this->getLogoutUrlGenerator();
+        $logoutPath = $logoutUrlGenerator->getLogoutPath();
+        $this->amOnPage($logoutPath);
+    }
+
+    /**
+     * Alias method for [`logoutProgrammatically()`](https://codeception.com/docs/modules/Symfony#logoutProgrammatically)
      *
      * ```php
      * <?php
@@ -89,6 +103,20 @@ trait SessionAssertionsTrait
      * ```
      */
     public function logout(): void
+    {
+        $this->logoutProgrammatically();
+    }
+
+    /**
+     * Invalidates the current user's session and expires the session cookies.
+     * This method does not include any redirects after logging out.
+     *
+     * ```php
+     * <?php
+     * $I->logoutProgrammatically();
+     * ```
+     */
+    public function logoutProgrammatically(): void
     {
         if ($tokenStorage = $this->getTokenStorage()) {
             $tokenStorage->setToken();
@@ -162,6 +190,11 @@ trait SessionAssertionsTrait
     protected function getTokenStorage(): ?TokenStorageInterface
     {
         return $this->getService('security.token_storage');
+    }
+
+    protected function getLogoutUrlGenerator(): ?LogoutUrlGenerator
+    {
+        return $this->getService('security.logout_url_generator');
     }
 
     protected function grabSessionService(): SessionInterface
