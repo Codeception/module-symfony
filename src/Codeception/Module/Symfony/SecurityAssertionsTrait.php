@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Security;
@@ -64,9 +65,7 @@ trait SecurityAssertionsTrait
     {
         $security = $this->grabSecurityService();
 
-        $user = $security->getUser();
-
-        if ($user === null) {
+        if (!$user = $security->getUser()) {
             $this->fail('There is no user in session');
         }
 
@@ -88,9 +87,7 @@ trait SecurityAssertionsTrait
     {
         $security = $this->grabSecurityService();
 
-        $user = $security->getUser();
-
-        if ($user === null) {
+        if ($security->getUser() === null) {
             $this->fail('There is no user in session');
         }
 
@@ -118,17 +115,19 @@ trait SecurityAssertionsTrait
     {
         $security = $this->grabSecurityService();
 
-        $user = $security->getUser();
-
-        if ($user === null) {
+        if (!$user = $security->getUser()) {
             $this->fail('There is no user in session');
         }
+
+        $userIdentifier = method_exists($user, 'getUserIdentifier') ?
+            $user->getUserIdentifier() :
+            $user->getUsername();
 
         $this->assertTrue(
             $security->isGranted($role),
             sprintf(
                 'User %s has no role %s',
-                $user->getUsername(),
+                $userIdentifier,
                 $role
             )
         );
@@ -169,8 +168,7 @@ trait SecurityAssertionsTrait
     {
         if ($user === null) {
             $security = $this->grabSecurityService();
-            $user = $security->getUser();
-            if ($user === null) {
+            if (!$user = $security->getUser()) {
                 $this->fail('No user found to validate');
             }
         }
@@ -184,8 +182,17 @@ trait SecurityAssertionsTrait
         return $this->grabService('security.helper');
     }
 
-    protected function grabPasswordHasherService(): UserPasswordEncoderInterface
+    /**
+     * @return UserPasswordHasherInterface|UserPasswordEncoderInterface
+     */
+    protected function grabPasswordHasherService()
     {
-        return $this->grabService('security.user_password_encoder.generic');
+        $hasher = $this->getService('security.password_hasher') ?: $this->getService('security.password_encoder');
+
+        if ($hasher === null) {
+            $this->fail('Password hasher service could not be found.');
+        }
+
+        return $hasher;
     }
 }

@@ -22,6 +22,8 @@ composer require "codeception/module-symfony" --dev
 
 See [the module documentation](https://codeception.com/docs/modules/Symfony).
 
+[Changelog](https://github.com/Codeception/module-symfony/releases)
+
 ### How to Contribute
 
 See [the contribution guide](/CONTRIBUTING.md).

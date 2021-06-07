@@ -35,7 +35,7 @@ trait SessionAssertionsTrait
      */
     public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null): void
     {
-        $session = $this->grabSessionService();
+        $session = $this->getCurrentSession();
 
         if ($this->config['guard']) {
             $token = new PostAuthenticationGuardToken($user, $firewallName, $user->getRoles());
@@ -69,7 +69,7 @@ trait SessionAssertionsTrait
      */
     public function dontSeeInSession(string $attribute, $value = null): void
     {
-        $session = $this->grabSessionService();
+        $session = $this->getCurrentSession();
 
         if (null === $value) {
             if ($session->has($attribute)) {
@@ -122,7 +122,7 @@ trait SessionAssertionsTrait
             $tokenStorage->setToken();
         }
 
-        $session = $this->grabSessionService();
+        $session = $this->getCurrentSession();
 
         $sessionName = $session->getName();
         $session->invalidate();
@@ -154,7 +154,7 @@ trait SessionAssertionsTrait
      */
     public function seeInSession(string $attribute, $value = null): void
     {
-        $session = $this->grabSessionService();
+        $session = $this->getCurrentSession();
 
         if (!$session->has($attribute)) {
             $this->fail("No session attribute with name '{$attribute}'");
@@ -197,7 +197,7 @@ trait SessionAssertionsTrait
         return $this->getService('security.logout_url_generator');
     }
 
-    protected function grabSessionService(): SessionInterface
+    protected function getCurrentSession(): SessionInterface
     {
         return $this->grabService('session');
     }
