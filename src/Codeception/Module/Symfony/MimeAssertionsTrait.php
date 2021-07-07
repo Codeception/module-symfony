@@ -17,7 +17,7 @@ trait MimeAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->assertEmailAddressContains();
+     * $I->assertEmailAddressContains('To', 'jane_doe@example.com');
      * ```
      */
     public function assertEmailAddressContains(string $headerName, string $expectedValue, Email $email = null): void
@@ -32,7 +32,7 @@ trait MimeAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->assertEmailAttachmentCount();
+     * $I->assertEmailAttachmentCount(1);
      * ```
      */
     public function assertEmailAttachmentCount(int $count, Email $email = null): void
@@ -47,7 +47,7 @@ trait MimeAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->assertEmailHasHeader();
+     * $I->assertEmailHasHeader('Bcc');
      * ```
      */
     public function assertEmailHasHeader(string $headerName, Email $email = null): void
@@ -63,7 +63,7 @@ trait MimeAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->assertEmailHeaderNotSame();
+     * $I->assertEmailHeaderNotSame('To', 'john_doe@gmail.com');
      * ```
      */
     public function assertEmailHeaderNotSame(string $headerName, string $expectedValue, Email $email = null): void
@@ -79,7 +79,7 @@ trait MimeAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->assertEmailHeaderSame();
+     * $I->assertEmailHeaderSame('To', 'jane_doe@gmail.com');
      * ```
      */
     public function assertEmailHeaderSame(string $headerName, string $expectedValue, Email $email = null): void
@@ -94,7 +94,7 @@ trait MimeAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->assertEmailHtmlBodyContains();
+     * $I->assertEmailHtmlBodyContains('Successful registration');
      * ```
      */
     public function assertEmailHtmlBodyContains(string $text, Email $email = null): void
@@ -109,7 +109,7 @@ trait MimeAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->assertEmailHtmlBodyNotContains();
+     * $I->assertEmailHtmlBodyNotContains('userpassword');
      * ```
      */
     public function assertEmailHtmlBodyNotContains(string $text, Email $email = null): void
@@ -124,7 +124,7 @@ trait MimeAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->assertEmailNotHasHeader();
+     * $I->assertEmailNotHasHeader('Bcc');
      * ```
      */
     public function assertEmailNotHasHeader(string $headerName, Email $email = null): void
@@ -139,7 +139,7 @@ trait MimeAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->assertEmailTextBodyContains();
+     * $I->assertEmailTextBodyContains('Example text body');
      * ```
      */
     public function assertEmailTextBodyContains(string $text, Email $email = null): void
@@ -154,7 +154,7 @@ trait MimeAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->assertEmailTextBodyNotContains();
+     * $I->assertEmailTextBodyNotContains('My secret text body');
      * ```
      */
     public function assertEmailTextBodyNotContains(string $text, Email $email = null): void
