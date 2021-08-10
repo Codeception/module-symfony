@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use Symfony\Component\HttpFoundation\Test\Constraint\ResponseIsSuccessful;
 use function sprintf;
 
 trait BrowserAssertionsTrait
@@ -49,7 +50,7 @@ trait BrowserAssertionsTrait
             $this->amOnPage($url);
             $this->seeInCurrentUrl($url);
         }
-        $this->seeResponseCodeIsSuccessful();
+        $this->assertThat($this->getClient()->getResponse(), new ResponseIsSuccessful());
     }
 
     /**
