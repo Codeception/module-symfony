@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -101,8 +100,7 @@ trait RouterAssertionsTrait
         foreach ($routes as $route) {
             $controller = $route->getDefault('_controller');
             if (substr_compare($controller, $action, -strlen($action)) === 0) {
-                /** @var Request $request */
-                $request = $this->client->getRequest();
+                $request = $this->getClient()->getRequest();
                 $currentActionFqcn = $request->attributes->get('_controller');
 
                 $this->assertStringEndsWith($action, $currentActionFqcn, "Current action is '{$currentActionFqcn}'.");
