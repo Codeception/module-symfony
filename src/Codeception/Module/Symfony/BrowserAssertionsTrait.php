@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
-use Codeception\Lib\Connector\Symfony as SymfonyConnector;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Test\Constraint\ResponseIsSuccessful;
 use function sprintf;
 
 trait BrowserAssertionsTrait
@@ -28,9 +27,7 @@ trait BrowserAssertionsTrait
      */
     public function rebootClientKernel(): void
     {
-        if ($this->client instanceof SymfonyConnector) {
-            $this->client->rebootKernel();
-        }
+        $this->getClient()->rebootKernel();
     }
 
     /**
@@ -53,7 +50,7 @@ trait BrowserAssertionsTrait
             $this->amOnPage($url);
             $this->seeInCurrentUrl($url);
         }
-        $this->seeResponseCodeIsSuccessful();
+        $this->assertThat($this->getClient()->getResponse(), new ResponseIsSuccessful());
     }
 
     /**
@@ -69,14 +66,13 @@ trait BrowserAssertionsTrait
      */
     public function seePageRedirectsTo(string $page, string $redirectsTo): void
     {
-        $this->client->followRedirects(false);
+        $this->getClient()->followRedirects(false);
         $this->amOnPage($page);
-        /** @var Response $response */
-        $response = $this->client->getResponse();
+        $response = $this->getClient()->getResponse();
         $this->assertTrue(
             $response->isRedirection()
         );
-        $this->client->followRedirect();
+        $this->getClient()->followRedirect();
         $this->seeInCurrentUrl($redirectsTo);
     }
 

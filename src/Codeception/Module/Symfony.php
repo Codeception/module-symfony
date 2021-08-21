@@ -31,7 +31,6 @@ use ReflectionException;
 use Symfony\Bundle\SecurityBundle\DataCollector\SecurityDataCollector;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
 use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
 use Symfony\Component\HttpKernel\Kernel;
@@ -148,6 +147,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * @var Kernel
      */
     public $kernel;
+
+    /**
+     * @var SymfonyConnector
+     */
+    public $client;
 
     public $config = [
         'app_path' => 'app',
@@ -279,6 +283,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         return $container;
     }
 
+    protected function getClient(): SymfonyConnector
+    {
+        return $this->client ?: $this->fail('Client is not initialized');
+    }
+
     /**
      * Attempts to guess the kernel location.
      * When the Kernel is located, the file is required.
@@ -340,8 +349,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             return null;
         }
         try {
-            /** @var Response $response */
-            $response = $this->client->getResponse();
+            $response = $this->getClient()->getResponse();
             return $profiler->loadProfileFromResponse($response);
         } catch (BadMethodCallException $e) {
             $this->fail('You must perform a request before using this method.');
