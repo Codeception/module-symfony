@@ -68,7 +68,7 @@ jobs:
       - name: Install Symfony Sample
         run: |
           composer remove codeception/module-symfony --dev --no-update
-          composer update --no-progress
+          composer install --no-progress
         working-directory: framework-tests
 
       - name: Prepare the test environment
