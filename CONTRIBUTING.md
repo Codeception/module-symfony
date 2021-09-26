@@ -82,7 +82,8 @@ Now wait for feedback on your Pull Request. If all is fine and it gets merged...
 
 ### 4. Send a Test
 
-- In the test project (`symfony-module-tests`), locate the `/tests/Functional/*Cest.php` file corresponding to the trait. In there, create a new method with the same name as your method in the trait, following alphabetical order.
+- In the test project (`symfony-module-tests`), locate the `/tests/Functional/*Cest.php` file corresponding to the trait. In there, create a new method with the same name as your method in the trait, following alphabetical order.  
+If your PR fixes an existing issue, put the test into `/tests/Functional/IssuesCest.php`.
 
 - Run the tests with `vendor/bin/codecept run Functional` command.
 
