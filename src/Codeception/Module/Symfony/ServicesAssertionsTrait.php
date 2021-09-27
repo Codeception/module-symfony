@@ -26,9 +26,8 @@ trait ServicesAssertionsTrait
     public function grabService(string $serviceId): object
     {
         if (!$service = $this->getService($serviceId)) {
-            $this->fail("Service {$serviceId} is not available in container.
-            If the service isn't injected anywhere in your app, you need to set it to `public` in your `config/services_test.php`/`.yaml`,
-            see https://symfony.com/doc/current/testing.html#accessing-the-container");
+            $this->fail("Service `{$serviceId}` is required by Codeception, but not loaded by Symfony since you're not using it anywhere in your app.\n
+            Recommended solution: Set it to `public` in your `config/services_test.php`/`.yaml`, see https://symfony.com/doc/current/testing.html#retrieving-services-in-the-test");
         }
         return $service;
     }
