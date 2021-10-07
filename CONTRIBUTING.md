@@ -7,7 +7,7 @@ First of all: Contributions are very welcome!
 ## No, my change does not require a test
 So you're going to make a small change or improve the documentation? Hey, you rock!
 
-- Just edit [`Symfony.php`](https://github.com/Codeception/module-symfony/blob/master/src/Codeception/Module/Symfony.php) on GitHub's website.
+- Just edit [the respective `trait`](https://github.com/Codeception/module-symfony/tree/main/src/Codeception/Module/Symfony) on GitHub's website.
 - Make sure to add a descriptive title and add an explanation for your changes.
 
 > :bulb: You can also create a *fork* and *clone it* on your local machine, as explained in the next section.
@@ -39,7 +39,7 @@ It is a minimal (but complete) Symfony project, ready to run tests.
    php bin/console doctrine:fixtures:load --quiet
    ```  
    <br/>
-- Edit the module's source code in the `vendor/codeception/module-symfony/src/Codeception/Module/Symfony.php` file.
+- Edit the trait's source code in the `vendor/codeception/module-symfony/src/Codeception/Module/Symfony/` folder.
    <br/>
 - If you create a new method, you can test it by adding a test in the `tests/Functional/SymfonyModuleCest.php` file.
 > :bulb: Be sure to rebuild Codeception's "Actor" classes (see [Console Commands](https://codeception.com/docs/reference/Commands#Build)):
@@ -65,7 +65,7 @@ It is a minimal (but complete) Symfony project, ready to run tests.
    ```
 > :bulb: If you've created a fork before, make sure to [sync the changes](https://stackoverflow.com/a/7244456).
 
-- Copy the changes from the `Symfony.php` of the test project to the `src/Codeception/Module/Symfony.php` file on your Module's fork.
+- Copy the changes from the trait file of the test project to the `src/Codeception/Module/Symfony/` folder of your Module's fork.
    <br/>
 - Commit:
    ```shell
@@ -82,7 +82,8 @@ Now wait for feedback on your Pull Request. If all is fine and it gets merged...
 
 ### 4. Send a Test
 
-- In the test project (`symfony-module-tests`), create a test with the same name as your new method in `tests/Functional/SymfonyModuleCest.php`, following alphabetical order.
+- In the test project (`symfony-module-tests`), locate the `/tests/Functional/*Cest.php` file corresponding to the trait. In there, create a new method with the same name as your method in the trait, following alphabetical order.  
+If your PR fixes an existing issue, put the test into `/tests/Functional/IssuesCest.php`.
 
 - Run the tests with `vendor/bin/codecept run Functional` command.
 
