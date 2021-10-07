@@ -11,7 +11,7 @@ trait ServicesAssertionsTrait
     /**
      * Grabs a service from the Symfony dependency injection container (DIC).
      * In "test" environment, Symfony uses a special `test.service_container`.
-     * See the "[Accessing the Container](https://symfony.com/doc/current/testing.html#accessing-the-container)" documentation.
+     * See the "[Public Versus Private Services](https://symfony.com/doc/current/service_container/alias_private.html#marking-services-as-public-private)" documentation.
      * Services that aren't injected somewhere into your app, need to be defined as `public` to be accessible by Codeception.
      *
      * ```php
@@ -27,7 +27,7 @@ trait ServicesAssertionsTrait
     {
         if (!$service = $this->getService($serviceId)) {
             $this->fail("Service `{$serviceId}` is required by Codeception, but not loaded by Symfony since you're not using it anywhere in your app.\n
-            Recommended solution: Set it to `public` in your `config/services_test.php`/`.yaml`, see https://symfony.com/doc/current/testing.html#retrieving-services-in-the-test");
+            Recommended solution: Set it to `public` in your `config/services_test.php`/`.yaml`, see https://symfony.com/doc/current/service_container/alias_private.html#marking-services-as-public-private");
         }
         return $service;
     }
