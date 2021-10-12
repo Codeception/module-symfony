@@ -65,6 +65,7 @@ trait FormAssertionsTrait
                 if (!array_key_exists('errors', $child)) {
                     continue;
                 }
+
                 foreach ($child['errors'] as $error) {
                     $errors[$fieldName] = $error['message'];
                 }

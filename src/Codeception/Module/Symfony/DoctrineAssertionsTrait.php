@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use Doctrine\ORM\EntityRepository;
 use function class_exists;
 use function get_class;
 use function interface_exists;
@@ -39,6 +40,7 @@ trait DoctrineAssertionsTrait
                 ->getQuery()
                 ->getSingleScalarResult();
         }
+
         return $repository->count($criteria);
     }
 
@@ -59,18 +61,20 @@ trait DoctrineAssertionsTrait
      */
     public function grabRepository($mixed)
     {
-        $entityRepoClass = '\Doctrine\ORM\EntityRepository';
+        $entityRepoClass = EntityRepository::class;
         $isNotARepo = function () use ($mixed): void {
             $this->fail(
                 sprintf("'%s' is not an entity repository", $mixed)
             );
         };
-        $getRepo = function () use ($mixed, $entityRepoClass, $isNotARepo) {
+        $getRepo = function () use ($mixed, $entityRepoClass, $isNotARepo): ?EntityRepository {
             if (!$repo = $this->grabService($mixed)) return null;
+
             if (!$repo instanceof $entityRepoClass) {
                 $isNotARepo();
                 return null;
             }
+
             return $repo;
         };
 

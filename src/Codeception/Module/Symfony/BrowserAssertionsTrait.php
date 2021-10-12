@@ -50,6 +50,7 @@ trait BrowserAssertionsTrait
             $this->amOnPage($url);
             $this->seeInCurrentUrl($url);
         }
+
         $this->assertThat($this->getClient()->getResponse(), new ResponseIsSuccessful());
     }
 
@@ -102,6 +103,7 @@ trait BrowserAssertionsTrait
             $fixedKey = sprintf('%s%s', $name, $key);
             $params[$fixedKey] = $value;
         }
+
         $button = sprintf('%s_submit', $name);
 
         $this->submitForm($selector, $params, $button);

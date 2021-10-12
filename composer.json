@@ -16,7 +16,7 @@
     ],
     "minimum-stability": "RC",
     "require": {
-        "php": "^7.3 | ^8.0",
+        "php": "^7.4 | ^8.0",
         "ext-json": "*",
         "codeception/lib-innerbrowser": "^1.4",
         "codeception/codeception": "^4.0"

@@ -68,6 +68,7 @@ trait RouterAssertionsTrait
         if ($router->getRouteCollection()->get($routeName) === null) {
             $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
         }
+
         $url = $router->generate($routeName, $params);
         $this->amOnPage($url);
     }
@@ -107,6 +108,7 @@ trait RouterAssertionsTrait
                 return;
             }
         }
+
         $this->fail("Action '{$action}' does not exist");
     }
 
@@ -135,6 +137,7 @@ trait RouterAssertionsTrait
         } catch (ResourceNotFoundException $e) {
             $this->fail(sprintf('The "%s" url does not match with any route', $uri));
         }
+
         $expected = array_merge(['_route' => $routeName], $params);
         $intersection = array_intersect_assoc($expected, $match);
 

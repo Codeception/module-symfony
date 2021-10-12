@@ -17,25 +17,13 @@ use function codecept_debug;
 
 class Symfony extends HttpKernelBrowser
 {
-    /**
-     * @var bool
-     */
-    private $rebootable;
+    private bool $rebootable;
 
-    /**
-     * @var bool
-     */
-    private $hasPerformedRequest = false;
+    private bool $hasPerformedRequest = false;
 
-    /**
-     * @var ContainerInterface
-     */
-    private $container;
+    private ?ContainerInterface $container;
 
-    /**
-     * @var array
-     */
-    public $persistentServices = [];
+    public array $persistentServices = [];
 
     /**
      * Constructor.
@@ -67,6 +55,7 @@ class Symfony extends HttpKernelBrowser
                 $this->hasPerformedRequest = true;
             }
         }
+
         return parent::doRequest($request);
     }
 
@@ -113,6 +102,7 @@ class Symfony extends HttpKernelBrowser
         if ($container->has('test.service_container')) {
             $container = $container->get('test.service_container');
         }
+
         return $container;
     }
 
@@ -123,6 +113,7 @@ class Symfony extends HttpKernelBrowser
             $profiler = $this->container->get('profiler');
             return $profiler;
         }
+
         return null;
     }
 
@@ -131,10 +122,11 @@ class Symfony extends HttpKernelBrowser
         if ($this->container->has($serviceName)) {
             return $this->container->get($serviceName);
         }
+
         return null;
     }
 
-    private function persistDoctrineConnections()
+    private function persistDoctrineConnections(): void
     {
         if (!$this->container->hasParameter('doctrine.connections')) {
             return;
