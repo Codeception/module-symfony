@@ -154,8 +154,9 @@ trait EventsAssertionsTrait
 
         foreach ($actual as $actualEvent) {
             if (is_array($actualEvent)) { // Called Listeners
-                if (strpos($actualEvent['pretty'], $expectedEvent) === 0) {
+                if (strpos($actualEvent['event'], $expectedEvent) === 0) {
                     $triggered = true;
+                    break;
                 }
             } else { // Orphan Events
                 if ($actualEvent === $expectedEvent) {
