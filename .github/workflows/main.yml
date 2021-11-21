@@ -59,7 +59,10 @@ jobs:
           composer require symfony/css-selector=${{ matrix.symfony }} --ignore-platform-req=php --no-update
           composer require symfony/dom-crawler=${{ matrix.symfony }} --ignore-platform-req=php --no-update
           composer require symfony/browser-kit=${{ matrix.symfony }} --ignore-platform-req=php --no-update
-          composer install --prefer-dist --no-progress --ignore-platform-req=php
+          composer require vlucas/phpdotenv --ignore-platform-req=php --no-update
+          composer require codeception/module-asserts --ignore-platform-req=php --no-update
+          composer require codeception/module-doctrine2 --ignore-platform-req=php --no-update
+          composer install --prefer-dist --no-progress --ignore-platform-req=php --no-dev
 
       - name: Validate composer.json and composer.lock
         run: composer validate

@@ -127,7 +127,7 @@ trait DoctrineAssertionsTrait
             $currentNum,
             sprintf(
                 'The number of found %s (%d) does not match expected number %d with %s',
-                $className, $currentNum, $expectedNum, json_encode($criteria)
+                $className, $currentNum, $expectedNum, json_encode($criteria, JSON_THROW_ON_ERROR)
             )
         );
     }
