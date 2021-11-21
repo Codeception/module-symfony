@@ -137,6 +137,7 @@ trait SessionAssertionsTrait
                 $cookieJar->expire($cookieName);
             }
         }
+
         $cookieJar->flushExpiredCookies();
     }
 

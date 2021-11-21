@@ -63,6 +63,7 @@ trait MailerAssertionsTrait
         if ($lastEmail = end($emails)) {
             return $lastEmail;
         }
+
         return null;
     }
 

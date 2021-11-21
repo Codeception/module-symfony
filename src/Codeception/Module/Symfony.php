@@ -143,16 +143,16 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     use TimeAssertionsTrait;
     use TwigAssertionsTrait;
 
-    /**
-     * @var Kernel
-     */
-    public $kernel;
+    public Kernel $kernel;
 
     /**
      * @var SymfonyConnector
      */
     public $client;
 
+    /**
+     * @var array
+     */
     public $config = [
         'app_path' => 'app',
         'kernel_class' => 'App\Kernel',
@@ -172,10 +172,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         return ['services'];
     }
 
-    /**
-     * @var string|null
-     */
-    protected $kernelClass;
+    protected ?string $kernelClass = null;
 
     /**
      * Services that should be persistent permanently for all tests
@@ -229,6 +226,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         foreach (array_keys($this->permanentServices) as $serviceName) {
             $this->permanentServices[$serviceName] = $this->grabService($serviceName);
         }
+
         parent::_after($test);
     }
 
@@ -250,6 +248,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if ($this->kernel === null) {
             $this->fail('Symfony module is not loaded');
         }
+
         $emService = $this->config['em_service'];
         if (!isset($this->permanentServices[$emService])) {
             // Try to persist configured entity manager
@@ -258,13 +257,16 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             if ($container->has('doctrine')) {
                 $this->persistPermanentService('doctrine');
             }
+
             if ($container->has('doctrine.orm.default_entity_manager')) {
                 $this->persistPermanentService('doctrine.orm.default_entity_manager');
             }
+
             if ($container->has('doctrine.dbal.default_connection')) {
                 $this->persistPermanentService('doctrine.dbal.default_connection');
             }
         }
+
         return $this->permanentServices[$emService];
     }
 
@@ -277,9 +279,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if (!$container instanceof ContainerInterface) {
             $this->fail('Could not get Symfony container');
         }
+
         if ($container->has('test.service_container')) {
             $container = $container->get('test.service_container');
         }
+
         return $container;
     }
 
@@ -348,6 +352,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if (!$profiler = $this->getService('profiler')) {
             return null;
         }
+
         try {
             $response = $this->getClient()->getResponse();
             return $profiler->loadProfileFromResponse($response);
@@ -356,6 +361,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         } catch (Exception $e) {
             $this->fail($e->getMessage());
         }
+
         return null;
     }
 
@@ -379,6 +385,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             if ($message) {
                 $this->fail($message);
             }
+
             $this->fail(
                 sprintf("The '%s' collector is needed to use the '%s' function.", $collector, $function)
             );
@@ -419,12 +426,14 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
                 $this->debugSection('User', 'Anonymous');
             }
         }
+
         if ($profile->hasCollector('mailer')) {
             /** @var MessageDataCollector $mailerCollector */
             $mailerCollector = $profile->getCollector('mailer');
             $emails = count($mailerCollector->getEvents()->getMessages());
             $this->debugSection('Emails', $emails . ' sent');
         }
+
         if ($profile->hasCollector('time')) {
             /** @var TimeDataCollector $timeCollector */
             $timeCollector = $profile->getCollector('time');

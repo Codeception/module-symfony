@@ -172,6 +172,7 @@ trait SecurityAssertionsTrait
                 $this->fail('No user found to validate');
             }
         }
+
         $hasher = $this->grabPasswordHasherService();
 
         $this->assertFalse($hasher->needsRehash($user), 'User password needs rehash');
