@@ -29,6 +29,7 @@ use Exception;
 use ReflectionClass;
 use ReflectionException;
 use Symfony\Bundle\SecurityBundle\DataCollector\SecurityDataCollector;
+use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
@@ -148,7 +149,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     /**
      * @var SymfonyConnector
      */
-    public $client;
+    public ?AbstractBrowser $client = null;
 
     /**
      * @var array
@@ -444,8 +445,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     /**
      * Returns a list of recognized domain names.
-     *
-     * @return mixed[]
      */
     protected function getInternalDomains(): array
     {

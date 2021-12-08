@@ -17,7 +17,7 @@ trait ParameterAssertionsTrait
      * ```
      *
      * @param string $name
-     * @return mixed|null
+     * @return array|bool|float|int|string|null
      */
     public function grabParameter(string $name)
     {
