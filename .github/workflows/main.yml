@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         php: [7.4, 8.0, 8.1]
-        symfony: [4.4, 5.3]
+        symfony: [4.4, 5.4]
 
     steps:
       - name: Checkout code
@@ -29,15 +29,15 @@ jobs:
         with:
           repository: Codeception/symfony-module-tests
           path: framework-tests
-          ref: 4.4
+          ref: 4.4_codecept5
 
-      - name: Checkout Symfony 5.3 Sample
-        if: matrix.symfony == 5.3
+      - name: Checkout Symfony 5.4 Sample
+        if: matrix.symfony == 5.4
         uses: actions/checkout@v2
         with:
           repository: Codeception/symfony-module-tests
           path: framework-tests
-          ref: main
+          ref: 5.4_codecept5
 
       - name: Get composer cache directory
         id: composer-cache
