@@ -25,6 +25,7 @@ use Codeception\Module\Symfony\SessionAssertionsTrait;
 use Codeception\Module\Symfony\TimeAssertionsTrait;
 use Codeception\Module\Symfony\TwigAssertionsTrait;
 use Codeception\TestInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use ReflectionClass;
 use ReflectionException;
@@ -241,10 +242,8 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * Retrieve Entity Manager.
      *
      * EM service is retrieved once and then that instance returned on each call
-     *
-     * @return \Doctrine\ORM\EntityManagerInterface
      */
-    public function _getEntityManager()
+    public function _getEntityManager(): EntityManagerInterface
     {
         if ($this->kernel === null) {
             $this->fail('Symfony module is not loaded');
