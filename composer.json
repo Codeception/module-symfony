@@ -19,7 +19,7 @@
         "php": "^7.4 | ^8.0",
         "ext-json": "*",
         "codeception/lib-innerbrowser": "^2.0 | *@dev",
-        "codeception/codeception": "^5.0.0-alpha1"
+        "codeception/codeception": "dev-5.0-interfaces as 5.0.x-dev"
     },
     "require-dev": {
         "codeception/module-asserts": "^2.0 | *@dev",
