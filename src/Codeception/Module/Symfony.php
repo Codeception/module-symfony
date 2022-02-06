@@ -193,7 +193,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $maxNestingLevel = 200; // Symfony may have very long nesting level
         $xdebugMaxLevelKey = 'xdebug.max_nesting_level';
         if (ini_get($xdebugMaxLevelKey) < $maxNestingLevel) {
-            ini_set($xdebugMaxLevelKey, (string) $maxNestingLevel);
+            ini_set($xdebugMaxLevelKey, (string)$maxNestingLevel);
         }
 
         $this->kernel = new $this->kernelClass($this->config['environment'], $this->config['debug']);
