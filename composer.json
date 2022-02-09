@@ -1,10 +1,12 @@
 {
     "name": "codeception/module-symfony",
     "description": "Codeception module for Symfony framework",
-    "keywords": ["codeception", "symfony"],
-    "homepage": "https://codeception.com/",
-    "type": "library",
     "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "codeception",
+        "symfony"
+    ],
     "authors": [
         {
             "name": "Michael Bodnarchuk"
@@ -14,32 +16,35 @@
             "homepage": "https://medium.com/@ganieves"
         }
     ],
-    "minimum-stability": "dev",
+    "homepage": "https://codeception.com/",
     "require": {
-        "php": "^7.4 | ^8.0",
+        "php": "^8.0",
         "ext-json": "*",
-        "codeception/lib-innerbrowser": "^2.0 | *@dev",
-        "codeception/codeception": "dev-5.0-interfaces as 5.0.x-dev"
+        "codeception/codeception": "dev-5.0-interfaces as 5.0.0",
+        "codeception/lib-innerbrowser": "dev-master"
     },
     "require-dev": {
-        "codeception/module-asserts": "^2.0 | *@dev",
-        "codeception/module-doctrine2": "^2.0 | *@dev",
+        "codeception/module-asserts": "^2.0 || *@dev",
+        "codeception/module-doctrine2": "^2.0 || *@dev",
         "doctrine/orm": "^2.10",
-        "symfony/form": "^4.4 | ^5.0",
-        "symfony/framework-bundle": "^4.4 | ^5.0",
-        "symfony/http-kernel": "^4.4 | ^5.0",
-        "symfony/mailer": "^4.4 | ^5.0",
-        "symfony/routing": "^4.4 | ^5.0",
-        "symfony/security-bundle": "^4.4 | ^5.0",
-        "symfony/twig-bundle": "^4.4 | ^5.0",
-        "vlucas/phpdotenv": "^4.2 | ^5.3"
+        "symfony/form": "^4.4 | ^5.0 | ^6.0",
+        "symfony/framework-bundle": "^4.4 | ^5.0 | ^6.0",
+        "symfony/http-kernel": "^4.4 | ^5.0 | ^6.0",
+        "symfony/mailer": "^4.4 | ^5.0 | ^6.0",
+        "symfony/routing": "^4.4 | ^5.0 | ^6.0",
+        "symfony/security-bundle": "^4.4 | ^5.0 | ^6.0",
+        "symfony/twig-bundle": "^4.4 | ^5.0 | ^6.0",
+        "vlucas/phpdotenv": "^4.2 || ^5.3"
     },
     "suggest": {
         "codeception/module-asserts": "Include traditional PHPUnit assertions in your tests",
         "symfony/web-profiler-bundle": "Tool that gives information about the execution of requests"
     },
+    "minimum-stability": "dev",
     "autoload": {
-        "classmap": ["src/"]
+        "classmap": [
+            "src/"
+        ]
     },
     "config": {
         "classmap-authoritative": true
