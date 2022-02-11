@@ -33,8 +33,7 @@
         "symfony/mailer": "^4.4 || ^5.4 || ^6.0",
         "symfony/routing": "^4.4 || ^5.4 || ^6.0",
         "symfony/security-bundle": "^4.4 || ^5.4 || ^6.0",
-        "symfony/twig-bundle": "^4.4 || ^5.4 || ^6.0",
-        "vlucas/phpdotenv": "^4.2 || ^5.3"
+        "symfony/twig-bundle": "^4.4 || ^5.4 || ^6.0"
     },
     "suggest": {
         "codeception/module-asserts": "Include traditional PHPUnit assertions in your tests",
