@@ -166,7 +166,7 @@ trait RouterAssertionsTrait
         $uri = explode('?', $this->grabFromCurrentUrl())[0];
         $matchedRouteName = '';
         try {
-            $matchedRouteName = (string) $router->match($uri)['_route'];
+            $matchedRouteName = (string)$router->match($uri)['_route'];
         } catch (ResourceNotFoundException $e) {
             $this->fail(sprintf('The "%s" url does not match with any route', $uri));
         }

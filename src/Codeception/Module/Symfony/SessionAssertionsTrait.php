@@ -44,9 +44,9 @@ trait SessionAssertionsTrait
         }
 
         if ($firewallContext) {
-            $session->set('_security_'.$firewallContext, serialize($token));
+            $session->set('_security_' . $firewallContext, serialize($token));
         } else {
-            $session->set('_security_'.$firewallName, serialize($token));
+            $session->set('_security_' . $firewallName, serialize($token));
         }
 
         $session->save();
@@ -75,8 +75,7 @@ trait SessionAssertionsTrait
             if ($session->has($attribute)) {
                 $this->fail("Session attribute with name '{$attribute}' does exist");
             }
-        }
-        else {
+        } else {
             $this->assertNotSame($value, $session->get($attribute));
         }
     }

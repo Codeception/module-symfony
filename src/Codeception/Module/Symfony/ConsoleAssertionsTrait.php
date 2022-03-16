@@ -40,8 +40,8 @@ trait ConsoleAssertionsTrait
         $this->assertSame(
             $expectedExitCode,
             $exitCode,
-            'Command did not exit with code '.$expectedExitCode
-            .' but with '.$exitCode.': '.$output
+            'Command did not exit with code ' . $expectedExitCode
+            . ' but with ' . $exitCode . ': ' . $output
         );
 
         return $output;

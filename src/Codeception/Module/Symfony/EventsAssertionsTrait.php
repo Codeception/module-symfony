@@ -125,7 +125,7 @@ trait EventsAssertionsTrait
         foreach ($expected as $expectedEvent) {
             $expectedEvent = is_object($expectedEvent) ? get_class($expectedEvent) : $expectedEvent;
             $this->assertFalse(
-                $this->eventWasTriggered($actual, (string) $expectedEvent),
+                $this->eventWasTriggered($actual, (string)$expectedEvent),
                 "The '{$expectedEvent}' event triggered"
             );
         }
@@ -142,7 +142,7 @@ trait EventsAssertionsTrait
         foreach ($expected as $expectedEvent) {
             $expectedEvent = is_object($expectedEvent) ? get_class($expectedEvent) : $expectedEvent;
             $this->assertTrue(
-                $this->eventWasTriggered($actual, (string) $expectedEvent),
+                $this->eventWasTriggered($actual, (string)$expectedEvent),
                 "The '{$expectedEvent}' event did not trigger"
             );
         }

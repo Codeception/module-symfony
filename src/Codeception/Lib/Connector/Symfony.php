@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Codeception\Lib\Connector;
 
 use InvalidArgumentException;
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionProperty;
 use Symfony\Bundle\FrameworkBundle\Test\TestContainer;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,9 +31,9 @@ class Symfony extends HttpKernelBrowser
     /**
      * Constructor.
      *
-     * @param Kernel            $kernel     A booted HttpKernel instance
-     * @param array             $services   An injected services
-     * @param bool              $rebootable
+     * @param Kernel $kernel     A booted HttpKernel instance
+     * @param array  $services   An injected services
+     * @param bool   $rebootable
      */
     public function __construct(Kernel $kernel, array $services = [], bool $rebootable = true)
     {
@@ -133,17 +136,17 @@ class Symfony extends HttpKernelBrowser
         }
 
         if ($this->container instanceof TestContainer) {
-            $reflectedTestContainer = new \ReflectionMethod($this->container, 'getPublicContainer');
+            $reflectedTestContainer = new ReflectionMethod($this->container, 'getPublicContainer');
             $reflectedTestContainer->setAccessible(true);
             $publicContainer = $reflectedTestContainer->invoke($this->container);
         } else {
             $publicContainer = $this->container;
         }
 
-        $reflectedContainer = new \ReflectionClass($publicContainer);
+        $reflectedContainer = new ReflectionClass($publicContainer);
         $reflectionTarget = $reflectedContainer->hasProperty('parameters') ? $publicContainer : $publicContainer->getParameterBag();
 
-        $reflectedParameters = new \ReflectionProperty($reflectionTarget, 'parameters');
+        $reflectedParameters = new ReflectionProperty($reflectionTarget, 'parameters');
         $reflectedParameters->setAccessible(true);
         $parameters = $reflectedParameters->getValue($reflectionTarget);
         unset($parameters['doctrine.connections']);

@@ -10,7 +10,7 @@ A Codeception module for Symfony framework.
 ## Requirements
 
 * `Symfony 4.4` or higher.
-* `PHP 7.4` or higher.
+* `PHP 8.0` or higher.
 
 ## Installation
 
