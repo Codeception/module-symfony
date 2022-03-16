@@ -24,7 +24,7 @@ jobs:
           coverage: none
 
       - name: Checkout Symfony 4.4 Sample
-        if: matrix.symfony == "4.4.*"
+        if: "matrix.symfony == '4.4.*'"
         uses: actions/checkout@v2
         with:
           repository: Codeception/symfony-module-tests
@@ -32,7 +32,7 @@ jobs:
           ref: 4.4_codecept5
 
       - name: Checkout Symfony 5.4 Sample
-        if: matrix.symfony == "5.4.*"
+        if: "matrix.symfony == '5.4.*'"
         uses: actions/checkout@v2
         with:
           repository: Codeception/symfony-module-tests
