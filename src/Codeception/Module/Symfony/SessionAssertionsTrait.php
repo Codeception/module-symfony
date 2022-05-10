@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Guard\Token\PostAuthenticationGuardToken;
 use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 use Symfony\Component\Security\Http\Logout\LogoutUrlGenerator;
 use function is_int;
@@ -37,10 +38,18 @@ trait SessionAssertionsTrait
     {
         $session = $this->getCurrentSession();
 
-        if ($this->config['authenticator']) {
-            $token = new PostAuthenticationToken($user, $firewallName, $user->getRoles());
+        if ($this->getSymfonyMajorVersion() < 6) {
+            if ($this->config['guard']) {
+                $token = new PostAuthenticationGuardToken($user, $firewallName, $user->getRoles());
+            } else {
+                $token = new UsernamePasswordToken($user, null, $firewallName, $user->getRoles());
+            }
         } else {
-            $token = new UsernamePasswordToken($user, $firewallName, $user->getRoles());
+            if ($this->config['authenticator']) {
+                $token = new PostAuthenticationToken($user, $firewallName, $user->getRoles());
+            } else {
+                $token = new UsernamePasswordToken($user, $firewallName, $user->getRoles());
+            }
         }
 
         $this->getTokenStorage()->setToken($token);
@@ -201,6 +210,10 @@ trait SessionAssertionsTrait
 
     protected function getCurrentSession(): SessionInterface
     {
+        if ($this->getSymfonyMajorVersion() < 6) {
+            return $this->grabService('session');
+        }
+
         if ($this->_getContainer()->has('session')) {
             return $this->grabService('session');
         }
@@ -209,5 +222,10 @@ trait SessionAssertionsTrait
         $this->_getContainer()->set('session', $session);
 
         return $session;
+    }
+
+    protected function getSymfonyMajorVersion(): int
+    {
+        return $this->kernel::MAJOR_VERSION;
     }
 }
