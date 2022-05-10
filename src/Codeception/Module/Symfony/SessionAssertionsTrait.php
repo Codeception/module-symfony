@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Guard\Token\PostAuthenticationGuardToken;
+use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 use Symfony\Component\Security\Http\Logout\LogoutUrlGenerator;
 use function is_int;
 use function serialize;
@@ -37,11 +37,13 @@ trait SessionAssertionsTrait
     {
         $session = $this->getCurrentSession();
 
-        if ($this->config['guard']) {
-            $token = new PostAuthenticationGuardToken($user, $firewallName, $user->getRoles());
+        if ($this->config['authenticator']) {
+            $token = new PostAuthenticationToken($user, $firewallName, $user->getRoles());
         } else {
-            $token = new UsernamePasswordToken($user, null, $firewallName, $user->getRoles());
+            $token = new UsernamePasswordToken($user, $firewallName, $user->getRoles());
         }
+
+        $this->getTokenStorage()->setToken($token);
 
         if ($firewallContext) {
             $session->set('_security_' . $firewallContext, serialize($token));
@@ -199,6 +201,13 @@ trait SessionAssertionsTrait
 
     protected function getCurrentSession(): SessionInterface
     {
-        return $this->grabService('session');
+        if ($this->_getContainer()->has('session')) {
+            return $this->grabService('session');
+        }
+
+        $session = $this->grabService('session.factory')->createSession();
+        $this->_getContainer()->set('session', $session);
+
+        return $session;
     }
 }

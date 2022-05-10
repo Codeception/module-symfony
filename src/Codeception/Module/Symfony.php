@@ -160,7 +160,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         'cache_router' => false,
         'em_service' => 'doctrine.orm.entity_manager',
         'rebootable_client' => true,
-        'guard' => false
+        'authenticator' => false
     ];
 
     /**
