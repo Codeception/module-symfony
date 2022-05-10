@@ -210,16 +210,18 @@ trait SessionAssertionsTrait
 
     protected function getCurrentSession(): SessionInterface
     {
+        $container = $this->_getContainer();
+
         if ($this->getSymfonyMajorVersion() < 6) {
-            return $this->grabService('session');
+            return $container->get('session');
         }
 
-        if ($this->_getContainer()->has('session')) {
-            return $this->grabService('session');
+        if ($container->has('session')) {
+            return $container->get('session');
         }
 
-        $session = $this->grabService('session.factory')->createSession();
-        $this->_getContainer()->set('session', $session);
+        $session = $container->get('session.factory')->createSession();
+        $container->set('session', $session);
 
         return $session;
     }
