@@ -83,6 +83,8 @@ use function sprintf;
  * * debug: true - Turn on/off debug mode
  * * cache_router: 'false' - Enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
  * * rebootable_client: 'true' - Reboot client's kernel before each request
+ * * guard: 'false' - Enable custom authentication system with guard (only for 4.x and 5.x versions of the symfony)
+ * * authenticator: 'false' - Reboot client's kernel before each request (only for 6.x versions of the symfony)
  *
  * #### Example (`functional.suite.yml`) - Symfony 4 Directory Structure
  *
@@ -160,6 +162,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         'cache_router' => false,
         'em_service' => 'doctrine.orm.entity_manager',
         'rebootable_client' => true,
+        'authenticator' => false,
         'guard' => false
     ];
 

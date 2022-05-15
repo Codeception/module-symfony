@@ -10,6 +10,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Guard\Token\PostAuthenticationGuardToken;
+use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 use Symfony\Component\Security\Http\Logout\LogoutUrlGenerator;
 use function is_int;
 use function serialize;
@@ -37,11 +38,21 @@ trait SessionAssertionsTrait
     {
         $session = $this->getCurrentSession();
 
-        if ($this->config['guard']) {
-            $token = new PostAuthenticationGuardToken($user, $firewallName, $user->getRoles());
+        if ($this->getSymfonyMajorVersion() < 6) {
+            if ($this->config['guard']) {
+                $token = new PostAuthenticationGuardToken($user, $firewallName, $user->getRoles());
+            } else {
+                $token = new UsernamePasswordToken($user, null, $firewallName, $user->getRoles());
+            }
         } else {
-            $token = new UsernamePasswordToken($user, null, $firewallName, $user->getRoles());
+            if ($this->config['authenticator']) {
+                $token = new PostAuthenticationToken($user, $firewallName, $user->getRoles());
+            } else {
+                $token = new UsernamePasswordToken($user, $firewallName, $user->getRoles());
+            }
         }
+
+        $this->getTokenStorage()->setToken($token);
 
         if ($firewallContext) {
             $session->set('_security_' . $firewallContext, serialize($token));
@@ -199,6 +210,24 @@ trait SessionAssertionsTrait
 
     protected function getCurrentSession(): SessionInterface
     {
-        return $this->grabService('session');
+        $container = $this->_getContainer();
+
+        if ($this->getSymfonyMajorVersion() < 6) {
+            return $container->get('session');
+        }
+
+        if ($container->has('session')) {
+            return $container->get('session');
+        }
+
+        $session = $container->get('session.factory')->createSession();
+        $container->set('session', $session);
+
+        return $session;
+    }
+
+    protected function getSymfonyMajorVersion(): int
+    {
+        return $this->kernel::MAJOR_VERSION;
     }
 }
