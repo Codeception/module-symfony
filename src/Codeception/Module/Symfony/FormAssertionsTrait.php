@@ -50,7 +50,7 @@ trait FormAssertionsTrait
     {
         $formCollector = $this->grabFormCollector(__FUNCTION__);
 
-        if (!$forms = $formCollector->getData()->getValue('forms')['forms']) {
+        if (!$forms = $formCollector->getData()->getValue(true)['forms']) {
             $this->fail('There are no forms on the current page.');
         }
 
