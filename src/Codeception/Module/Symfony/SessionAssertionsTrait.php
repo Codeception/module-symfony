@@ -82,11 +82,12 @@ trait SessionAssertionsTrait
     {
         $session = $this->getCurrentSession();
 
-        if (null === $value) {
-            if ($session->has($attribute)) {
-                $this->fail("Session attribute with name '{$attribute}' does exist");
-            }
-        } else {
+        if ($attributeExists = $session->has($attribute)) {
+            $this->fail("Session attribute with name '{$attribute}' does exist");
+        }
+        $this->assertFalse($attributeExists);
+
+        if (null !== $value) {
             $this->assertNotSame($value, $session->get($attribute));
         }
     }
@@ -167,9 +168,10 @@ trait SessionAssertionsTrait
     {
         $session = $this->getCurrentSession();
 
-        if (!$session->has($attribute)) {
+        if (!$attributeExists = $session->has($attribute)) {
             $this->fail("No session attribute with name '{$attribute}'");
         }
+        $this->assertTrue($attributeExists);
 
         if (null !== $value) {
             $this->assertSame($value, $session->get($attribute));
