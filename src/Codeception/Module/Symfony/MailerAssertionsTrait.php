@@ -53,8 +53,6 @@ trait MailerAssertionsTrait
      * $address = $email->getTo()[0];
      * $I->assertSame('john_doe@example.com', $address->getAddress());
      * ```
-     *
-     * @return \Symfony\Component\Mime\Email|null
      */
     public function grabLastSentEmail(): ?Email
     {

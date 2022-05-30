@@ -38,7 +38,7 @@ class Symfony extends HttpKernelBrowser
     public function __construct(Kernel $kernel, array $services = [], bool $rebootable = true)
     {
         parent::__construct($kernel);
-        $this->followRedirects(true);
+        $this->followRedirects();
         $this->rebootable = $rebootable;
         $this->persistentServices = $services;
         $this->container = $this->getContainer();

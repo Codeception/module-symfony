@@ -75,10 +75,8 @@ trait SessionAssertionsTrait
      * $I->dontSeeInSession('attribute', 'value');
      * ```
      *
-     * @param string $attribute
-     * @param mixed|null $value
      */
-    public function dontSeeInSession(string $attribute, $value = null): void
+    public function dontSeeInSession(string $attribute, mixed $value = null): void
     {
         $session = $this->getCurrentSession();
 
@@ -160,11 +158,8 @@ trait SessionAssertionsTrait
      * $I->seeInSession('attribute');
      * $I->seeInSession('attribute', 'value');
      * ```
-     *
-     * @param string $attribute
-     * @param mixed|null $value
      */
-    public function seeInSession(string $attribute, $value = null): void
+    public function seeInSession(string $attribute, mixed $value = null): void
     {
         $session = $this->getCurrentSession();
 

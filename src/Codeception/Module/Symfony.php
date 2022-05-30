@@ -212,8 +212,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     /**
      * Initialize new client instance before each test
-     *
-     * @param TestInterface $test
      */
     public function _before(TestInterface $test): void
     {
@@ -223,8 +221,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     /**
      * Update permanent services after each test
-     *
-     * @param TestInterface $test
      */
     public function _after(TestInterface $test): void
     {
@@ -370,13 +366,8 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     /**
      * Grabs a Symfony Data Collector
-     *
-     * @param string $collector
-     * @param string $function
-     * @param string|null $message
-     * @return DataCollectorInterface
      */
-    protected function grabCollector(string $collector, string $function, ?string $message = null): DataCollectorInterface
+    protected function grabCollector(string $collector, string $function, string $message = null): DataCollectorInterface
     {
         if (($profile = $this->getProfile()) === null) {
             $this->fail(
