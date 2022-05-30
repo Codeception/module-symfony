@@ -154,6 +154,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public ?AbstractBrowser $client = null;
 
+    /**
+     * @var array<string, mixed>
+     */
     public array $config = [
         'app_path' => 'app',
         'kernel_class' => 'App\Kernel',
