@@ -24,7 +24,7 @@ trait TimeAssertionsTrait
      *
      * @param int|float $expectedMilliseconds The expected time in milliseconds
      */
-    public function seeRequestTimeIsLessThan($expectedMilliseconds): void
+    public function seeRequestTimeIsLessThan(int|float $expectedMilliseconds): void
     {
         $expectedMilliseconds = round($expectedMilliseconds, 2);
 

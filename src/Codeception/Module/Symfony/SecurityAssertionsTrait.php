@@ -183,10 +183,7 @@ trait SecurityAssertionsTrait
         return $this->grabService('security.helper');
     }
 
-    /**
-     * @return UserPasswordHasherInterface|UserPasswordEncoderInterface
-     */
-    protected function grabPasswordHasherService()
+    protected function grabPasswordHasherService(): UserPasswordHasherInterface|UserPasswordEncoderInterface
     {
         $hasher = $this->getService('security.password_hasher') ?: $this->getService('security.password_encoder');
 

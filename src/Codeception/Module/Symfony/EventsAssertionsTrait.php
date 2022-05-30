@@ -28,9 +28,9 @@ trait EventsAssertionsTrait
      * $I->dontSeeOrphanEvent(['App\MyEvent', 'App\MyOtherEvent']);
      * ```
      *
-     * @param string|object|string[] $expected
+     * @param object|string|string[] $expected
      */
-    public function dontSeeOrphanEvent($expected = null): void
+    public function dontSeeOrphanEvent(array|object|string $expected = null): void
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -55,9 +55,9 @@ trait EventsAssertionsTrait
      * $I->dontSeeEventTriggered(['App\MyEvent', 'App\MyOtherEvent']);
      * ```
      *
-     * @param string|object|string[] $expected
+     * @param object|string|string[] $expected
      */
-    public function dontSeeEventTriggered($expected): void
+    public function dontSeeEventTriggered(array|object|string $expected): void
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -82,9 +82,9 @@ trait EventsAssertionsTrait
      * $I->seeOrphanEvent(['App\MyEvent', 'App\MyOtherEvent']);
      * ```
      *
-     * @param string|object|string[] $expected
+     * @param object|string|string[] $expected
      */
-    public function seeOrphanEvent($expected): void
+    public function seeOrphanEvent(array|object|string $expected): void
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -105,9 +105,9 @@ trait EventsAssertionsTrait
      * $I->seeEventTriggered(['App\MyEvent', 'App\MyOtherEvent']);
      * ```
      *
-     * @param string|object|string[] $expected
+     * @param object|string|string[] $expected
      */
-    public function seeEventTriggered($expected): void
+    public function seeEventTriggered(array|object|string $expected): void
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -123,7 +123,7 @@ trait EventsAssertionsTrait
         $actual = $data->getValue(true);
 
         foreach ($expected as $expectedEvent) {
-            $expectedEvent = is_object($expectedEvent) ? get_class($expectedEvent) : $expectedEvent;
+            $expectedEvent = is_object($expectedEvent) ? $expectedEvent::class : $expectedEvent;
             $this->assertFalse(
                 $this->eventWasTriggered($actual, (string)$expectedEvent),
                 "The '{$expectedEvent}' event triggered"
@@ -140,7 +140,7 @@ trait EventsAssertionsTrait
         $actual = $data->getValue(true);
 
         foreach ($expected as $expectedEvent) {
-            $expectedEvent = is_object($expectedEvent) ? get_class($expectedEvent) : $expectedEvent;
+            $expectedEvent = is_object($expectedEvent) ? $expectedEvent::class : $expectedEvent;
             $this->assertTrue(
                 $this->eventWasTriggered($actual, (string)$expectedEvent),
                 "The '{$expectedEvent}' event did not trigger"
@@ -154,7 +154,7 @@ trait EventsAssertionsTrait
 
         foreach ($actual as $actualEvent) {
             if (is_array($actualEvent)) { // Called Listeners
-                if (strpos($actualEvent['pretty'], $expectedEvent) === 0) {
+                if (str_starts_with($actualEvent['pretty'], $expectedEvent)) {
                     $triggered = true;
                 }
             } else { // Orphan Events

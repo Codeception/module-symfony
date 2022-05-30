@@ -46,7 +46,7 @@ trait FormAssertionsTrait
      * @param string $field
      * @param string|null $message
      */
-    public function seeFormErrorMessage(string $field, ?string $message = null): void
+    public function seeFormErrorMessage(string $field, string $message = null): void
     {
         $formCollector = $this->grabFormCollector(__FUNCTION__);
 

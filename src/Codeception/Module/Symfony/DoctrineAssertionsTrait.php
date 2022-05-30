@@ -27,7 +27,6 @@ trait DoctrineAssertionsTrait
      *
      * @param string $entityClass The entity class
      * @param array  $criteria    Optional query criteria
-     * @return int
      */
     public function grabNumRecords(string $entityClass, array $criteria = []): int
     {
@@ -55,11 +54,8 @@ trait DoctrineAssertionsTrait
      * $I->grabRepository(UserRepository::class);
      * $I->grabRepository(UserRepositoryInterface::class);
      * ```
-     *
-     * @param object|string $mixed
-     * @return \Doctrine\ORM\EntityRepository|null
      */
-    public function grabRepository($mixed): ?EntityRepository
+    public function grabRepository(object|string $mixed): ?EntityRepository
     {
         $entityRepoClass = EntityRepository::class;
         $isNotARepo = function () use ($mixed): void {
@@ -79,7 +75,7 @@ trait DoctrineAssertionsTrait
         };
 
         if (is_object($mixed)) {
-            $mixed = get_class($mixed);
+            $mixed = $mixed::class;
         }
 
         if (interface_exists($mixed)) {

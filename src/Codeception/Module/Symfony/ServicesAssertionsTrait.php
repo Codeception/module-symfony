@@ -21,7 +21,6 @@ trait ServicesAssertionsTrait
      *
      * @part services
      * @param string $serviceId
-     * @return object
      */
     public function grabService(string $serviceId): object
     {
@@ -37,7 +36,6 @@ trait ServicesAssertionsTrait
      * Get service $serviceName and add it to the lists of persistent services.
      *
      * @part services
-     * @param string $serviceName
      */
     public function persistService(string $serviceName): void
     {
@@ -53,7 +51,6 @@ trait ServicesAssertionsTrait
      * making that service persistent between tests.
      *
      * @part services
-     * @param string $serviceName
      */
     public function persistPermanentService(string $serviceName): void
     {
@@ -69,7 +66,6 @@ trait ServicesAssertionsTrait
      * Remove service $serviceName from the lists of persistent services.
      *
      * @part services
-     * @param string $serviceName
      */
     public function unpersistService(string $serviceName): void
     {

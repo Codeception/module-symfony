@@ -37,7 +37,7 @@ trait RouterAssertionsTrait
 
         foreach ($routes as $route) {
             $controller = $route->getDefault('_controller');
-            if (substr_compare($controller, $action, -strlen($action)) === 0) {
+            if (str_ends_with($controller, $action)) {
                 $resource = $router->match($route->getPath());
                 $url      = $router->generate(
                     $resource['_route'],
@@ -100,7 +100,7 @@ trait RouterAssertionsTrait
 
         foreach ($routes as $route) {
             $controller = $route->getDefault('_controller');
-            if (substr_compare($controller, $action, -strlen($action)) === 0) {
+            if (str_ends_with($controller, $action)) {
                 $request = $this->getClient()->getRequest();
                 $currentActionFqcn = $request->attributes->get('_controller');
 
@@ -135,7 +135,7 @@ trait RouterAssertionsTrait
         $match = [];
         try {
             $match = $router->match($uri);
-        } catch (ResourceNotFoundException $e) {
+        } catch (ResourceNotFoundException) {
             $this->fail(sprintf('The "%s" url does not match with any route', $uri));
         }
 
@@ -167,7 +167,7 @@ trait RouterAssertionsTrait
         $matchedRouteName = '';
         try {
             $matchedRouteName = (string)$router->match($uri)['_route'];
-        } catch (ResourceNotFoundException $e) {
+        } catch (ResourceNotFoundException) {
             $this->fail(sprintf('The "%s" url does not match with any route', $uri));
         }
 
