@@ -1,10 +1,12 @@
 {
     "name": "codeception/module-symfony",
     "description": "Codeception module for Symfony framework",
-    "keywords": ["codeception", "symfony"],
-    "homepage": "https://codeception.com/",
-    "type": "library",
     "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "codeception",
+        "symfony"
+    ],
     "authors": [
         {
             "name": "Michael Bodnarchuk"
@@ -14,12 +16,12 @@
             "homepage": "https://medium.com/@ganieves"
         }
     ],
-    "minimum-stability": "dev",
+    "homepage": "https://codeception.com/",
     "require": {
         "php": "^8.0",
         "ext-json": "*",
-        "codeception/lib-innerbrowser": "^3.1.1",
-        "codeception/codeception": "^5.0.0-RC3"
+        "codeception/codeception": "^5.0.0-RC3",
+        "codeception/lib-innerbrowser": "^3.1.1"
     },
     "require-dev": {
         "codeception/module-asserts": "^3.0",
@@ -38,10 +40,12 @@
         "codeception/module-asserts": "Include traditional PHPUnit assertions in your tests",
         "symfony/web-profiler-bundle": "Tool that gives information about the execution of requests"
     },
+    "minimum-stability": "RC",
     "autoload": {
         "classmap": ["src/"]
     },
     "config": {
-        "classmap-authoritative": true
+        "classmap-authoritative": true,
+        "sort-packages": true
     }
 }
