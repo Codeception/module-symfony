@@ -305,7 +305,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             throw new ModuleRequireException(
                 self::class,
                 "Can't load Kernel from {$path}.\n"
-                . 'Directory does not exists. Use `app_path` parameter to provide valid application path'
+                . 'Directory does not exist. Set `app_path` in your suite configuration to a valid application path.'
             );
         }
 
