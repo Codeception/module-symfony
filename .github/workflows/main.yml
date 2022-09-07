@@ -8,7 +8,7 @@ jobs:
 
     strategy:
       matrix:
-        php: [8.0, 8.1]
+        php: [8.0, 8.1, 8.2]
         symfony: ["4.4.*", "5.4.*", "6.0.*", "6.1.*"]
         exclude:
           - php: 8.0
@@ -51,7 +51,7 @@ jobs:
           ref: "6.0"
 
       - name: Checkout Symfony 6.1 Sample
-        if: "matrix.symfony == '6.1.*' && matrix.php == '8.1'"
+        if: "matrix.symfony == '6.1.*'"
         uses: actions/checkout@v2
         with:
           repository: Codeception/symfony-module-tests
@@ -71,17 +71,17 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require symfony/finder=${{ matrix.symfony }} --ignore-platform-req=php --no-update
-          composer require symfony/yaml=${{ matrix.symfony }} --ignore-platform-req=php --no-update
-          composer require symfony/console=${{ matrix.symfony }} --ignore-platform-req=php --no-update
-          composer require symfony/event-dispatcher=${{ matrix.symfony }} --ignore-platform-req=php --no-update
-          composer require symfony/css-selector=${{ matrix.symfony }} --ignore-platform-req=php --no-update
-          composer require symfony/dom-crawler=${{ matrix.symfony }} --ignore-platform-req=php --no-update
-          composer require symfony/browser-kit=${{ matrix.symfony }} --ignore-platform-req=php --no-update
-          composer require vlucas/phpdotenv --ignore-platform-req=php --no-update
-          composer require codeception/module-asserts="3.*" --ignore-platform-req=php --no-update
-          composer require codeception/module-doctrine2="3.*" --ignore-platform-req=php --no-update
-          composer install --prefer-dist --no-progress --ignore-platform-req=php --no-dev
+          composer require symfony/finder=${{ matrix.symfony }} --no-update
+          composer require symfony/yaml=${{ matrix.symfony }} --no-update
+          composer require symfony/console=${{ matrix.symfony }} --no-update
+          composer require symfony/event-dispatcher=${{ matrix.symfony }} --no-update
+          composer require symfony/css-selector=${{ matrix.symfony }} --no-update
+          composer require symfony/dom-crawler=${{ matrix.symfony }} --no-update
+          composer require symfony/browser-kit=${{ matrix.symfony }} --no-update
+          composer require vlucas/phpdotenv --no-update
+          composer require codeception/module-asserts="3.*" --no-update
+          composer require codeception/module-doctrine2="3.*" --no-update
+          composer update --prefer-dist --no-progress --no-dev
 
       - name: Validate composer.json and composer.lock
         run: composer validate
@@ -89,8 +89,8 @@ jobs:
 
       - name: Install Symfony Sample
         run: |
-          composer remove codeception/module-symfony --dev --no-update --ignore-platform-req=php
-          composer install --no-progress --ignore-platform-req=php
+          composer remove codeception/codeception codeception/module-asserts codeception/module-doctrine2 codeception/lib-innerbrowser codeception/module-symfony --dev --no-update
+          composer update --no-progress
         working-directory: framework-tests
 
       - name: Prepare the test environment
