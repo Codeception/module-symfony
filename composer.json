@@ -21,7 +21,7 @@
         "php": "^8.0",
         "ext-json": "*",
         "codeception/codeception": "^5.0.0-RC3",
-        "codeception/lib-innerbrowser": "^3.1.1"
+        "codeception/lib-innerbrowser": "^3.1.1 | ^4.0"
     },
     "require-dev": {
         "codeception/module-asserts": "^3.0",
