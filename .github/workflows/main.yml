@@ -97,6 +97,11 @@ jobs:
         run: composer validate
         working-directory: framework-tests
 
+      - name: Install PHPUnit 10 for Symfony 6.1 and 6.2
+        if: "matrix.symfony == '6.1.*' || matrix.symfony == '6.2.*'"
+        run: composer require --dev  --no-update "phpunit/phpunit=^10.0"
+        working-directory: framework-tests
+
       - name: Install Symfony Sample
         run: |
           composer remove codeception/codeception codeception/module-asserts codeception/module-doctrine2 codeception/lib-innerbrowser codeception/module-symfony --dev --no-update
