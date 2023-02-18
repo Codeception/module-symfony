@@ -79,6 +79,10 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.php }}-composer-${{ hashFiles('composer.json') }}
           restore-keys: ${{ runner.os }}-${{ matrix.php }}-composer-
 
+      - name: Install PHPUnit 9 for Symfony 4.4, 5.4 and 6.0
+        if: "matrix.symfony == '4.4.*' || matrix.symfony == '5.4.*' || matrix.symfony == '6.0.*'"
+        run: composer require --dev  --no-update "phpunit/phpunit=^9.0"
+
       - name: Install dependencies
         run: |
           composer require symfony/finder=${{ matrix.symfony }} --no-update
@@ -95,6 +99,11 @@ jobs:
 
       - name: Validate composer.json and composer.lock
         run: composer validate
+        working-directory: framework-tests
+
+      - name: Install PHPUnit 10 in framework-tests for Symfony 6.1 and 6.2
+        if: "matrix.symfony == '6.1.*' || matrix.symfony == '6.2.*'"
+        run: composer require --dev  --no-update "phpunit/phpunit=^10.0"
         working-directory: framework-tests
 
       - name: Install Symfony Sample
