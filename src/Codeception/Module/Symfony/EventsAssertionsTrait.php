@@ -56,8 +56,27 @@ trait EventsAssertionsTrait
      * ```
      *
      * @param object|string|string[] $expected
+     * @deprecated Use `dontSeeEventListenerIsCalled()` instead.
      */
     public function dontSeeEventTriggered(array|object|string $expected): void
+    {
+        trigger_error('dontSeeEventTriggered is deprecated, please use dontSeeEventListenerIsCalled instead', E_USER_DEPRECATED);
+        $this->dontSeeEventListenerIsCalled($expected);
+    }
+
+    /**
+     * Verifies that one or more event listeners were not called during the test.
+     *
+     * ```php
+     * <?php
+     * $I->dontSeeEventListenerIsCalled('App\MyEventListener');
+     * $I->dontSeeEventListenerIsCalled(new App\Events\MyEventListener());
+     * $I->dontSeeEventListenerIsCalled(['App\MyEventListener', 'App\MyOtherEventListener']);
+     * ```
+     *
+     * @param object|string|string[] $expected
+     */
+    public function dontSeeEventListenerIsCalled(array|object|string $expected): void
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
@@ -106,8 +125,27 @@ trait EventsAssertionsTrait
      * ```
      *
      * @param object|string|string[] $expected
+     * @deprecated Use `seeEventListenerIsCalled()` instead.
      */
     public function seeEventTriggered(array|object|string $expected): void
+    {
+        trigger_error('seeEventTriggered is deprecated, please use seeEventListenerIsCalled instead', E_USER_DEPRECATED);
+        $this->seeEventListenerIsCalled($expected);
+    }
+
+    /**
+     * Verifies that one or more event listeners were called during the test.
+     *
+     * ```php
+     * <?php
+     * $I->seeEventListenerIsCalled('App\MyEventListener');
+     * $I->seeEventListenerIsCalled(new App\Events\MyEventListener());
+     * $I->seeEventListenerIsCalled(['App\MyEventListener', 'App\MyOtherEventListener']);
+     * ```
+     *
+     * @param object|string|string[] $expected
+     */
+    public function seeEventListenerIsCalled(array|object|string $expected): void
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
