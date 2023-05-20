@@ -47,7 +47,7 @@ trait TwigAssertionsTrait
         $twigCollector = $this->grabTwigCollector(__FUNCTION__);
 
         $templates = (array)$twigCollector->getTemplates();
-        $actualTemplate = (string)array_key_first($templates);
+        $actualTemplate = !empty($templates) ? (string) array_key_first($templates) : 'N/A';
 
         $this->assertSame(
             $expectedTemplate,
