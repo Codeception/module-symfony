@@ -37,19 +37,16 @@ trait SessionAssertionsTrait
     public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null): void
     {
         $session = $this->getCurrentSession();
+        $roles = $user->getRoles();
 
         if ($this->getSymfonyMajorVersion() < 6) {
-            if ($this->config['guard']) {
-                $token = new PostAuthenticationGuardToken($user, $firewallName, $user->getRoles());
-            } else {
-                $token = new UsernamePasswordToken($user, null, $firewallName, $user->getRoles());
-            }
+            $token = $this->config['guard']
+                ? new PostAuthenticationGuardToken($user, $firewallName, $roles)
+                : new UsernamePasswordToken($user, null, $firewallName, $roles);
         } else {
-            if ($this->config['authenticator']) {
-                $token = new PostAuthenticationToken($user, $firewallName, $user->getRoles());
-            } else {
-                $token = new UsernamePasswordToken($user, $firewallName, $user->getRoles());
-            }
+            $token = $this->config['authenticator']
+                ? new PostAuthenticationToken($user, $firewallName, $roles)
+                : new UsernamePasswordToken($user, $firewallName, $roles);
         }
 
         $this->getTokenStorage()->setToken($token);
@@ -80,10 +77,8 @@ trait SessionAssertionsTrait
     {
         $session = $this->getCurrentSession();
 
-        if ($attributeExists = $session->has($attribute)) {
-            $this->fail("Session attribute with name '{$attribute}' does exist");
-        }
-        $this->assertFalse($attributeExists);
+        $attributeExists = $session->has($attribute);
+        $this->assertFalse($attributeExists, "Session attribute '{$attribute}' exists.");
 
         if (null !== $value) {
             $this->assertNotSame($value, $session->get($attribute));
@@ -98,8 +93,7 @@ trait SessionAssertionsTrait
      */
     public function goToLogoutPath(): void
     {
-        $logoutUrlGenerator = $this->getLogoutUrlGenerator();
-        $logoutPath = $logoutUrlGenerator->getLogoutPath();
+        $logoutPath = $this->getLogoutUrlGenerator()->getLogoutPath();
         $this->amOnPage($logoutPath);
     }
 
@@ -137,12 +131,10 @@ trait SessionAssertionsTrait
         $session->invalidate();
 
         $cookieJar = $this->client->getCookieJar();
+        $cookiesToExpire = ['MOCKSESSID', 'REMEMBERME', $sessionName];
         foreach ($cookieJar->all() as $cookie) {
             $cookieName = $cookie->getName();
-            if ($cookieName === 'MOCKSESSID' ||
-                $cookieName === 'REMEMBERME' ||
-                $cookieName === $sessionName
-            ) {
+            if (in_array($cookieName, $cookiesToExpire, true)) {
                 $cookieJar->expire($cookieName);
             }
         }
@@ -163,10 +155,8 @@ trait SessionAssertionsTrait
     {
         $session = $this->getCurrentSession();
 
-        if (!$attributeExists = $session->has($attribute)) {
-            $this->fail("No session attribute with name '{$attribute}'");
-        }
-        $this->assertTrue($attributeExists);
+        $attributeExists = $session->has($attribute);
+        $this->assertTrue($attributeExists, "No session attribute with name '{$attribute}'");
 
         if (null !== $value) {
             $this->assertSame($value, $session->get($attribute));
