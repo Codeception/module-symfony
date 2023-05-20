@@ -34,7 +34,6 @@ trait EventsAssertionsTrait
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
-        /** @var Data $data */
         $data = $eventCollector->getOrphanedEvents();
         $expected = is_array($expected) ? $expected : [$expected];
 
@@ -80,7 +79,6 @@ trait EventsAssertionsTrait
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
-        /** @var Data $data */
         $data = $eventCollector->getCalledListeners();
         $expected = is_array($expected) ? $expected : [$expected];
 
@@ -107,7 +105,6 @@ trait EventsAssertionsTrait
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
-        /** @var Data $data */
         $data = $eventCollector->getOrphanedEvents();
         $expected = is_array($expected) ? $expected : [$expected];
 
@@ -149,7 +146,6 @@ trait EventsAssertionsTrait
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
-        /** @var Data $data */
         $data = $eventCollector->getCalledListeners();
         $expected = is_array($expected) ? $expected : [$expected];
 
