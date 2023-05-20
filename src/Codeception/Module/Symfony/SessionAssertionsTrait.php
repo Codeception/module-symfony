@@ -29,12 +29,8 @@ trait SessionAssertionsTrait
      * ]);
      * $I->amLoggedInAs($user);
      * ```
-     *
-     * @param UserInterface $user
-     * @param string $firewallName
-     * @param null $firewallContext
      */
-    public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null): void
+    public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', string $firewallContext = null): void
     {
         $session = $this->getCurrentSession();
         $roles = $user->getRoles();
@@ -71,7 +67,6 @@ trait SessionAssertionsTrait
      * $I->dontSeeInSession('attribute');
      * $I->dontSeeInSession('attribute', 'value');
      * ```
-     *
      */
     public function dontSeeInSession(string $attribute, mixed $value = null): void
     {
@@ -171,8 +166,6 @@ trait SessionAssertionsTrait
      * $I->seeSessionHasValues(['key1', 'key2']);
      * $I->seeSessionHasValues(['key1' => 'value1', 'key2' => 'value2']);
      * ```
-     *
-     * @param array $bindings
      */
     public function seeSessionHasValues(array $bindings): void
     {

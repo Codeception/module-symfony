@@ -20,7 +20,6 @@ trait ServicesAssertionsTrait
      * ```
      *
      * @part services
-     * @param string $serviceId
      */
     public function grabService(string $serviceId): object
     {

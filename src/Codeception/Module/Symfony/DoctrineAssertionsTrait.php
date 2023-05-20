@@ -66,6 +66,7 @@ trait DoctrineAssertionsTrait
         $getRepo = function () use ($mixed, $entityRepoClass, $isNotARepo): ?EntityRepository {
             if (!$repo = $this->grabService($mixed)) return null;
 
+            /** @var EntityRepository $repo */
             if (!$repo instanceof $entityRepoClass) {
                 $isNotARepo();
                 return null;

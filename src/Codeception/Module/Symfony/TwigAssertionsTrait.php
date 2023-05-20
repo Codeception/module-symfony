@@ -16,8 +16,6 @@ trait TwigAssertionsTrait
      * <?php
      * $I->dontSeeRenderedTemplate('home.html.twig');
      * ```
-     *
-     * @param string $template
      */
     public function dontSeeRenderedTemplate(string $template): void
     {
@@ -39,8 +37,6 @@ trait TwigAssertionsTrait
      * <?php
      * $I->seeCurrentTemplateIs('home.html.twig');
      * ```
-     *
-     * @param string $expectedTemplate
      */
     public function seeCurrentTemplateIs(string $expectedTemplate): void
     {
@@ -65,8 +61,6 @@ trait TwigAssertionsTrait
      * $I->seeRenderedTemplate('home.html.twig');
      * $I->seeRenderedTemplate('layout.html.twig');
      * ```
-     *
-     * @param string $template
      */
     public function seeRenderedTemplate(string $template): void
     {
