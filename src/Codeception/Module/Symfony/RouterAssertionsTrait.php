@@ -11,8 +11,6 @@ use function array_intersect_assoc;
 use function array_merge;
 use function explode;
 use function sprintf;
-use function strlen;
-use function substr_compare;
 
 trait RouterAssertionsTrait
 {

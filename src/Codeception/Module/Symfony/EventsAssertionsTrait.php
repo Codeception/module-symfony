@@ -6,10 +6,8 @@ namespace Codeception\Module\Symfony;
 
 use Symfony\Component\HttpKernel\DataCollector\EventDataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
-use function get_class;
 use function is_array;
 use function is_object;
-use function strpos;
 
 trait EventsAssertionsTrait
 {
