@@ -29,37 +29,17 @@ trait SessionAssertionsTrait
      * ]);
      * $I->amLoggedInAs($user);
      * ```
-     *
-     * @param UserInterface $user
-     * @param string $firewallName
-     * @param null $firewallContext
      */
-    public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', $firewallContext = null): void
+    public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', string $firewallContext = null): void
     {
         $session = $this->getCurrentSession();
+        $roles = $user->getRoles();
 
-        if ($this->getSymfonyMajorVersion() < 6) {
-            if ($this->config['guard']) {
-                $token = new PostAuthenticationGuardToken($user, $firewallName, $user->getRoles());
-            } else {
-                $token = new UsernamePasswordToken($user, null, $firewallName, $user->getRoles());
-            }
-        } else {
-            if ($this->config['authenticator']) {
-                $token = new PostAuthenticationToken($user, $firewallName, $user->getRoles());
-            } else {
-                $token = new UsernamePasswordToken($user, $firewallName, $user->getRoles());
-            }
-        }
-
+        $token = $this->createAuthenticationToken($user, $firewallName, $roles);
         $this->getTokenStorage()->setToken($token);
 
-        if ($firewallContext) {
-            $session->set('_security_' . $firewallContext, serialize($token));
-        } else {
-            $session->set('_security_' . $firewallName, serialize($token));
-        }
-
+        $sessionKey = $firewallContext ? "_security_{$firewallContext}" : "_security_{$firewallName}";
+        $session->set($sessionKey, serialize($token));
         $session->save();
 
         $cookie = new Cookie($session->getName(), $session->getId());
@@ -74,16 +54,13 @@ trait SessionAssertionsTrait
      * $I->dontSeeInSession('attribute');
      * $I->dontSeeInSession('attribute', 'value');
      * ```
-     *
      */
     public function dontSeeInSession(string $attribute, mixed $value = null): void
     {
         $session = $this->getCurrentSession();
 
-        if ($attributeExists = $session->has($attribute)) {
-            $this->fail("Session attribute with name '{$attribute}' does exist");
-        }
-        $this->assertFalse($attributeExists);
+        $attributeExists = $session->has($attribute);
+        $this->assertFalse($attributeExists, "Session attribute '{$attribute}' exists.");
 
         if (null !== $value) {
             $this->assertNotSame($value, $session->get($attribute));
@@ -98,8 +75,7 @@ trait SessionAssertionsTrait
      */
     public function goToLogoutPath(): void
     {
-        $logoutUrlGenerator = $this->getLogoutUrlGenerator();
-        $logoutPath = $logoutUrlGenerator->getLogoutPath();
+        $logoutPath = $this->getLogoutUrlGenerator()->getLogoutPath();
         $this->amOnPage($logoutPath);
     }
 
@@ -132,17 +108,14 @@ trait SessionAssertionsTrait
         }
 
         $session = $this->getCurrentSession();
-
         $sessionName = $session->getName();
         $session->invalidate();
 
         $cookieJar = $this->client->getCookieJar();
+        $cookiesToExpire = ['MOCKSESSID', 'REMEMBERME', $sessionName];
         foreach ($cookieJar->all() as $cookie) {
             $cookieName = $cookie->getName();
-            if ($cookieName === 'MOCKSESSID' ||
-                $cookieName === 'REMEMBERME' ||
-                $cookieName === $sessionName
-            ) {
+            if (in_array($cookieName, $cookiesToExpire, true)) {
                 $cookieJar->expire($cookieName);
             }
         }
@@ -163,10 +136,8 @@ trait SessionAssertionsTrait
     {
         $session = $this->getCurrentSession();
 
-        if (!$attributeExists = $session->has($attribute)) {
-            $this->fail("No session attribute with name '{$attribute}'");
-        }
-        $this->assertTrue($attributeExists);
+        $attributeExists = $session->has($attribute);
+        $this->assertTrue($attributeExists, "No session attribute with name '{$attribute}'");
 
         if (null !== $value) {
             $this->assertSame($value, $session->get($attribute));
@@ -181,8 +152,6 @@ trait SessionAssertionsTrait
      * $I->seeSessionHasValues(['key1', 'key2']);
      * $I->seeSessionHasValues(['key1' => 'value1', 'key2' => 'value2']);
      * ```
-     *
-     * @param array $bindings
      */
     public function seeSessionHasValues(array $bindings): void
     {
@@ -226,5 +195,21 @@ trait SessionAssertionsTrait
     protected function getSymfonyMajorVersion(): int
     {
         return $this->kernel::MAJOR_VERSION;
+    }
+
+    /**
+     * @return UsernamePasswordToken|PostAuthenticationGuardToken|PostAuthenticationToken
+     */
+    protected function createAuthenticationToken(UserInterface $user, string $firewallName, array $roles)
+    {
+        if ($this->getSymfonyMajorVersion() < 6) {
+            return $this->config['guard']
+                ? new PostAuthenticationGuardToken($user, $firewallName, $roles)
+                : new UsernamePasswordToken($user, null, $firewallName, $roles);
+        }
+
+        return $this->config['authenticator']
+            ? new PostAuthenticationToken($user, $firewallName, $roles)
+            : new UsernamePasswordToken($user, $firewallName, $roles);
     }
 }

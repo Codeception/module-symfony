@@ -56,13 +56,11 @@ trait MailerAssertionsTrait
      */
     public function grabLastSentEmail(): ?Email
     {
+        /** @var Email[] $emails */
         $emails = $this->getMessageMailerEvents()->getMessages();
-        /** @var Email|false $lastEmail */
-        if ($lastEmail = end($emails)) {
-            return $lastEmail;
-        }
+        $lastEmail = end($emails);
 
-        return null;
+        return $lastEmail ?: null;
     }
 
     /**

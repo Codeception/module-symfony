@@ -6,10 +6,8 @@ namespace Codeception\Module\Symfony;
 
 use Symfony\Component\HttpKernel\DataCollector\EventDataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
-use function get_class;
 use function is_array;
 use function is_object;
-use function strpos;
 
 trait EventsAssertionsTrait
 {
@@ -34,7 +32,6 @@ trait EventsAssertionsTrait
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
-        /** @var Data $data */
         $data = $eventCollector->getOrphanedEvents();
         $expected = is_array($expected) ? $expected : [$expected];
 
@@ -80,7 +77,6 @@ trait EventsAssertionsTrait
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
-        /** @var Data $data */
         $data = $eventCollector->getCalledListeners();
         $expected = is_array($expected) ? $expected : [$expected];
 
@@ -107,7 +103,6 @@ trait EventsAssertionsTrait
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
-        /** @var Data $data */
         $data = $eventCollector->getOrphanedEvents();
         $expected = is_array($expected) ? $expected : [$expected];
 
@@ -149,7 +144,6 @@ trait EventsAssertionsTrait
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
-        /** @var Data $data */
         $data = $eventCollector->getCalledListeners();
         $expected = is_array($expected) ? $expected : [$expected];
 

@@ -51,7 +51,7 @@ trait FormAssertionsTrait
         $formCollector = $this->grabFormCollector(__FUNCTION__);
 
         if (!$forms = $formCollector->getData()->getValue(true)['forms']) {
-            $this->fail('There are no forms on the current page.');
+            $this->fail('No forms found on the current page.');
         }
 
         $fields = [];
@@ -73,7 +73,7 @@ trait FormAssertionsTrait
         }
 
         if (!in_array($field, $fields)) {
-            $this->fail("the field '{$field}' does not exist in the form.");
+            $this->fail("The field '{$field}' does not exist in the form.");
         }
 
         if (!array_key_exists($field, $errors)) {

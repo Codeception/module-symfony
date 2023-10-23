@@ -6,7 +6,6 @@ namespace Codeception\Module\Symfony;
 
 use Doctrine\ORM\EntityRepository;
 use function class_exists;
-use function get_class;
 use function interface_exists;
 use function is_object;
 use function is_string;
@@ -66,6 +65,7 @@ trait DoctrineAssertionsTrait
         $getRepo = function () use ($mixed, $entityRepoClass, $isNotARepo): ?EntityRepository {
             if (!$repo = $this->grabService($mixed)) return null;
 
+            /** @var EntityRepository $repo */
             if (!$repo instanceof $entityRepoClass) {
                 $isNotARepo();
                 return null;
