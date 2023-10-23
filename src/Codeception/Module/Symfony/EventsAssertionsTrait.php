@@ -188,7 +188,7 @@ trait EventsAssertionsTrait
         $data = $eventCollector->getCalledListeners();
         $expected = is_array($expected) ? $expected : [$expected];
 
-        $this->assertEventTriggered($data, $expected);
+        $this->assertListenerCalled($data, $expected);
     }
 
     /**
