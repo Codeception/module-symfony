@@ -30,7 +30,6 @@ trait RouterAssertionsTrait
     public function amOnAction(string $action, array $params = []): void
     {
         $router = $this->grabRouterService();
-
         $routes = $router->getRouteCollection()->getIterator();
 
         foreach ($routes as $route) {
@@ -64,7 +63,7 @@ trait RouterAssertionsTrait
     {
         $router = $this->grabRouterService();
         if ($router->getRouteCollection()->get($routeName) === null) {
-            $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
+            $this->fail(sprintf('Route with name "%s" does not exist.', $routeName));
         }
 
         $url = $router->generate($routeName, $params);
@@ -93,7 +92,6 @@ trait RouterAssertionsTrait
     public function seeCurrentActionIs(string $action): void
     {
         $router = $this->grabRouterService();
-
         $routes = $router->getRouteCollection()->getIterator();
 
         foreach ($routes as $route) {
@@ -126,7 +124,7 @@ trait RouterAssertionsTrait
     {
         $router = $this->grabRouterService();
         if ($router->getRouteCollection()->get($routeName) === null) {
-            $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
+            $this->fail(sprintf('Route with name "%s" does not exist.', $routeName));
         }
 
         $uri = explode('?', $this->grabFromCurrentUrl())[0];
@@ -158,7 +156,7 @@ trait RouterAssertionsTrait
     {
         $router = $this->grabRouterService();
         if ($router->getRouteCollection()->get($routeName) === null) {
-            $this->fail(sprintf('Route with name "%s" does not exists.', $routeName));
+            $this->fail(sprintf('Route with name "%s" does not exist.', $routeName));
         }
 
         $uri = explode('?', $this->grabFromCurrentUrl())[0];
