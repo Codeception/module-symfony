@@ -35,24 +35,11 @@ trait SessionAssertionsTrait
         $session = $this->getCurrentSession();
         $roles = $user->getRoles();
 
-        if ($this->getSymfonyMajorVersion() < 6) {
-            $token = $this->config['guard']
-                ? new PostAuthenticationGuardToken($user, $firewallName, $roles)
-                : new UsernamePasswordToken($user, null, $firewallName, $roles);
-        } else {
-            $token = $this->config['authenticator']
-                ? new PostAuthenticationToken($user, $firewallName, $roles)
-                : new UsernamePasswordToken($user, $firewallName, $roles);
-        }
-
+        $token = $this->createAuthenticationToken($user, $firewallName, $roles);
         $this->getTokenStorage()->setToken($token);
 
-        if ($firewallContext) {
-            $session->set('_security_' . $firewallContext, serialize($token));
-        } else {
-            $session->set('_security_' . $firewallName, serialize($token));
-        }
-
+        $sessionKey = $firewallContext ? "_security_{$firewallContext}" : "_security_{$firewallName}";
+        $session->set($sessionKey, serialize($token));
         $session->save();
 
         $cookie = new Cookie($session->getName(), $session->getId());
@@ -121,7 +108,6 @@ trait SessionAssertionsTrait
         }
 
         $session = $this->getCurrentSession();
-
         $sessionName = $session->getName();
         $session->invalidate();
 
@@ -209,5 +195,21 @@ trait SessionAssertionsTrait
     protected function getSymfonyMajorVersion(): int
     {
         return $this->kernel::MAJOR_VERSION;
+    }
+
+    /**
+     * @return UsernamePasswordToken|PostAuthenticationGuardToken|PostAuthenticationToken
+     */
+    protected function createAuthenticationToken(UserInterface $user, string $firewallName, array $roles)
+    {
+        if ($this->getSymfonyMajorVersion() < 6) {
+            return $this->config['guard']
+                ? new PostAuthenticationGuardToken($user, $firewallName, $roles)
+                : new UsernamePasswordToken($user, null, $firewallName, $roles);
+        }
+
+        return $this->config['authenticator']
+            ? new PostAuthenticationToken($user, $firewallName, $roles)
+            : new UsernamePasswordToken($user, $firewallName, $roles);
     }
 }
