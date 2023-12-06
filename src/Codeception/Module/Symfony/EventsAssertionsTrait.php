@@ -48,6 +48,28 @@ trait EventsAssertionsTrait
      *
      * ```php
      * <?php
+     * $I->dontSeeEventTriggered('App\MyEvent');
+     * $I->dontSeeEventTriggered(new App\Events\MyEvent());
+     * $I->dontSeeEventTriggered(['App\MyEvent', 'App\MyOtherEvent']);
+     * ```
+     *
+     * @param object|string|string[] $expected
+     * @deprecated Use `dontSeeEventListenerIsCalled` instead.
+     */
+    public function dontSeeEventTriggered(array|object|string $expected): void
+    {
+        trigger_error(
+            'dontSeeEventTriggered is deprecated, please use dontSeeEventListenerIsCalled instead',
+            E_USER_DEPRECATED
+        );
+        $this->dontSeeEventListenerIsCalled($expected);
+    }
+
+    /**
+     * Verifies that one or more event listeners were not called during the test.
+     *
+     * ```php
+     * <?php
      * $I->dontSeeEventListenerIsCalled('App\MyEventListener');
      * $I->dontSeeEventListenerIsCalled(new App\Events\MyEventListener());
      * $I->dontSeeEventListenerIsCalled(['App\MyEventListener', 'App\MyOtherEventListener']);
@@ -63,24 +85,6 @@ trait EventsAssertionsTrait
         $expected = is_array($expected) ? $expected : [$expected];
 
         $this->assertEventNotTriggered($data, $expected);
-    }
-
-    /**
-     * Verifies that one or more event listeners were not called during the test.
-     *
-     * ```php
-     * <?php
-     * $I->dontSeeEventTriggered('App\MyEventListener');
-     * $I->dontSeeEventTriggered(new App\Events\MyEventListener());
-     * $I->dontSeeEventTriggered(['App\MyEventSubscriber', 'App\MyOtherEventListener']);
-     * ```
-     *
-     * @param object|string|string[] $expected
-     * @deprecated Use `dontSeeEventListenerIsCalled` instead.
-     */
-    public function dontSeeEventTriggered(array|object|string $expected): void
-    {
-        $this->dontSeeEventListenerIsCalled($expected);
     }
 
     /**
@@ -114,6 +118,28 @@ trait EventsAssertionsTrait
      *
      * ```php
      * <?php
+     * $I->seeEventTriggered('App\MyEvent');
+     * $I->seeEventTriggered(new App\Events\MyEvent());
+     * $I->seeEventTriggered(['App\MyEvent', 'App\MyOtherEvent']);
+     * ```
+     *
+     * @param object|string|string[] $expected
+     * @deprecated Use `seeEventListenerIsCalled` instead.
+     */
+    public function seeEventTriggered(array|object|string $expected): void
+    {
+        trigger_error(
+            'seeEventTriggered is deprecated, please use seeEventListenerIsCalled instead',
+            E_USER_DEPRECATED
+        );
+        $this->seeEventListenerIsCalled($expected);
+    }
+
+    /**
+     * Verifies that one or more event listeners were called during the test.
+     *
+     * ```php
+     * <?php
      * $I->seeEventListenerIsCalled('App\MyEventListener');
      * $I->seeEventListenerIsCalled(new App\Events\MyEventListener());
      * $I->seeEventListenerIsCalled(['App\MyEventListener', 'App\MyOtherEventListener']);
@@ -129,24 +155,6 @@ trait EventsAssertionsTrait
         $expected = is_array($expected) ? $expected : [$expected];
 
         $this->assertEventTriggered($data, $expected);
-    }
-
-    /**
-     * Verifies that one or more event listeners were called during the test.
-     *
-     * ```php
-     * <?php
-     * $I->seeEventTriggered('App\MyEventListener');
-     * $I->seeEventTriggered(new App\Events\MyEventListener());
-     * $I->seeEventTriggered(['App\MyEventListener', 'App\MyOtherEventListener']);
-     * ```
-     *
-     * @param object|string|string[] $expected
-     * @deprecated Use `seeEventListenerIsCalled` instead.
-     */
-    public function seeEventTriggered(array|object|string $expected): void
-    {
-        $this->seeEventListenerIsCalled($expected);
     }
 
     protected function assertEventNotTriggered(Data $data, array $expected): void
