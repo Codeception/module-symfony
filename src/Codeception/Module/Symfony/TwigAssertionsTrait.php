@@ -16,8 +16,6 @@ trait TwigAssertionsTrait
      * <?php
      * $I->dontSeeRenderedTemplate('home.html.twig');
      * ```
-     *
-     * @param string $template
      */
     public function dontSeeRenderedTemplate(string $template): void
     {
@@ -39,15 +37,13 @@ trait TwigAssertionsTrait
      * <?php
      * $I->seeCurrentTemplateIs('home.html.twig');
      * ```
-     *
-     * @param string $expectedTemplate
      */
     public function seeCurrentTemplateIs(string $expectedTemplate): void
     {
         $twigCollector = $this->grabTwigCollector(__FUNCTION__);
 
         $templates = (array)$twigCollector->getTemplates();
-        $actualTemplate = (string)array_key_first($templates);
+        $actualTemplate = !empty($templates) ? (string) array_key_first($templates) : 'N/A';
 
         $this->assertSame(
             $expectedTemplate,
@@ -65,8 +61,6 @@ trait TwigAssertionsTrait
      * $I->seeRenderedTemplate('home.html.twig');
      * $I->seeRenderedTemplate('layout.html.twig');
      * ```
-     *
-     * @param string $template
      */
     public function seeRenderedTemplate(string $template): void
     {

@@ -23,7 +23,6 @@ trait BrowserAssertionsTrait
      * // Perform other requests
      *
      * ```
-     *
      */
     public function rebootClientKernel(): void
     {

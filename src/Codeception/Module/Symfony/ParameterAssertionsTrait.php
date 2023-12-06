@@ -16,13 +16,13 @@ trait ParameterAssertionsTrait
      * $I->grabParameter('app.business_name');
      * ```
      *
-     * @param string $name
+     * @param string $parameterName
      * @return array|bool|float|int|string|null
      */
-    public function grabParameter(string $name)
+    public function grabParameter(string $parameterName)
     {
         $parameterBag = $this->grabParameterBagService();
-        return $parameterBag->get($name);
+        return $parameterBag->get($parameterName);
     }
 
     protected function grabParameterBagService(): ParameterBagInterface

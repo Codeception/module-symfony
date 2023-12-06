@@ -20,7 +20,6 @@ trait ServicesAssertionsTrait
      * ```
      *
      * @part services
-     * @param string $serviceId
      */
     public function grabService(string $serviceId): object
     {
@@ -69,15 +68,10 @@ trait ServicesAssertionsTrait
      */
     public function unpersistService(string $serviceName): void
     {
-        if (isset($this->persistentServices[$serviceName])) {
-            unset($this->persistentServices[$serviceName]);
-        }
+        unset($this->persistentServices[$serviceName]);
+        unset($this->permanentServices[$serviceName]);
 
-        if (isset($this->permanentServices[$serviceName])) {
-            unset($this->permanentServices[$serviceName]);
-        }
-
-        if ($this->client instanceof SymfonyConnector && isset($this->client->persistentServices[$serviceName])) {
+        if ($this->client instanceof SymfonyConnector) {
             unset($this->client->persistentServices[$serviceName]);
         }
     }
