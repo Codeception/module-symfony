@@ -6,6 +6,7 @@ namespace Codeception\Module\Symfony;
 
 use Symfony\Component\HttpKernel\DataCollector\EventDataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
+
 use function is_array;
 use function is_object;
 
@@ -53,11 +54,14 @@ trait EventsAssertionsTrait
      * ```
      *
      * @param object|string|string[] $expected
-     * @deprecated Use `dontSeeEventListenerIsCalled()` instead.
+     * @deprecated Use `dontSeeEventListenerIsCalled` instead.
      */
     public function dontSeeEventTriggered(array|object|string $expected): void
     {
-        trigger_error('dontSeeEventTriggered is deprecated, please use dontSeeEventListenerIsCalled instead', E_USER_DEPRECATED);
+        trigger_error(
+            'dontSeeEventTriggered is deprecated, please use dontSeeEventListenerIsCalled instead',
+            E_USER_DEPRECATED
+        );
         $this->dontSeeEventListenerIsCalled($expected);
     }
 
@@ -69,18 +73,28 @@ trait EventsAssertionsTrait
      * $I->dontSeeEventListenerIsCalled('App\MyEventListener');
      * $I->dontSeeEventListenerIsCalled(new App\Events\MyEventListener());
      * $I->dontSeeEventListenerIsCalled(['App\MyEventListener', 'App\MyOtherEventListener']);
+     * $I->dontSeeEventListenerIsCalled('App\MyEventListener', 'my.event);
+     * $I->dontSeeEventListenerIsCalled(new App\Events\MyEventListener(), new MyEvent());
+     * $I->dontSeeEventListenerIsCalled('App\MyEventListener', ['my.event', 'my.other.event']);
      * ```
      *
      * @param object|string|string[] $expected
      */
-    public function dontSeeEventListenerIsCalled(array|object|string $expected): void
-    {
+    public function dontSeeEventListenerIsCalled(
+        array|object|string $expected,
+        array|object|string $withEvents = []
+    ): void {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
         $data = $eventCollector->getCalledListeners();
         $expected = is_array($expected) ? $expected : [$expected];
+        $withEvents = is_array($withEvents) ? $withEvents : [$withEvents];
 
-        $this->assertEventNotTriggered($data, $expected);
+        if (!empty($withEvents) && count($expected) > 1) {
+            $this->fail('You cannot check for events when using multiple listeners. Make multiple assertions instead.');
+        }
+
+        $this->assertListenerCalled($data, $expected, $withEvents, true);
     }
 
     /**
@@ -120,11 +134,14 @@ trait EventsAssertionsTrait
      * ```
      *
      * @param object|string|string[] $expected
-     * @deprecated Use `seeEventListenerIsCalled()` instead.
+     * @deprecated Use `seeEventListenerIsCalled` instead.
      */
     public function seeEventTriggered(array|object|string $expected): void
     {
-        trigger_error('seeEventTriggered is deprecated, please use seeEventListenerIsCalled instead', E_USER_DEPRECATED);
+        trigger_error(
+            'seeEventTriggered is deprecated, please use seeEventListenerIsCalled instead',
+            E_USER_DEPRECATED
+        );
         $this->seeEventListenerIsCalled($expected);
     }
 
@@ -136,18 +153,28 @@ trait EventsAssertionsTrait
      * $I->seeEventListenerIsCalled('App\MyEventListener');
      * $I->seeEventListenerIsCalled(new App\Events\MyEventListener());
      * $I->seeEventListenerIsCalled(['App\MyEventListener', 'App\MyOtherEventListener']);
+     * $I->seeEventListenerIsCalled('App\MyEventListener', 'my.event);
+     * $I->seeEventListenerIsCalled(new App\Events\MyEventListener(), new MyEvent());
+     * $I->seeEventListenerIsCalled('App\MyEventListener', ['my.event', 'my.other.event']);
      * ```
      *
      * @param object|string|string[] $expected
      */
-    public function seeEventListenerIsCalled(array|object|string $expected): void
-    {
+    public function seeEventListenerIsCalled(
+        array|object|string $expected,
+        array|object|string $withEvents = []
+    ): void {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
 
         $data = $eventCollector->getCalledListeners();
         $expected = is_array($expected) ? $expected : [$expected];
+        $withEvents = is_array($withEvents) ? $withEvents : [$withEvents];
 
-        $this->assertEventTriggered($data, $expected);
+        if (!empty($withEvents) && count($expected) > 1) {
+            $this->fail('You cannot check for events when using multiple listeners. Make multiple assertions instead.');
+        }
+
+        $this->assertListenerCalled($data, $expected, $withEvents);
     }
 
     protected function assertEventNotTriggered(Data $data, array $expected): void
@@ -180,6 +207,39 @@ trait EventsAssertionsTrait
         }
     }
 
+    protected function assertListenerCalled(
+        Data $data,
+        array $expectedListeners,
+        array $withEvents,
+        bool $invertAssertion = false
+    ): void {
+        $assertTrue = !$invertAssertion;
+
+        if ($assertTrue && $data->count() === 0) {
+            $this->fail('No event listener was called');
+        }
+
+        $actual = $data->getValue(true);
+        $expectedEvents = empty($withEvents) ? [null] : $withEvents;
+
+        foreach ($expectedListeners as $expectedListener) {
+            $expectedListener = is_object($expectedListener) ? $expectedListener::class : $expectedListener;
+
+            foreach ($expectedEvents as $expectedEvent) {
+                $message = "The '{$expectedListener}' listener was called"
+                    . ($expectedEvent ? " for the '{$expectedEvent}' event" : '');
+
+                $condition = $this->listenerWasCalled($actual, $expectedListener, $expectedEvent);
+
+                if ($assertTrue) {
+                    $this->assertTrue($condition, $message);
+                } else {
+                    $this->assertFalse($condition, $message);
+                }
+            }
+        }
+    }
+
     protected function eventWasTriggered(array $actual, string $expectedEvent): bool
     {
         $triggered = false;
@@ -195,7 +255,26 @@ trait EventsAssertionsTrait
                 }
             }
         }
+
         return $triggered;
+    }
+
+    protected function listenerWasCalled(array $actual, string $expectedListener, string|null $expectedEvent): bool
+    {
+        $called = false;
+
+        foreach ($actual as $actualEvent) {
+            // Called Listeners
+            if (is_array($actualEvent) && str_starts_with($actualEvent['pretty'], $expectedListener)) {
+                if ($expectedEvent === null) {
+                    $called = true;
+                } elseif ($actualEvent['event'] === $expectedEvent) {
+                    $called = true;
+                }
+            }
+        }
+
+        return $called;
     }
 
     protected function grabEventCollector(string $function): EventDataCollector
