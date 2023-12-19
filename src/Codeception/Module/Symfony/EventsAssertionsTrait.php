@@ -45,7 +45,7 @@ trait EventsAssertionsTrait
 
     /**
      * Verifies that there were no events during the test.
-     * Orphan events are included. Use `dontSeeOrphanEvent` to exclude them.
+     * Both regular and orphan events are checked.
      *
      * ```php
      *  <?php
@@ -158,7 +158,10 @@ trait EventsAssertionsTrait
 
     /**
      * Verifies that one or more events were dispatched during the test.
-     * Orphan events are included. Use `seeOrphanEvent` to exclude them.
+     * Both regular and orphan events are checked.
+     *
+     * If you need to verify that expected event is not orphan,
+     * add `dontSeeOrphanEvent` call.
      *
      * ```php
      *  <?php
@@ -168,7 +171,6 @@ trait EventsAssertionsTrait
      *  ```
      *
      * @param array|object|string $expected
-     * @see seeOrphanEvent
      */
     public function seeEvent(array|object|string $expected): void
     {
@@ -250,7 +252,7 @@ trait EventsAssertionsTrait
             $this->fail('No event was triggered');
         }
 
-        $actual = array_map(static fn (Data $data) => $data->getValue(true), $data);
+        $actualEventsCollection = array_map(static fn (Data $data) => $data->getValue(true), $data);
 
         foreach ($expected as $expectedEvent) {
             $expectedEvent = is_object($expectedEvent) ? $expectedEvent::class : $expectedEvent;
@@ -258,16 +260,16 @@ trait EventsAssertionsTrait
                 ? "The '{$expectedEvent}' event did not trigger"
                 : "The '{$expectedEvent}' event triggered";
 
-            $condition = false;
+            $eventTriggered = false;
 
-            foreach ($actual as $actualEvents) {
-                $condition = $condition || $this->eventWasTriggered($actualEvents, (string)$expectedEvent);
+            foreach ($actualEventsCollection as $actualEvents) {
+                $eventTriggered = $eventTriggered || $this->eventWasTriggered($actualEvents, (string)$expectedEvent);
             }
 
             if ($assertTrue) {
-                $this->assertTrue($condition, $message);
+                $this->assertTrue($eventTriggered, $message);
             } else {
-                $this->assertFalse($condition, $message);
+                $this->assertFalse($eventTriggered, $message);
             }
         }
     }
