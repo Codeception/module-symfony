@@ -9,12 +9,14 @@ jobs:
     strategy:
       matrix:
         php: [8.0, 8.1, 8.2]
-        symfony: ["4.4.*", "5.4.*", "6.0.*", "6.1.*", "6.2.*"]
+        symfony: ["4.4.*", "5.4.*", "6.0.*", "6.1.*", "6.2.*", "6.3.*"]
         exclude:
           - php: 8.0
             symfony: "6.1.*"
           - php: 8.0
             symfony: "6.2.*"
+          - php: 8.0
+            symfony: "6.3.*"
 
     steps:
       - name: Checkout code
@@ -68,6 +70,14 @@ jobs:
           path: framework-tests
           ref: "6.2"
 
+      - name: Checkout Symfony 6.3 Sample
+        if: "matrix.symfony == '6.3.*'"
+        uses: actions/checkout@v2
+        with:
+          repository: Codeception/symfony-module-tests
+          path: framework-tests
+          ref: "6.3"
+
       - name: Get composer cache directory
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
@@ -102,7 +112,7 @@ jobs:
         working-directory: framework-tests
 
       - name: Install PHPUnit 10 in framework-tests for Symfony 6.1 and 6.2
-        if: "matrix.symfony == '6.1.*' || matrix.symfony == '6.2.*'"
+        if: "matrix.symfony == '6.1.*' || matrix.symfony == '6.2.*' || matrix.symfony == '6.3.*'"
         run: composer require --dev  --no-update "phpunit/phpunit=^10.0"
         working-directory: framework-tests
 
