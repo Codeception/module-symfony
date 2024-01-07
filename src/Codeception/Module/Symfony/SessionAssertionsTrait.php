@@ -178,11 +178,7 @@ trait SessionAssertionsTrait
     {
         $container = $this->_getContainer();
 
-        if ($this->getSymfonyMajorVersion() < 6) {
-            return $container->get('session');
-        }
-
-        if ($container->has('session')) {
+        if ($this->getSymfonyMajorVersion() < 6 || $container->has('session')) {
             return $container->get('session');
         }
 

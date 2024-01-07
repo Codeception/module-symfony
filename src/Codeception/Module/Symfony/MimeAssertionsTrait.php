@@ -169,9 +169,9 @@ trait MimeAssertionsTrait
     private function verifyEmailObject(?Email $email, string $function): Email
     {
         $email = $email ?: $this->grabLastSentEmail();
-        $errorMsgFormat = "There is no email to verify. An Email object was not specified when invoking '%s' and the application has not sent one.";
+        $errorMsgTemplate = "There is no email to verify. An Email object was not specified when invoking '%s' and the application has not sent one.";
         return $email ?: $this->fail(
-            sprintf($errorMsgFormat, $function)
+            sprintf($errorMsgTemplate, $function)
         );
     }
 }

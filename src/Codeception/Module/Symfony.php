@@ -43,7 +43,6 @@ use Symfony\Component\Routing\Route;
 use Symfony\Component\VarDumper\Cloner\Data;
 use function array_keys;
 use function array_map;
-use function array_merge;
 use function array_search;
 use function array_unique;
 use function class_exists;
@@ -74,7 +73,7 @@ use function sprintf;
  *
  * ## Config
  *
- * ### Symfony 5.x or 4.4
+ * ### Symfony 5.4 or higher
  *
  * * app_path: 'src' - Specify custom path to your app dir, where the kernel interface is located.
  * * environment: 'local' - Environment used for load kernel
@@ -83,8 +82,8 @@ use function sprintf;
  * * debug: true - Turn on/off debug mode
  * * cache_router: 'false' - Enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
  * * rebootable_client: 'true' - Reboot client's kernel before each request
- * * guard: 'false' - Enable custom authentication system with guard (only for 4.x and 5.x versions of the symfony)
- * * authenticator: 'false' - Reboot client's kernel before each request (only for 6.x versions of the symfony)
+ * * guard: 'false' - Enable custom authentication system with guard (only for Symfony 5.4)
+ * * authenticator: 'false' - Reboot client's kernel before each request (only for Symfony 6.0 or higher)
  *
  * #### Example (`functional.suite.yml`) - Symfony 4 Directory Structure
  *
@@ -126,7 +125,7 @@ use function sprintf;
  *             browser: firefox
  * ```
  *
- * If you're using Symfony with Eloquent ORM (instead of Doctrine), you can load the [`ORM` part of Laravel module](https://codeception.com/docs/modules/Laravel5#Parts)
+ * If you're using Symfony with Eloquent ORM (instead of Doctrine), you can load the [`ORM` part of Laravel module](https://codeception.com/docs/modules/Laravel#Parts)
  * in addition to Symfony module.
  *
  */
@@ -215,7 +214,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function _before(TestInterface $test): void
     {
-        $this->persistentServices = array_merge($this->persistentServices, $this->permanentServices);
+        $this->persistentServices = [...$this->persistentServices, ...$this->permanentServices];
         $this->client = new SymfonyConnector($this->kernel, $this->persistentServices, $this->config['rebootable_client']);
     }
 
@@ -322,7 +321,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         $this->requireAdditionalAutoloader();
 
-        $filesRealPath = array_map(function ($file) {
+        $filesRealPath = array_map(static function ($file) {
             require_once $file;
             return $file->getRealPath();
         }, $results);
@@ -331,7 +330,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         if (class_exists($kernelClass)) {
             $reflectionClass = new ReflectionClass($kernelClass);
-            if ($file = array_search($reflectionClass->getFileName(), $filesRealPath)) {
+            if ($file = array_search($reflectionClass->getFileName(), $filesRealPath, true)) {
                 return $kernelClass;
             }
 
@@ -355,7 +354,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         try {
             $response = $this->getClient()->getResponse();
             return $profiler->loadProfileFromResponse($response);
-        } catch (BadMethodCallException $e) {
+        } catch (BadMethodCallException) {
             $this->fail('You must perform a request before using this method.');
         } catch (Exception $e) {
             $this->fail($e->getMessage());

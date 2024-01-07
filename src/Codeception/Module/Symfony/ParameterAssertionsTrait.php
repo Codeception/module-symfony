@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use UnitEnum;
 
 trait ParameterAssertionsTrait
 {
@@ -15,11 +16,8 @@ trait ParameterAssertionsTrait
      * <?php
      * $I->grabParameter('app.business_name');
      * ```
-     *
-     * @param string $parameterName
-     * @return array|bool|float|int|string|null
      */
-    public function grabParameter(string $parameterName)
+    public function grabParameter(string $parameterName): array|bool|string|int|float|UnitEnum|null
     {
         $parameterBag = $this->grabParameterBagService();
         return $parameterBag->get($parameterName);

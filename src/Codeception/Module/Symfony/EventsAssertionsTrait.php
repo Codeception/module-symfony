@@ -25,7 +25,7 @@ trait EventsAssertionsTrait
      */
     public function dontSeeEvent(array|string $expected = null): void
     {
-        $actualEvents = array_merge(array_column($this->getCalledListeners(), 'event'));
+        $actualEvents = [...array_column($this->getCalledListeners(), 'event')];
         $actual = [$this->getOrphanedEvents(), $actualEvents];
         $this->assertEventTriggered(false, $expected, $actual);
     }
@@ -110,7 +110,7 @@ trait EventsAssertionsTrait
      */
     public function seeEvent(array|string $expected): void
     {
-        $actualEvents = array_merge(array_column($this->getCalledListeners(), 'event'));
+        $actualEvents = [...array_column($this->getCalledListeners(), 'event')];
         $actual = [$this->getOrphanedEvents(), $actualEvents];
         $this->assertEventTriggered(true, $expected, $actual);
     }
