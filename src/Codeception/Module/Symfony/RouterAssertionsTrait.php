@@ -6,9 +6,9 @@ namespace Codeception\Module\Symfony;
 
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouterInterface;
 use function array_intersect_assoc;
-use function array_merge;
 use function explode;
 use function sprintf;
 
@@ -23,18 +23,16 @@ trait RouterAssertionsTrait
      * $I->amOnAction('HomeController');
      * $I->amOnAction('ArticleController', ['slug' => 'lorem-ipsum']);
      * ```
-     *
-     * @param string $action
-     * @param array $params
      */
     public function amOnAction(string $action, array $params = []): void
     {
         $router = $this->grabRouterService();
         $routes = $router->getRouteCollection()->getIterator();
 
+        /** @var Route $route */
         foreach ($routes as $route) {
             $controller = $route->getDefault('_controller');
-            if (str_ends_with($controller, $action)) {
+            if (str_ends_with((string) $controller, $action)) {
                 $resource = $router->match($route->getPath());
                 $url      = $router->generate(
                     $resource['_route'],
@@ -55,9 +53,6 @@ trait RouterAssertionsTrait
      * $I->amOnRoute('posts.create');
      * $I->amOnRoute('posts.show', ['id' => 34]);
      * ```
-     *
-     * @param string $routeName
-     * @param array $params
      */
     public function amOnRoute(string $routeName, array $params = []): void
     {
@@ -86,17 +81,16 @@ trait RouterAssertionsTrait
      * $I->seeCurrentActionIs('PostController::index');
      * $I->seeCurrentActionIs('HomeController');
      * ```
-     *
-     * @param string $action
      */
     public function seeCurrentActionIs(string $action): void
     {
         $router = $this->grabRouterService();
         $routes = $router->getRouteCollection()->getIterator();
 
+        /** @var Route $route */
         foreach ($routes as $route) {
             $controller = $route->getDefault('_controller');
-            if (str_ends_with($controller, $action)) {
+            if (str_ends_with((string) $controller, $action)) {
                 $request = $this->getClient()->getRequest();
                 $currentActionFqcn = $request->attributes->get('_controller');
 
@@ -116,9 +110,6 @@ trait RouterAssertionsTrait
      * $I->seeCurrentRouteIs('posts.index');
      * $I->seeCurrentRouteIs('posts.show', ['id' => 8]);
      * ```
-     *
-     * @param string $routeName
-     * @param array $params
      */
     public function seeCurrentRouteIs(string $routeName, array $params = []): void
     {
@@ -135,7 +126,7 @@ trait RouterAssertionsTrait
             $this->fail(sprintf('The "%s" url does not match with any route', $uri));
         }
 
-        $expected = array_merge(['_route' => $routeName], $params);
+        $expected = ['_route' => $routeName, ...$params];
         $intersection = array_intersect_assoc($expected, $match);
 
         $this->assertSame($expected, $intersection);
@@ -149,8 +140,6 @@ trait RouterAssertionsTrait
      * <?php
      * $I->seeInCurrentRoute('my_blog_pages');
      * ```
-     *
-     * @param string $routeName
      */
     public function seeInCurrentRoute(string $routeName): void
     {

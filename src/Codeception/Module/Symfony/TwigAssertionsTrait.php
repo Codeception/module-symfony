@@ -21,7 +21,7 @@ trait TwigAssertionsTrait
     {
         $twigCollector = $this->grabTwigCollector(__FUNCTION__);
 
-        $templates = (array)$twigCollector->getTemplates();
+        $templates = $twigCollector->getTemplates();
 
         $this->assertArrayNotHasKey(
             $template,
@@ -42,8 +42,8 @@ trait TwigAssertionsTrait
     {
         $twigCollector = $this->grabTwigCollector(__FUNCTION__);
 
-        $templates = (array)$twigCollector->getTemplates();
-        $actualTemplate = !empty($templates) ? (string) array_key_first($templates) : 'N/A';
+        $templates = $twigCollector->getTemplates();
+        $actualTemplate = empty($templates) ? 'N/A' : (string) array_key_first($templates);
 
         $this->assertSame(
             $expectedTemplate,
@@ -66,7 +66,7 @@ trait TwigAssertionsTrait
     {
         $twigCollector = $this->grabTwigCollector(__FUNCTION__);
 
-        $templates = (array)$twigCollector->getTemplates();
+        $templates = $twigCollector->getTemplates();
 
         $this->assertArrayHasKey(
             $template,

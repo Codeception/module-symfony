@@ -43,7 +43,6 @@ trait FormAssertionsTrait
      * $I->seeFormErrorMessage('username', 'Username is empty');
      * ```
      *
-     * @param string $field
      * @param string|null $message
      */
     public function seeFormErrorMessage(string $field, string $message = null): void

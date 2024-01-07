@@ -18,7 +18,7 @@
     ],
     "homepage": "https://codeception.com/",
     "require": {
-        "php": "^8.0",
+        "php": "^8.1",
         "ext-json": "*",
         "codeception/codeception": "^5.0.8",
         "codeception/lib-innerbrowser": "^3.1.1 | ^4.0"

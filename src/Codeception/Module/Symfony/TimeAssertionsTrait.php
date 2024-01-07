@@ -13,7 +13,7 @@ trait TimeAssertionsTrait
     /**
      * Asserts that the time a request lasted is less than expected.
      *
-     * If the page performed a HTTP redirect, only the time of the last request will be taken into account.
+     * If the page performed an HTTP redirect, only the time of the last request will be taken into account.
      * You can modify this behavior using [stopFollowingRedirects()](https://codeception.com/docs/modules/Symfony#stopFollowingRedirects) first.
      *
      * Also, note that using code coverage can significantly increase the time it takes to resolve a request,

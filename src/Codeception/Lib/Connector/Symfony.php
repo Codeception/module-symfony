@@ -20,36 +20,29 @@ use function codecept_debug;
 
 class Symfony extends HttpKernelBrowser
 {
-    private bool $rebootable;
-
     private bool $hasPerformedRequest = false;
 
     private ?ContainerInterface $container;
-
-    public array $persistentServices = [];
 
     /**
      * Constructor.
      *
      * @param Kernel $kernel     A booted HttpKernel instance
-     * @param array  $services   An injected services
-     * @param bool   $rebootable
+     * @param array $persistentServices An injected services
      */
-    public function __construct(Kernel $kernel, array $services = [], bool $rebootable = true)
-    {
+    public function __construct(
+        Kernel $kernel,
+        public array $persistentServices = [],
+        private readonly bool $rebootable = true
+    ) {
         parent::__construct($kernel);
         $this->followRedirects();
-        $this->rebootable = $rebootable;
-        $this->persistentServices = $services;
         $this->container = $this->getContainer();
         $this->rebootKernel();
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
-    protected function doRequest($request): Response
+    /** @param Request $request */
+    protected function doRequest(object $request): Response
     {
         if ($this->rebootable) {
             if ($this->hasPerformedRequest) {

@@ -65,7 +65,7 @@ trait SecurityAssertionsTrait
     {
         $security = $this->grabSecurityService();
 
-        if (!$user = $security->getUser()) {
+        if (!$security->getUser()) {
             $this->fail('There is no user in session');
         }
 
@@ -108,8 +108,6 @@ trait SecurityAssertionsTrait
      * <?php
      * $I->seeUserHasRole('ROLE_ADMIN');
      * ```
-     *
-     * @param string $role
      */
     public function seeUserHasRole(string $role): void
     {

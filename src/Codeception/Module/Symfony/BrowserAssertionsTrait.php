@@ -31,7 +31,7 @@ trait BrowserAssertionsTrait
 
     /**
      * Verifies that a page is available.
-     * By default it checks the current page, specify the `$url` parameter to change it.
+     * By default, it checks the current page, specify the `$url` parameter to change it.
      *
      * ```php
      * <?php
@@ -60,9 +60,6 @@ trait BrowserAssertionsTrait
      * <?php
      * $I->seePageRedirectsTo('/admin', '/login');
      * ```
-     *
-     * @param string $page
-     * @param string $redirectsTo
      */
     public function seePageRedirectsTo(string $page, string $redirectsTo): void
     {
