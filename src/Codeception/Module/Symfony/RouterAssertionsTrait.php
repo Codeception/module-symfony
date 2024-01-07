@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouterInterface;
 use function array_intersect_assoc;
@@ -36,8 +35,7 @@ trait RouterAssertionsTrait
                 $resource = $router->match($route->getPath());
                 $url      = $router->generate(
                     $resource['_route'],
-                    $params,
-                    UrlGeneratorInterface::ABSOLUTE_PATH
+                    $params
                 );
                 $this->amOnPage($url);
                 return;
