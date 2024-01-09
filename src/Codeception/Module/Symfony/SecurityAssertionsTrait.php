@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Core\Security as LegacySecurity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use function sprintf;
 
@@ -176,7 +177,7 @@ trait SecurityAssertionsTrait
         $this->assertFalse($hasher->needsRehash($user), 'User password needs rehash');
     }
 
-    protected function grabSecurityService(): Security
+    protected function grabSecurityService(): Security|LegacySecurity
     {
         return $this->grabService('security.helper');
     }
