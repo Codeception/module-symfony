@@ -75,17 +75,17 @@ use function sprintf;
  *
  * ### Symfony 5.4 or higher
  *
- * * app_path: 'src' - Specify custom path to your app dir, where the kernel interface is located.
- * * environment: 'local' - Environment used for load kernel
- * * kernel_class: 'App\Kernel' - Kernel class name
- * * em_service: 'doctrine.orm.entity_manager' - Use the stated EntityManager to pair with Doctrine Module.
- * * debug: true - Turn on/off debug mode
- * * cache_router: 'false' - Enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
- * * rebootable_client: 'true' - Reboot client's kernel before each request
- * * guard: 'false' - Enable custom authentication system with guard (only for Symfony 5.4)
- * * authenticator: 'false' - Reboot client's kernel before each request (only for Symfony 6.0 or higher)
+ * * `app_path`: 'src' - Specify custom path to your app dir, where the kernel interface is located.
+ * * `environment`: 'local' - Environment used for load kernel
+ * * `kernel_class`: 'App\Kernel' - Kernel class name
+ * * `em_service`: 'doctrine.orm.entity_manager' - Use the stated EntityManager to pair with Doctrine Module.
+ * * `debug`: true - Turn on/off [debug mode](https://codeception.com/docs/Debugging)
+ * * `cache_router`: 'false' - Enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
+ * * `rebootable_client`: 'true' - Reboot client's kernel before each request
+ * * `guard`: 'false' - Enable custom authentication system with guard (only for Symfony 5.4)
+ * * `authenticator`: 'false' - Reboot client's kernel before each request (only for Symfony 6.0 or higher)
  *
- * #### Example (`functional.suite.yml`) - Symfony 4 Directory Structure
+ * #### Sample `Functional.suite.yml`
  *
  *     modules:
  *        enabled:
