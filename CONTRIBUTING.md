@@ -41,7 +41,7 @@ It is a minimal (but complete) Symfony project, ready to run tests.
    <br/>
 - Edit the trait's source code in the `vendor/codeception/module-symfony/src/Codeception/Module/Symfony/` folder.
    <br/>
-- If you create a new method, you can test it by adding a test in the `tests/Functional/SymfonyModuleCest.php` file.
+- If you create a new method, you can test it by adding a test in the corresponding `/tests/Functional/*Cest.php` file.
 > :bulb: Be sure to rebuild Codeception's "Actor" classes (see [Console Commands](https://codeception.com/docs/reference/Commands#Build)):
 > ```shell
 > vendor/bin/codecept clean
