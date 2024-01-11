@@ -9,7 +9,10 @@ jobs:
     strategy:
       matrix:
         php: [8.1, 8.2, 8.3]
-        symfony: ["5.4.*", "6.4.*"]
+        symfony: ["5.4.*", "6.4.*", "7.0.*"]
+        exclude:
+          - php: 8.1
+            symfony: "7.0.*"
 
     steps:
       - name: Checkout code
@@ -29,7 +32,7 @@ jobs:
         with:
           repository: Codeception/symfony-module-tests
           path: framework-tests
-          ref: "5.4_codecept5"
+          ref: "5.4"
 
       - name: Checkout Symfony 6.4 Sample
         if: "matrix.symfony == '6.4.*'"
@@ -38,6 +41,14 @@ jobs:
           repository: Codeception/symfony-module-tests
           path: framework-tests
           ref: "6.4"
+
+      - name: Checkout Symfony 7.0 Sample
+        if: "matrix.symfony == '7.0.*'"
+        uses: actions/checkout@v4
+        with:
+          repository: Codeception/symfony-module-tests
+          path: framework-tests
+          ref: "7.0"
 
       - name: Get composer cache directory
         id: composer-cache
@@ -72,8 +83,8 @@ jobs:
         run: composer validate
         working-directory: framework-tests
 
-      - name: Install PHPUnit 10 in framework-tests for Symfony 6.4
-        if: "matrix.symfony == '6.4.*'"
+      - name: Install PHPUnit 10 in framework-tests for Symfony 6.4 and 7.0
+        if: "matrix.symfony == '6.4.*' || matrix.symfony == '7.0.*'"
         run: composer require --dev  --no-update "phpunit/phpunit=^10.0"
         working-directory: framework-tests
 
@@ -85,8 +96,8 @@ jobs:
 
       - name: Prepare the test environment
         run: |
-          php bin/console d:s:u -f
-          php bin/console d:f:l -q
+          php bin/console doctrine:schema:update --force
+          php bin/console doctrine:fixtures:load --quiet
         working-directory: framework-tests
 
       - name: Run test suite
