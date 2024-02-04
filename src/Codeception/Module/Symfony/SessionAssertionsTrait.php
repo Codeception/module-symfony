@@ -43,7 +43,7 @@ trait SessionAssertionsTrait
         $this->loginWithToken($token, $firewallName, $firewallContext);
     }
 
-    private function loginWithToken(TokenInterface $token, string $firewallName = 'main', string $firewallContext = null): void
+    protected function loginWithToken(TokenInterface $token, string $firewallName, ?string $firewallContext): void
     {
         $this->getTokenStorage()->setToken($token);
 
