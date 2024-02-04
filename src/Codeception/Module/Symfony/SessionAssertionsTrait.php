@@ -206,7 +206,7 @@ trait SessionAssertionsTrait
     /**
      * @return UsernamePasswordToken|PostAuthenticationGuardToken|PostAuthenticationToken
      */
-    public function createAuthenticationToken(UserInterface $user, string $firewallName, array $roles)
+    protected function createAuthenticationToken(UserInterface $user, string $firewallName, array $roles)
     {
         if ($this->getSymfonyMajorVersion() < 6) {
             return $this->config['guard']
