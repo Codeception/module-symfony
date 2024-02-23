@@ -25,7 +25,7 @@
     },
     "require-dev": {
         "codeception/module-asserts": "^3.0",
-        "codeception/module-doctrine": "^3.0",
+        "codeception/module-doctrine": "^3.1",
         "doctrine/orm": "^2.10",
         "symfony/browser-kit": "^5.4 | ^6.4 | ^7.0",
         "symfony/cache": "^5.4 | ^6.4 | ^7.0",
