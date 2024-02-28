@@ -117,6 +117,7 @@ trait RouterAssertionsTrait
         }
 
         $uri = explode('?', $this->grabFromCurrentUrl())[0];
+        $uri = explode('#', $uri)[0];
         $match = [];
         try {
             $match = $router->match($uri);
@@ -147,6 +148,7 @@ trait RouterAssertionsTrait
         }
 
         $uri = explode('?', $this->grabFromCurrentUrl())[0];
+        $uri = explode('#', $uri)[0];
         $matchedRouteName = '';
         try {
             $matchedRouteName = (string)$router->match($uri)['_route'];
