@@ -61,9 +61,8 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.php }}-composer-${{ hashFiles('composer.json') }}
           restore-keys: ${{ runner.os }}-${{ matrix.php }}-composer-
 
-      - name: Install PHPUnit 9 for Symfony 5.4
-        if: "matrix.symfony == '5.4.*'"
-        run: composer require --dev  --no-update "phpunit/phpunit=^9.0"
+      - name: Install PHPUnit 10
+        run: composer require --dev --no-update "phpunit/phpunit=^10.0"
 
       - name: Install dependencies
         run: |
@@ -76,21 +75,20 @@ jobs:
           composer require symfony/browser-kit=${{ matrix.symfony }} --no-update
           composer require vlucas/phpdotenv --no-update
           composer require codeception/module-asserts="3.*" --no-update
-          composer require codeception/module-doctrine2="3.*" --no-update
+          composer require codeception/module-doctrine="3.*" --no-update
           composer update --prefer-dist --no-progress --no-dev
 
       - name: Validate composer.json and composer.lock
         run: composer validate
         working-directory: framework-tests
 
-      - name: Install PHPUnit 10 in framework-tests for Symfony 6.4 and 7.0
-        if: "matrix.symfony == '6.4.*' || matrix.symfony == '7.0.*'"
-        run: composer require --dev  --no-update "phpunit/phpunit=^10.0"
+      - name: Install PHPUnit 10 in framework-tests
+        run: composer require --dev --no-update "phpunit/phpunit=^10.0"
         working-directory: framework-tests
 
       - name: Install Symfony Sample
         run: |
-          composer remove codeception/codeception codeception/module-asserts codeception/module-doctrine2 codeception/lib-innerbrowser codeception/module-symfony --dev --no-update
+          composer remove codeception/codeception codeception/module-asserts codeception/module-doctrine codeception/lib-innerbrowser codeception/module-symfony --dev --no-update
           composer update --no-progress
         working-directory: framework-tests
 
