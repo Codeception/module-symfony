@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpKernel\KernelInterface;
 
@@ -33,8 +34,10 @@ trait ConsoleAssertionsTrait
         $commandTester = new CommandTester($consoleCommand);
         $commandTester->setInputs($consoleInputs);
 
-        $parameters = ['command' => $command] + $parameters;
-        $exitCode = $commandTester->execute($parameters);
+        $input = ['command' => $command] + $parameters;
+        $options = $this->configureOptions($parameters);
+
+        $exitCode = $commandTester->execute($input, $options);
         $output = $commandTester->getDisplay();
 
         $this->assertSame(
@@ -49,6 +52,49 @@ trait ConsoleAssertionsTrait
         );
 
         return $output;
+    }
+
+    private function configureOptions(array $parameters): array
+    {
+        $options = [];
+
+        if (in_array('--ansi', $parameters, true)) {
+            $options['decorated'] = true;
+        } elseif (in_array('--no-ansi', $parameters, true)) {
+            $options['decorated'] = false;
+        }
+
+        if (in_array('--no-interaction', $parameters, true) || in_array('-n', $parameters, true)) {
+            $options['interactive'] = false;
+        }
+
+        if (in_array('--quiet', $parameters, true) || in_array('-q', $parameters, true)) {
+            $options['verbosity'] = OutputInterface::VERBOSITY_QUIET;
+            $options['interactive'] = false;
+        }
+
+        if (
+            in_array('-vvv', $parameters, true) ||
+            in_array('--verbose=3', $parameters, true) ||
+            (isset($parameters["--verbose"]) && $parameters["--verbose"] === 3)
+        ) {
+            $options['verbosity'] = OutputInterface::VERBOSITY_DEBUG;
+        } elseif (
+            in_array('-vv', $parameters, true) ||
+            in_array('--verbose=2', $parameters, true) ||
+            (isset($parameters["--verbose"]) && $parameters["--verbose"] === 2)
+        ) {
+            $options['verbosity'] = OutputInterface::VERBOSITY_VERY_VERBOSE;
+        } elseif (
+            in_array('-v', $parameters, true) ||
+            in_array('--verbose=1', $parameters, true) ||
+            in_array('--verbose', $parameters, true) ||
+            (isset($parameters["--verbose"]) && $parameters["--verbose"] === 1)
+        ) {
+            $options['verbosity'] = OutputInterface::VERBOSITY_VERBOSE;
+        }
+
+        return $options;
     }
 
     protected function grabKernelService(): KernelInterface
