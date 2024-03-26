@@ -49,6 +49,7 @@
         "symfony/security-csrf": "^5.4 | ^6.4 | ^7.0",
         "symfony/security-http": "^5.4 | ^6.4 | ^7.0",
         "symfony/twig-bundle": "^5.4 | ^6.4 | ^7.0",
+        "symfony/validator": "^5.4 | ^6.4 | ^7.0",
         "symfony/var-exporter": "^5.4 | ^6.4 | ^7.0",
         "vlucas/phpdotenv": "^4.2 | ^5.4"
     },
