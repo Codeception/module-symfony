@@ -7,6 +7,7 @@ namespace Codeception\Module\Symfony;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Guard\Token\PostAuthenticationGuardToken;
@@ -32,12 +33,21 @@ trait SessionAssertionsTrait
      */
     public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', string $firewallContext = null): void
     {
-        $session = $this->getCurrentSession();
         $roles = $user->getRoles();
-
         $token = $this->createAuthenticationToken($user, $firewallName, $roles);
+        $this->loginWithToken($token, $firewallContext, $firewallName);
+    }
+
+    public function amLoggedInWithToken(TokenInterface $token, string $firewallName = 'main', string $firewallContext = null): void
+    {
+        $this->loginWithToken($token, $firewallName, $firewallContext);
+    }
+
+    protected function loginWithToken(TokenInterface $token, string $firewallName, ?string $firewallContext): void
+    {
         $this->getTokenStorage()->setToken($token);
 
+        $session = $this->getCurrentSession();
         $sessionKey = $firewallContext ? "_security_{$firewallContext}" : "_security_{$firewallName}";
         $session->set($sessionKey, serialize($token));
         $session->save();
@@ -194,9 +204,9 @@ trait SessionAssertionsTrait
     }
 
     /**
-     * @return UsernamePasswordToken|PostAuthenticationGuardToken|PostAuthenticationToken
+     * @return TokenInterface
      */
-    protected function createAuthenticationToken(UserInterface $user, string $firewallName, array $roles)
+    public function createAuthenticationToken(UserInterface $user, string $firewallName, array $roles)
     {
         if ($this->getSymfonyMajorVersion() < 6) {
             return $this->config['guard']
