@@ -24,6 +24,7 @@ use Codeception\Module\Symfony\ServicesAssertionsTrait;
 use Codeception\Module\Symfony\SessionAssertionsTrait;
 use Codeception\Module\Symfony\TimeAssertionsTrait;
 use Codeception\Module\Symfony\TwigAssertionsTrait;
+use Codeception\Module\Symfony\ValidatorAssertionsTrait;
 use Codeception\TestInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -145,6 +146,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     use SessionAssertionsTrait;
     use TimeAssertionsTrait;
     use TwigAssertionsTrait;
+    use ValidatorAssertionsTrait;
 
     public Kernel $kernel;
 
