@@ -48,25 +48,25 @@ trait ValidatorAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->seeViolatedConstraintCount(3, $subject);
-     * $I->seeViolatedConstraintCount(2, $subject, 'propertyName');
+     * $I->seeViolatedConstraintsCount(3, $subject);
+     * $I->seeViolatedConstraintsCount(2, $subject, 'propertyName');
      * ```
      */
-    public function seeViolatedConstraintCount(int $expected, mixed $subject, ?string $propertyPath = null, ?string $constraint = null): void
+    public function seeViolatedConstraintsCount(int $expected, mixed $subject, ?string $propertyPath = null, ?string $constraint = null): void
     {
         $violations = $this->getViolationsForSubject($subject, $propertyPath, $constraint);
         $this->assertCount($expected, $violations);
     }
 
     /**
-     * Asserts that a specific violation message is present in the subject's violations.
+     * Asserts that a constraint violation message or a part of it is present in the subject's violations.
      *
      * ```php
      * <?php
-     * $I->seeViolatedConstraintMessageContains('Violation message', $subject, 'propertyName');
+     * $I->seeViolatedConstraintMessage('too short', $user, 'address');
      * ```
      */
-    public function seeViolatedConstraintMessageContains(string $expected, mixed $subject, string $propertyPath): void
+    public function seeViolatedConstraintMessage(string $expected, mixed $subject, string $propertyPath): void
     {
         $violations = $this->getViolationsForSubject($subject, $propertyPath);
         $containsExpected = false;
