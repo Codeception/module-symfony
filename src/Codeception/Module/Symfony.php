@@ -28,11 +28,13 @@ use Codeception\Module\Symfony\ValidatorAssertionsTrait;
 use Codeception\TestInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use LogicException;
 use ReflectionClass;
 use ReflectionException;
 use Symfony\Bundle\SecurityBundle\DataCollector\SecurityDataCollector;
 use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
 use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
@@ -204,6 +206,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
 
         $this->kernel = new $this->kernelClass($this->config['environment'], $this->config['debug']);
+        $this->bootstrapEnvironment();
         $this->kernel->boot();
 
         if ($this->config['cache_router'] === true) {
@@ -457,6 +460,26 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
 
         return array_unique($internalDomains);
+    }
+
+    private function bootstrapEnvironment(): void
+    {
+        $bootstrapFile = $this->kernel->getProjectDir() . '/tests/bootstrap.php';
+
+        if (file_exists($bootstrapFile)) {
+            require_once $bootstrapFile;
+        } else {
+            if (!method_exists(Dotenv::class, 'bootEnv')) {
+                throw new LogicException(
+                    "Symfony DotEnv is missing. Try running 'composer require symfony/dotenv'\n" .
+                    "If you can't install DotEnv add your env files to the 'params' key in codeception.yml\n" .
+                    "or update your symfony/framework-bundle recipe by running:\n" .
+                    'composer recipes:install symfony/framework-bundle --force'
+                );
+            }
+            $_ENV['APP_ENV'] = $this->config['environment'];
+            (new Dotenv())->bootEnv('.env');
+        }
     }
 
     /**
