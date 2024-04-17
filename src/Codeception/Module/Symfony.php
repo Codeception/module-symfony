@@ -86,6 +86,7 @@ use function sprintf;
  * * `cache_router`: 'false' - Enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
  * * `rebootable_client`: 'true' - Reboot client's kernel before each request
  * * `guard`: 'false' - Enable custom authentication system with guard (only for Symfony 5.4)
+ * * `bootstrap`: 'false' - Enable the test environment setup with the tests/bootstrap.php file if it exists or with Symfony DotEnv otherwise. If false, it does nothing.
  * * `authenticator`: 'false' - Reboot client's kernel before each request (only for Symfony 6.0 or higher)
  *
  * #### Sample `Functional.suite.yml`
@@ -169,6 +170,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         'em_service' => 'doctrine.orm.entity_manager',
         'rebootable_client' => true,
         'authenticator' => false,
+        'bootstrap' => false,
         'guard' => false
     ];
 
@@ -206,7 +208,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
 
         $this->kernel = new $this->kernelClass($this->config['environment'], $this->config['debug']);
-        $this->bootstrapEnvironment();
+        if($this->config['bootstrap']) {
+            $this->bootstrapEnvironment();
+        }
         $this->kernel->boot();
 
         if ($this->config['cache_router'] === true) {
