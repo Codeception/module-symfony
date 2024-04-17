@@ -28,11 +28,13 @@ use Codeception\Module\Symfony\ValidatorAssertionsTrait;
 use Codeception\TestInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use LogicException;
 use ReflectionClass;
 use ReflectionException;
 use Symfony\Bundle\SecurityBundle\DataCollector\SecurityDataCollector;
 use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
 use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
@@ -84,6 +86,7 @@ use function sprintf;
  * * `cache_router`: 'false' - Enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
  * * `rebootable_client`: 'true' - Reboot client's kernel before each request
  * * `guard`: 'false' - Enable custom authentication system with guard (only for Symfony 5.4)
+ * * `bootstrap`: 'false' - Enable the test environment setup with the tests/bootstrap.php file if it exists or with Symfony DotEnv otherwise. If false, it does nothing.
  * * `authenticator`: 'false' - Reboot client's kernel before each request (only for Symfony 6.0 or higher)
  *
  * #### Sample `Functional.suite.yml`
@@ -167,6 +170,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         'em_service' => 'doctrine.orm.entity_manager',
         'rebootable_client' => true,
         'authenticator' => false,
+        'bootstrap' => false,
         'guard' => false
     ];
 
@@ -204,6 +208,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
 
         $this->kernel = new $this->kernelClass($this->config['environment'], $this->config['debug']);
+        if($this->config['bootstrap']) {
+            $this->bootstrapEnvironment();
+        }
         $this->kernel->boot();
 
         if ($this->config['cache_router'] === true) {
@@ -457,6 +464,26 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
 
         return array_unique($internalDomains);
+    }
+
+    private function bootstrapEnvironment(): void
+    {
+        $bootstrapFile = $this->kernel->getProjectDir() . '/tests/bootstrap.php';
+
+        if (file_exists($bootstrapFile)) {
+            require_once $bootstrapFile;
+        } else {
+            if (!method_exists(Dotenv::class, 'bootEnv')) {
+                throw new LogicException(
+                    "Symfony DotEnv is missing. Try running 'composer require symfony/dotenv'\n" .
+                    "If you can't install DotEnv add your env files to the 'params' key in codeception.yml\n" .
+                    "or update your symfony/framework-bundle recipe by running:\n" .
+                    'composer recipes:install symfony/framework-bundle --force'
+                );
+            }
+            $_ENV['APP_ENV'] = $this->config['environment'];
+            (new Dotenv())->bootEnv('.env');
+        }
     }
 
     /**
