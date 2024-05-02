@@ -11,6 +11,10 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Guard\Token\PostAuthenticationGuardToken;
+use Symfony\Component\Security\Guard\Token\GuardTokenInterface;
+use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
+use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 use Symfony\Component\Security\Http\Logout\LogoutUrlGenerator;
 use function is_int;
@@ -33,9 +37,8 @@ trait SessionAssertionsTrait
      */
     public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', string $firewallContext = null): void
     {
-        $roles = $user->getRoles();
-        $token = $this->createAuthenticationToken($user, $firewallName, $roles);
-        $this->loginWithToken($token, $firewallContext, $firewallName);
+        $token = $this->createAuthenticationToken($user, $firewallName);
+        $this->loginWithToken($token, $firewallName, $firewallContext);
     }
 
     public function amLoggedInWithToken(TokenInterface $token, string $firewallName = 'main', string $firewallContext = null): void
@@ -184,6 +187,11 @@ trait SessionAssertionsTrait
         return $this->getService('security.logout_url_generator');
     }
 
+    protected function getAuthenticator(): ?AuthenticatorInterface
+    {
+        return $this->getService(AuthenticatorInterface::class);
+    }
+
     protected function getCurrentSession(): SessionInterface
     {
         $container = $this->_getContainer();
@@ -204,18 +212,24 @@ trait SessionAssertionsTrait
     }
 
     /**
-     * @return TokenInterface
+     * @return TokenInterface|GuardTokenInterface
      */
-    public function createAuthenticationToken(UserInterface $user, string $firewallName, array $roles)
+    protected function createAuthenticationToken(UserInterface $user, string $firewallName)
     {
+        $roles = $user->getRoles();
         if ($this->getSymfonyMajorVersion() < 6) {
             return $this->config['guard']
                 ? new PostAuthenticationGuardToken($user, $firewallName, $roles)
                 : new UsernamePasswordToken($user, null, $firewallName, $roles);
         }
 
-        return $this->config['authenticator']
-            ? new PostAuthenticationToken($user, $firewallName, $roles)
-            : new UsernamePasswordToken($user, $firewallName, $roles);
+        if ($this->config['authenticator']) {
+            if ($authenticator = $this->getAuthenticator()) {
+                $passport = new SelfValidatingPassport(new UserBadge($user->getUserIdentifier(), fn () => $user));
+                return $authenticator->createToken($passport, $firewallName);
+            }
+            return new PostAuthenticationToken($user, $firewallName, $roles);
+        }
+        return new UsernamePasswordToken($user, $firewallName, $roles);
     }
 }
