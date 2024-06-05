@@ -16,6 +16,7 @@ trait ParameterAssertionsTrait
      * <?php
      * $I->grabParameter('app.business_name');
      * ```
+     * This only works for explicitly set parameters (just using `bind` for Symfony's dependency injection is not enough).
      */
     public function grabParameter(string $parameterName): array|bool|string|int|float|UnitEnum|null
     {
