@@ -83,7 +83,7 @@ use function sprintf;
  * * `kernel_class`: 'App\Kernel' - Kernel class name
  * * `em_service`: 'doctrine.orm.entity_manager' - Use the stated EntityManager to pair with Doctrine Module.
  * * `debug`: true - Turn on/off [debug mode](https://codeception.com/docs/Debugging)
- * * `cache_router`: 'false' - Enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire)
+ * * `cache_router`: 'false' - Enable router caching between tests in order to [increase performance](http://lakion.com/blog/how-did-we-speed-up-sylius-behat-suite-with-blackfire) (can have an impact on ajax requests sending via '$I->sendAjaxPostRequest()')
  * * `rebootable_client`: 'true' - Reboot client's kernel before each request
  * * `guard`: 'false' - Enable custom authentication system with guard (only for Symfony 5.4)
  * * `bootstrap`: 'false' - Enable the test environment setup with the tests/bootstrap.php file if it exists or with Symfony DotEnv otherwise. If false, it does nothing.
