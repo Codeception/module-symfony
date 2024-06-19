@@ -21,15 +21,8 @@ use function codecept_debug;
 class Symfony extends HttpKernelBrowser
 {
     private bool $hasPerformedRequest = false;
-
     private ?ContainerInterface $container;
 
-    /**
-     * Constructor.
-     *
-     * @param Kernel $kernel     A booted HttpKernel instance
-     * @param array $persistentServices An injected services
-     */
     public function __construct(
         Kernel $kernel,
         public array $persistentServices = [],
@@ -74,14 +67,12 @@ class Symfony extends HttpKernelBrowser
 
         $this->persistDoctrineConnections();
         $this->kernel->reboot(null);
-
         $this->container = $this->getContainer();
 
         foreach ($this->persistentServices as $serviceName => $service) {
             try {
                 $this->container->set($serviceName, $service);
             } catch (InvalidArgumentException $e) {
-                //Private services can't be set in Symfony 4
                 codecept_debug("[Symfony] Can't set persistent service {$serviceName}: " . $e->getMessage());
             }
         }
@@ -95,31 +86,23 @@ class Symfony extends HttpKernelBrowser
     {
         /** @var ContainerInterface $container */
         $container = $this->kernel->getContainer();
-        if ($container->has('test.service_container')) {
-            $container = $container->get('test.service_container');
-        }
-
-        return $container;
+        return $container->has('test.service_container')
+            ? $container->get('test.service_container')
+            : $container;
     }
 
     private function getProfiler(): ?Profiler
     {
-        if ($this->container->has('profiler')) {
-            /** @var Profiler $profiler */
-            $profiler = $this->container->get('profiler');
-            return $profiler;
-        }
-
-        return null;
+        return $this->container->has('profiler')
+            ? $this->container->get('profiler')
+            : null;
     }
 
     private function getService(string $serviceName): ?object
     {
-        if ($this->container->has($serviceName)) {
-            return $this->container->get($serviceName);
-        }
-
-        return null;
+        return $this->container->has($serviceName)
+            ? $this->container->get($serviceName)
+            : null;
     }
 
     private function persistDoctrineConnections(): void

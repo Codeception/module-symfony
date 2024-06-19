@@ -42,11 +42,9 @@ use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\Profiler\Profile;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
-use Symfony\Component\Routing\Route;
 use Symfony\Component\VarDumper\Cloner\Data;
 use function array_keys;
 use function array_map;
-use function array_search;
 use function array_unique;
 use function class_exists;
 use function codecept_root_dir;
@@ -55,7 +53,6 @@ use function file_exists;
 use function implode;
 use function ini_get;
 use function ini_set;
-use function is_null;
 use function iterator_to_array;
 use function number_format;
 use function sprintf;
@@ -174,6 +171,16 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         'guard' => false
     ];
 
+    protected ?string $kernelClass = null;
+    /**
+     * Services that should be persistent permanently for all tests
+     */
+    protected array $permanentServices = [];
+    /**
+     * Services that should be persistent during test execution between kernel reboots
+     */
+    protected array $persistentServices = [];
+
     /**
      * @return string[]
      */
@@ -182,38 +189,16 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         return ['services'];
     }
 
-    protected ?string $kernelClass = null;
-
-    /**
-     * Services that should be persistent permanently for all tests
-     *
-     * @var array
-     */
-    protected $permanentServices = [];
-
-    /**
-     * Services that should be persistent during test execution between kernel reboots
-     *
-     * @var array
-     */
-    protected $persistentServices = [];
-
     public function _initialize(): void
     {
         $this->kernelClass = $this->getKernelClass();
-        $maxNestingLevel = 200; // Symfony may have very long nesting level
-        $xdebugMaxLevelKey = 'xdebug.max_nesting_level';
-        if (ini_get($xdebugMaxLevelKey) < $maxNestingLevel) {
-            ini_set($xdebugMaxLevelKey, (string)$maxNestingLevel);
-        }
-
+        $this->setXdebugMaxNestingLevel(200);
         $this->kernel = new $this->kernelClass($this->config['environment'], $this->config['debug']);
-        if($this->config['bootstrap']) {
+        if ($this->config['bootstrap']) {
             $this->bootstrapEnvironment();
         }
         $this->kernel->boot();
-
-        if ($this->config['cache_router'] === true) {
+        if ($this->config['cache_router']) {
             $this->persistPermanentService('router');
         }
     }
@@ -223,7 +208,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function _before(TestInterface $test): void
     {
-        $this->persistentServices = [...$this->persistentServices, ...$this->permanentServices];
+        $this->persistentServices = array_merge($this->persistentServices, $this->permanentServices);
         $this->client = new SymfonyConnector($this->kernel, $this->persistentServices, $this->config['rebootable_client']);
     }
 
@@ -235,7 +220,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         foreach (array_keys($this->permanentServices) as $serviceName) {
             $this->permanentServices[$serviceName] = $this->grabService($serviceName);
         }
-
         parent::_after($test);
     }
 
@@ -258,40 +242,24 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         $emService = $this->config['em_service'];
         if (!isset($this->permanentServices[$emService])) {
-            // Try to persist configured entity manager
             $this->persistPermanentService($emService);
             $container = $this->_getContainer();
-            if ($container->has('doctrine')) {
-                $this->persistPermanentService('doctrine');
-            }
-
-            if ($container->has('doctrine.orm.default_entity_manager')) {
-                $this->persistPermanentService('doctrine.orm.default_entity_manager');
-            }
-
-            if ($container->has('doctrine.dbal.default_connection')) {
-                $this->persistPermanentService('doctrine.dbal.default_connection');
+            $services = ['doctrine', 'doctrine.orm.default_entity_manager', 'doctrine.dbal.default_connection'];
+            foreach ($services as $service) {
+                if ($container->has($service)) {
+                    $this->persistPermanentService($service);
+                }
             }
         }
 
         return $this->permanentServices[$emService];
     }
 
-    /**
-     * Return container.
-     */
     public function _getContainer(): ContainerInterface
     {
         $container = $this->kernel->getContainer();
-        if (!$container instanceof ContainerInterface) {
-            $this->fail('Could not get Symfony container');
-        }
 
-        if ($container->has('test.service_container')) {
-            $container = $container->get('test.service_container');
-        }
-
-        return $container;
+        return $container->has('test.service_container') ? $container->get('test.service_container') : $container;
     }
 
     protected function getClient(): SymfonyConnector
@@ -317,9 +285,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             );
         }
 
+        $this->requireAdditionalAutoloader();
+
         $finder = new Finder();
-        $finder->name('*Kernel.php')->depth('0')->in($path);
-        $results = iterator_to_array($finder);
+        $results = iterator_to_array($finder->name('*Kernel.php')->depth('0')->in($path));
         if ($results === []) {
             throw new ModuleRequireException(
                 self::class,
@@ -328,22 +297,17 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             );
         }
 
-        $this->requireAdditionalAutoloader();
-
+        $kernelClass = $this->config['kernel_class'];
         $filesRealPath = array_map(static function ($file) {
             require_once $file;
             return $file->getRealPath();
         }, $results);
 
-        $kernelClass = $this->config['kernel_class'];
-
         if (class_exists($kernelClass)) {
             $reflectionClass = new ReflectionClass($kernelClass);
-            if ($file = array_search($reflectionClass->getFileName(), $filesRealPath, true)) {
+            if (in_array($reflectionClass->getFileName(), $filesRealPath, true)) {
                 return $kernelClass;
             }
-
-            throw new ModuleRequireException(self::class, "Kernel class was not found in {$file}.");
         }
 
         throw new ModuleRequireException(
@@ -356,13 +320,9 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     protected function getProfile(): ?Profile
     {
         /** @var Profiler $profiler */
-        if (!$profiler = $this->getService('profiler')) {
-            return null;
-        }
-
+        $profiler = $this->getService('profiler');
         try {
-            $response = $this->getClient()->getResponse();
-            return $profiler->loadProfileFromResponse($response);
+            return $profiler?->loadProfileFromResponse($this->getClient()->getResponse());
         } catch (BadMethodCallException) {
             $this->fail('You must perform a request before using this method.');
         } catch (Exception $e) {
@@ -377,20 +337,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     protected function grabCollector(string $collector, string $function, string $message = null): DataCollectorInterface
     {
-        if (($profile = $this->getProfile()) === null) {
-            $this->fail(
-                sprintf("The Profile is needed to use the '%s' function.", $function)
-            );
+        $profile = $this->getProfile();
+        if ($profile === null) {
+            $this->fail(sprintf("The Profile is needed to use the '%s' function.", $function));
         }
-
         if (!$profile->hasCollector($collector)) {
-            if ($message) {
-                $this->fail($message);
-            }
-
-            $this->fail(
-                sprintf("The '%s' collector is needed to use the '%s' function.", $collector, $function)
-            );
+            $this->fail($message ?: "The '{$collector}' collector is needed to use the '{$function}' function.");
         }
 
         return $profile->getCollector($collector);
@@ -399,48 +351,22 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     /**
      * Set the data that will be displayed when running a test with the `--debug` flag
      *
-     * @param $url
+     * @param mixed $url
      */
     protected function debugResponse($url): void
     {
         parent::debugResponse($url);
-
-        if (($profile = $this->getProfile()) === null) {
-            return;
-        }
-
-        if ($profile->hasCollector('security')) {
-            /** @var SecurityDataCollector $security */
-            $security = $profile->getCollector('security');
-            if ($security->isAuthenticated()) {
-                $roles = $security->getRoles();
-
-                if ($roles instanceof Data) {
-                    $roles = $roles->getValue();
+        if ($profile = $this->getProfile()) {
+            $collectors = [
+                'security' => 'debugSecurityData',
+                'mailer'   => 'debugMailerData',
+                'time'     => 'debugTimeData',
+            ];
+            foreach ($collectors as $collector => $method) {
+                if ($profile->hasCollector($collector)) {
+                    $this->$method($profile->getCollector($collector));
                 }
-
-                $this->debugSection(
-                    'User',
-                    $security->getUser()
-                    . ' [' . implode(',', $roles) . ']'
-                );
-            } else {
-                $this->debugSection('User', 'Anonymous');
             }
-        }
-
-        if ($profile->hasCollector('mailer')) {
-            /** @var MessageDataCollector $mailerCollector */
-            $mailerCollector = $profile->getCollector('mailer');
-            $emails = count($mailerCollector->getEvents()->getMessages());
-            $this->debugSection('Emails', $emails . ' sent');
-        }
-
-        if ($profile->hasCollector('time')) {
-            /** @var TimeDataCollector $timeCollector */
-            $timeCollector = $profile->getCollector('time');
-            $duration = number_format($timeCollector->getDuration(), 2) . ' ms';
-            $this->debugSection('Time', $duration);
         }
     }
 
@@ -450,15 +376,14 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     protected function getInternalDomains(): array
     {
         $internalDomains = [];
-
         $router = $this->grabRouterService();
         $routes = $router->getRouteCollection();
-        /* @var Route $route */
+
         foreach ($routes as $route) {
-            if (!is_null($route->getHost())) {
-                $compiled = $route->compile();
-                if (!is_null($compiled->getHostRegex())) {
-                    $internalDomains[] = $compiled->getHostRegex();
+            if ($route->getHost() !== null) {
+                $compiledRoute = $route->compile();
+                if ($compiledRoute->getHostRegex() !== null) {
+                    $internalDomains[] = $compiledRoute->getHostRegex();
                 }
             }
         }
@@ -466,10 +391,16 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         return array_unique($internalDomains);
     }
 
+    private function setXdebugMaxNestingLevel(int $maxNestingLevel): void
+    {
+        if (ini_get('xdebug.max_nesting_level') < $maxNestingLevel) {
+            ini_set('xdebug.max_nesting_level', (string)$maxNestingLevel);
+        }
+    }
+
     private function bootstrapEnvironment(): void
     {
         $bootstrapFile = $this->kernel->getProjectDir() . '/tests/bootstrap.php';
-
         if (file_exists($bootstrapFile)) {
             require_once $bootstrapFile;
         } else {
@@ -484,6 +415,28 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             $_ENV['APP_ENV'] = $this->config['environment'];
             (new Dotenv())->bootEnv('.env');
         }
+    }
+
+    private function debugSecurityData(SecurityDataCollector $security): void
+    {
+        if ($security->isAuthenticated()) {
+            $roles = $security->getRoles();
+            $rolesString = implode(',', $roles instanceof Data ? $roles->getValue() : $roles);
+            $userInfo = $security->getUser() . ' [' . $rolesString . ']';
+        } else {
+            $userInfo = 'Anonymous';
+        }
+        $this->debugSection('User', $userInfo);
+    }
+
+    private function debugMailerData(MessageDataCollector $mailerCollector): void
+    {
+        $this->debugSection('Emails', count($mailerCollector->getEvents()->getMessages()) . ' sent');
+    }
+
+    private function debugTimeData(TimeDataCollector $timeCollector): void
+    {
+        $this->debugSection('Time', number_format($timeCollector->getDuration(), 2) . ' ms');
     }
 
     /**
