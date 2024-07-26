@@ -163,7 +163,7 @@ trait SecurityAssertionsTrait
      *
      * @param UserInterface|null $user
      */
-    public function seeUserPasswordDoesNotNeedRehash(UserInterface $user = null): void
+    public function seeUserPasswordDoesNotNeedRehash(?UserInterface $user = null): void
     {
         if ($user === null) {
             $security = $this->grabSecurityService();
