@@ -35,13 +35,13 @@ trait SessionAssertionsTrait
      * $I->amLoggedInAs($user);
      * ```
      */
-    public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', string $firewallContext = null): void
+    public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', ?string $firewallContext = null): void
     {
         $token = $this->createAuthenticationToken($user, $firewallName);
         $this->loginWithToken($token, $firewallName, $firewallContext);
     }
 
-    public function amLoggedInWithToken(TokenInterface $token, string $firewallName = 'main', string $firewallContext = null): void
+    public function amLoggedInWithToken(TokenInterface $token, string $firewallName = 'main', ?string $firewallContext = null): void
     {
         $this->loginWithToken($token, $firewallName, $firewallContext);
     }

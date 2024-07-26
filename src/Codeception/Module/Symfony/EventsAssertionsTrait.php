@@ -23,7 +23,7 @@ trait EventsAssertionsTrait
      *
      * @param string|string[]|null $expected
      */
-    public function dontSeeEvent(array|string $expected = null): void
+    public function dontSeeEvent(array|string|null $expected = null): void
     {
         $actualEvents = [...array_column($this->getCalledListeners(), 'event')];
         $actual = [$this->getOrphanedEvents(), $actualEvents];
@@ -87,7 +87,7 @@ trait EventsAssertionsTrait
      *
      * @param string|string[] $expected
      */
-    public function dontSeeOrphanEvent(array|string $expected = null): void
+    public function dontSeeOrphanEvent(array|string|null $expected = null): void
     {
         $actual = [$this->getOrphanedEvents()];
         $this->assertEventTriggered(false, $expected, $actual);

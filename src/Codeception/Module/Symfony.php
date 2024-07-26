@@ -335,7 +335,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     /**
      * Grabs a Symfony Data Collector
      */
-    protected function grabCollector(string $collector, string $function, string $message = null): DataCollectorInterface
+    protected function grabCollector(string $collector, string $function, ?string $message = null): DataCollectorInterface
     {
         $profile = $this->getProfile();
         if ($profile === null) {

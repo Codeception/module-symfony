@@ -43,7 +43,7 @@ trait BrowserAssertionsTrait
      *
      * @param string|null $url
      */
-    public function seePageIsAvailable(string $url = null): void
+    public function seePageIsAvailable(?string $url = null): void
     {
         if ($url !== null) {
             $this->amOnPage($url);

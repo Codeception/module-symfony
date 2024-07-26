@@ -20,7 +20,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailAddressContains('To', 'jane_doe@example.com');
      * ```
      */
-    public function assertEmailAddressContains(string $headerName, string $expectedValue, Email $email = null): void
+    public function assertEmailAddressContains(string $headerName, string $expectedValue, ?Email $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new MimeConstraint\EmailAddressContains($headerName, $expectedValue));
@@ -35,7 +35,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailAttachmentCount(1);
      * ```
      */
-    public function assertEmailAttachmentCount(int $count, Email $email = null): void
+    public function assertEmailAttachmentCount(int $count, ?Email $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new MimeConstraint\EmailAttachmentCount($count));
@@ -50,7 +50,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailHasHeader('Bcc');
      * ```
      */
-    public function assertEmailHasHeader(string $headerName, Email $email = null): void
+    public function assertEmailHasHeader(string $headerName, ?Email $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new MimeConstraint\EmailHasHeader($headerName));
@@ -66,7 +66,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailHeaderNotSame('To', 'john_doe@gmail.com');
      * ```
      */
-    public function assertEmailHeaderNotSame(string $headerName, string $expectedValue, Email $email = null): void
+    public function assertEmailHeaderNotSame(string $headerName, string $expectedValue, ?Email $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new LogicalNot(new MimeConstraint\EmailHeaderSame($headerName, $expectedValue)));
@@ -82,7 +82,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailHeaderSame('To', 'jane_doe@gmail.com');
      * ```
      */
-    public function assertEmailHeaderSame(string $headerName, string $expectedValue, Email $email = null): void
+    public function assertEmailHeaderSame(string $headerName, string $expectedValue, ?Email $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new MimeConstraint\EmailHeaderSame($headerName, $expectedValue));
@@ -97,7 +97,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailHtmlBodyContains('Successful registration');
      * ```
      */
-    public function assertEmailHtmlBodyContains(string $text, Email $email = null): void
+    public function assertEmailHtmlBodyContains(string $text, ?Email $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new MimeConstraint\EmailHtmlBodyContains($text));
@@ -112,7 +112,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailHtmlBodyNotContains('userpassword');
      * ```
      */
-    public function assertEmailHtmlBodyNotContains(string $text, Email $email = null): void
+    public function assertEmailHtmlBodyNotContains(string $text, ?Email $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new LogicalNot(new MimeConstraint\EmailHtmlBodyContains($text)));
@@ -127,7 +127,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailNotHasHeader('Bcc');
      * ```
      */
-    public function assertEmailNotHasHeader(string $headerName, Email $email = null): void
+    public function assertEmailNotHasHeader(string $headerName, ?Email $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new LogicalNot(new MimeConstraint\EmailHasHeader($headerName)));
@@ -142,7 +142,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailTextBodyContains('Example text body');
      * ```
      */
-    public function assertEmailTextBodyContains(string $text, Email $email = null): void
+    public function assertEmailTextBodyContains(string $text, ?Email $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new MimeConstraint\EmailTextBodyContains($text));
@@ -157,7 +157,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailTextBodyNotContains('My secret text body');
      * ```
      */
-    public function assertEmailTextBodyNotContains(string $text, Email $email = null): void
+    public function assertEmailTextBodyNotContains(string $text, ?Email $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new LogicalNot(new MimeConstraint\EmailTextBodyContains($text)));
