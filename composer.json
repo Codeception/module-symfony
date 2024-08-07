@@ -5,6 +5,7 @@
     "type": "library",
     "keywords": [
         "codeception",
+        "functional testing",
         "symfony"
     ],
     "authors": [

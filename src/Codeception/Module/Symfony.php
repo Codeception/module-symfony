@@ -13,6 +13,7 @@ use Codeception\Lib\Interfaces\PartedModule;
 use Codeception\Module\Symfony\BrowserAssertionsTrait;
 use Codeception\Module\Symfony\ConsoleAssertionsTrait;
 use Codeception\Module\Symfony\DoctrineAssertionsTrait;
+use Codeception\Module\Symfony\DomCrawlerAssertionsTrait;
 use Codeception\Module\Symfony\EventsAssertionsTrait;
 use Codeception\Module\Symfony\FormAssertionsTrait;
 use Codeception\Module\Symfony\MailerAssertionsTrait;
@@ -135,6 +136,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     use BrowserAssertionsTrait;
     use ConsoleAssertionsTrait;
     use DoctrineAssertionsTrait;
+    use DomCrawlerAssertionsTrait;
     use EventsAssertionsTrait;
     use FormAssertionsTrait;
     use MailerAssertionsTrait;
