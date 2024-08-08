@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use DateInterval;
+use DateTime;
 use Symfony\Component\Form\Extension\DataCollector\FormDataCollector;
 use function array_key_exists;
 use function in_array;
@@ -12,6 +14,40 @@ use function sprintf;
 
 trait FormAssertionsTrait
 {
+    public function assertDateTimeEquals(DateTime $expected, DateTime $actual): void
+    {
+        $this->assertSame($expected->format('c'), $actual->format('c'));
+    }
+
+    public function assertDateIntervalEquals(DateInterval $expected, DateInterval $actual): void
+    {
+        $format = '%RP%yY%mM%dDT%hH%iM%sS';
+        $this->assertSame($expected->format($format), $actual->format($format));
+    }
+
+    /**
+     * Asserts that value of the field of the first form matching the given selector does equal the expected value.
+     */
+    public function assertFormValue(string $formSelector, string $fieldName, string $value, string $message = ''): void
+    {
+        $node = $this->getCrawler()->filter($formSelector);
+        $this->assertNotEmpty($node, sprintf('Form "%s" not found.', $formSelector));
+        $values = $node->form()->getValues();
+        $this->assertArrayHasKey($fieldName, $values, $message ?: sprintf('Field "%s" not found in form "%s".', $fieldName, $formSelector));
+        $this->assertSame($value, $values[$fieldName]);
+    }
+
+    /**
+     * Asserts that value of the field of the first form matching the given selector does equal the expected value.
+     */
+    public function assertNoFormValue(string $formSelector, string $fieldName, string $message = ''): void
+    {
+        $node = $this->getCrawler()->filter($formSelector);
+        $this->assertNotEmpty($node, sprintf('Form "%s" not found.', $formSelector));
+        $values = $node->form()->getValues();
+        $this->assertArrayNotHasKey($fieldName, $values, $message ?: sprintf('Field "%s" has a value in form "%s".', $fieldName, $formSelector));
+    }
+
     /**
      * Verifies that there are no errors bound to the submitted form.
      *

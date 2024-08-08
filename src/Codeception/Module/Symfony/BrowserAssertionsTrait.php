@@ -4,11 +4,38 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use PHPUnit\Framework\Constraint\Constraint;
+use Symfony\Component\HttpFoundation\Test\Constraint\ResponseFormatSame;
 use Symfony\Component\HttpFoundation\Test\Constraint\ResponseIsSuccessful;
+use Symfony\Component\HttpFoundation\Test\Constraint\ResponseStatusCodeSame;
 use function sprintf;
 
 trait BrowserAssertionsTrait
 {
+    /**
+     * Asserts the response format returned by the `Response::getFormat()` method is the same as the expected value.
+     */
+    public function assertResponseFormatSame(?string $expectedFormat, string $message = ''): void
+    {
+        $this->assertThatForResponse(new ResponseFormatSame($this->getClient()->getRequest(), $expectedFormat), $message);
+    }
+
+    /**
+     * Asserts that the response was successful (HTTP status is 2xx).
+     */
+    public function assertResponseIsSuccessful(string $message = '', bool $verbose = true): void
+    {
+        $this->assertThatForResponse(new ResponseIsSuccessful($verbose), $message);
+    }
+
+    /**
+     * Asserts a specific HTTP status code.
+     */
+    public function assertResponseStatusCodeSame(int $expectedCode, string $message = '', bool $verbose = true): void
+    {
+        $this->assertThatForResponse(new ResponseStatusCodeSame($expectedCode, $verbose), $message);
+    }
+
     /**
      * Reboot client's kernel.
      * Can be used to manually reboot kernel when 'rebootable_client' => false
@@ -50,7 +77,7 @@ trait BrowserAssertionsTrait
             $this->seeInCurrentUrl($url);
         }
 
-        $this->assertThat($this->getClient()->getResponse(), new ResponseIsSuccessful());
+        $this->assertResponseIsSuccessful();
     }
 
     /**
@@ -103,5 +130,10 @@ trait BrowserAssertionsTrait
         $button = sprintf('%s_submit', $name);
 
         $this->submitForm($selector, $params, $button);
+    }
+
+    protected function assertThatForResponse(Constraint $constraint, string $message = ''): void
+    {
+        $this->assertThat($this->getClient()->getResponse(), $constraint, $message);
     }
 }
