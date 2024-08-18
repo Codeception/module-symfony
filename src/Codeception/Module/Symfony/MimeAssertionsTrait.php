@@ -6,6 +6,7 @@ namespace Codeception\Module\Symfony;
 
 use PHPUnit\Framework\Constraint\LogicalNot;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\RawMessage;
 use Symfony\Component\Mime\Test\Constraint as MimeConstraint;
 
 trait MimeAssertionsTrait
@@ -131,6 +132,22 @@ trait MimeAssertionsTrait
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new LogicalNot(new MimeConstraint\EmailHasHeader($headerName)));
+    }
+
+    /**
+     * Asserts that the subject of the given email does contain the expected subject.
+     */
+    public function assertEmailSubjectContains(RawMessage $email, string $expectedValue, string $message = ''): void
+    {
+        $this->assertThat($email, new MimeConstraint\EmailSubjectContains($expectedValue), $message);
+    }
+
+    /**
+     * Asserts that the subject of the given email does not contain the expected subject.
+     */
+    public function assertEmailSubjectNotContains(RawMessage $email, string $expectedValue, string $message = ''): void
+    {
+        $this->assertThat($email, new LogicalNot(new MimeConstraint\EmailSubjectContains($expectedValue)), $message);
     }
 
     /**
