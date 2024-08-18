@@ -5,6 +5,7 @@
     "type": "library",
     "keywords": [
         "codeception",
+        "functional testing",
         "symfony"
     ],
     "authors": [
@@ -37,10 +38,12 @@
         "symfony/filesystem": "^5.4 | ^6.4 | ^7.0",
         "symfony/form": "^5.4 | ^6.4 | ^7.0",
         "symfony/framework-bundle": "^5.4 | ^6.4 | ^7.0",
+        "symfony/http-client": "^5.4 | ^6.4 | ^7.0",
         "symfony/http-foundation": "^5.4 | ^6.4 | ^7.0",
         "symfony/http-kernel": "^5.4 | ^6.4 | ^7.0",
         "symfony/mailer": "^5.4 | ^6.4 | ^7.0",
         "symfony/mime": "^5.4 | ^6.4 | ^7.0",
+        "symfony/notifier": "5.4 | ^6.4 | ^7.0",
         "symfony/options-resolver": "^5.4 | ^6.4 | ^7.0",
         "symfony/property-access": "^5.4 | ^6.4 | ^7.0",
         "symfony/property-info": "^5.4 | ^6.4 | ^7.0",

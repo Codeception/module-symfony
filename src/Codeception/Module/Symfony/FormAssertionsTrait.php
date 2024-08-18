@@ -13,6 +13,29 @@ use function sprintf;
 trait FormAssertionsTrait
 {
     /**
+     * Asserts that value of the field of the first form matching the given selector does equal the expected value.
+     */
+    public function assertFormValue(string $formSelector, string $fieldName, string $value, string $message = ''): void
+    {
+        $node = $this->getCrawler()->filter($formSelector);
+        $this->assertNotEmpty($node, sprintf('Form "%s" not found.', $formSelector));
+        $values = $node->form()->getValues();
+        $this->assertArrayHasKey($fieldName, $values, $message ?: sprintf('Field "%s" not found in form "%s".', $fieldName, $formSelector));
+        $this->assertSame($value, $values[$fieldName]);
+    }
+
+    /**
+     * Asserts that value of the field of the first form matching the given selector does equal the expected value.
+     */
+    public function assertNoFormValue(string $formSelector, string $fieldName, string $message = ''): void
+    {
+        $node = $this->getCrawler()->filter($formSelector);
+        $this->assertNotEmpty($node, sprintf('Form "%s" not found.', $formSelector));
+        $values = $node->form()->getValues();
+        $this->assertArrayNotHasKey($fieldName, $values, $message ?: sprintf('Field "%s" has a value in form "%s".', $fieldName, $formSelector));
+    }
+
+    /**
      * Verifies that there are no errors bound to the submitted form.
      *
      * ```php
@@ -42,8 +65,6 @@ trait FormAssertionsTrait
      * $I->seeFormErrorMessage('username');
      * $I->seeFormErrorMessage('username', 'Username is empty');
      * ```
-     *
-     * @param string|null $message
      */
     public function seeFormErrorMessage(string $field, ?string $message = null): void
     {
