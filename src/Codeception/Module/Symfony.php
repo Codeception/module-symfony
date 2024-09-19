@@ -319,7 +319,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         throw new ModuleRequireException(
             self::class,
             "Kernel class was not found.\n"
-            . 'Specify directory where file with Kernel class for your application is located with `app_path` parameter.'
+            . 'Specify directory where file with Kernel class for your application is located with `kernel_class` parameter.'
         );
     }
 
