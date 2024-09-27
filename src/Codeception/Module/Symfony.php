@@ -19,7 +19,6 @@ use Codeception\Module\Symfony\FormAssertionsTrait;
 use Codeception\Module\Symfony\HttpClientAssertionsTrait;
 use Codeception\Module\Symfony\MailerAssertionsTrait;
 use Codeception\Module\Symfony\MimeAssertionsTrait;
-use Codeception\Module\Symfony\NotificationAssertionsTrait;
 use Codeception\Module\Symfony\ParameterAssertionsTrait;
 use Codeception\Module\Symfony\RouterAssertionsTrait;
 use Codeception\Module\Symfony\SecurityAssertionsTrait;
@@ -144,7 +143,6 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     use HttpClientAssertionsTrait;
     use MailerAssertionsTrait;
     use MimeAssertionsTrait;
-    use NotificationAssertionsTrait;
     use ParameterAssertionsTrait;
     use RouterAssertionsTrait;
     use SecurityAssertionsTrait;
