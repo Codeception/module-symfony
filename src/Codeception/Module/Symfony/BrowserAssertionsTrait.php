@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use PHPUnit\Framework\Constraint\Constraint;
-use PHPUnit\Framework\Constraint\LogicalAnd;
 use PHPUnit\Framework\Constraint\LogicalNot;
 use Symfony\Component\BrowserKit\Test\Constraint\BrowserCookieValueSame;
 use Symfony\Component\BrowserKit\Test\Constraint\BrowserHasCookie;
@@ -25,18 +24,17 @@ use function sprintf;
 trait BrowserAssertionsTrait
 {
     /**
-     * Asserts the given cookie in the test Client is set to the expected value.
+     * Asserts that the given cookie in the test client is set to the expected value.
      */
     public function assertBrowserCookieValueSame(string $name, string $expectedValue, bool $raw = false, string $path = '/', ?string $domain = null, string $message = ''): void
     {
-        $this->assertThatForClient(LogicalAnd::fromConstraints(
-            new BrowserHasCookie($name, $path, $domain),
-            new BrowserCookieValueSame($name, $expectedValue, $raw, $path, $domain)
-        ), $message);
+        $this->assertThatForClient(new BrowserHasCookie($name, $path, $domain), $message);
+        $this->assertThatForClient(new BrowserCookieValueSame($name, $expectedValue, $raw, $path, $domain), $message);
     }
 
     /**
-     * Asserts that the test Client does have the given cookie set (meaning, the cookie was set by any response in the test).
+     * Asserts that the test client has the specified cookie set.
+     * This indicates that the cookie was set by any response during the test.
      */
     public function assertBrowserHasCookie(string $name, string $path = '/', ?string $domain = null, string $message = ''): void
     {
@@ -44,7 +42,8 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Asserts that the test Client does not have the given cookie set (meaning, the cookie was set by any response in the test).
+     * Asserts that the test client does not have the specified cookie set.
+     * This indicates that the cookie was not set by any response during the test.
      */
     public function assertBrowserNotHasCookie(string $name, string $path = '/', ?string $domain = null, string $message = ''): void
     {
@@ -52,7 +51,7 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Asserts the given request attribute is set to the expected value.
+     * Asserts that the specified request attribute matches the expected value.
      */
     public function assertRequestAttributeValueSame(string $name, string $expectedValue, string $message = ''): void
     {
@@ -60,18 +59,16 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Asserts the given cookie is present and set to the expected value.
+     * Asserts that the specified response cookie is present and matches the expected value.
      */
     public function assertResponseCookieValueSame(string $name, string $expectedValue, string $path = '/', ?string $domain = null, string $message = ''): void
     {
-        $this->assertThatForResponse(LogicalAnd::fromConstraints(
-            new ResponseHasCookie($name, $path, $domain),
-            new ResponseCookieValueSame($name, $expectedValue, $path, $domain)
-        ), $message);
+        $this->assertThatForResponse(new ResponseHasCookie($name, $path, $domain), $message);
+        $this->assertThatForResponse(new ResponseCookieValueSame($name, $expectedValue, $path, $domain), $message);
     }
 
     /**
-     * Asserts the response format returned by the `Response::getFormat()` method is the same as the expected value.
+     * Asserts that the response format matches the expected format. This checks the format returned by the `Response::getFormat()` method.
      */
     public function assertResponseFormatSame(?string $expectedFormat, string $message = ''): void
     {
@@ -79,7 +76,7 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Asserts the given cookie is present in the response (optionally checking for a specific cookie path or domain).
+     * Asserts that the specified cookie is present in the response. Optionally, it can check for a specific cookie path or domain.
      */
     public function assertResponseHasCookie(string $name, string $path = '/', ?string $domain = null, string $message = ''): void
     {
@@ -87,7 +84,8 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Asserts the given header is available on the response, e.g. assertResponseHasHeader('content-type');.
+     * Asserts that the specified header is available in the response.
+     * For example, use `assertResponseHasHeader('content-type');`.
      */
     public function assertResponseHasHeader(string $headerName, string $message = ''): void
     {
@@ -95,8 +93,8 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Asserts the given header does not contain the expected value on the response,
-     * e.g. assertResponseHeaderNotSame('content-type', 'application/octet-stream');.
+     * Asserts that the specified header does not contain the expected value in the response.
+     * For example, use `assertResponseHeaderNotSame('content-type', 'application/octet-stream');`.
      */
     public function assertResponseHeaderNotSame(string $headerName, string $expectedValue, string $message = ''): void
     {
@@ -104,8 +102,8 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Asserts the given header does contain the expected value on the response,
-     * e.g. assertResponseHeaderSame('content-type', 'application/octet-stream');.
+     * Asserts that the specified header contains the expected value in the response.
+     * For example, use `assertResponseHeaderSame('content-type', 'application/octet-stream');`.
      */
     public function assertResponseHeaderSame(string $headerName, string $expectedValue, string $message = ''): void
     {
@@ -113,7 +111,7 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Asserts that the response was successful (HTTP status is 2xx).
+     * Asserts that the response was successful (HTTP status code is in the 2xx range).
      */
     public function assertResponseIsSuccessful(string $message = '', bool $verbose = true): void
     {
@@ -121,7 +119,7 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Asserts the response is unprocessable (HTTP status is 422)
+     * Asserts that the response is unprocessable (HTTP status code is 422).
      */
     public function assertResponseIsUnprocessable(string $message = '', bool $verbose = true): void
     {
@@ -129,7 +127,7 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Asserts the given cookie is not present in the response (optionally checking for a specific cookie path or domain).
+     * Asserts that the specified cookie is not present in the response. Optionally, it can check for a specific cookie path or domain.
      */
     public function assertResponseNotHasCookie(string $name, string $path = '/', ?string $domain = null, string $message = ''): void
     {
@@ -137,7 +135,8 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Asserts the given header is not available on the response, e.g. assertResponseNotHasHeader('content-type');.
+     * Asserts that the specified header is not available in the response.
+     * For example, use `assertResponseNotHasHeader('content-type');`.
      */
     public function assertResponseNotHasHeader(string $headerName, string $message = ''): void
     {
@@ -145,30 +144,27 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Asserts the response is a redirect response (optionally, you can check the target location and status code).
-     * The excepted location can be either an absolute or a relative path.
+     * Asserts that the response is a redirect. Optionally, you can check the target location and status code.
+     * The expected location can be either an absolute or a relative path.
      */
     public function assertResponseRedirects(?string $expectedLocation = null, ?int $expectedCode = null, string $message = '', bool $verbose = true): void
     {
-        $constraint = new ResponseIsRedirected($verbose);
+        $this->assertThatForResponse(new ResponseIsRedirected($verbose), $message);
+
         if ($expectedLocation) {
-            if (class_exists(ResponseHeaderLocationSame::class)) {
-                $locationConstraint = new ResponseHeaderLocationSame($this->getClient()->getRequest(), $expectedLocation);
-            } else {
-                $locationConstraint = new ResponseHeaderSame('Location', $expectedLocation);
-            }
-
-            $constraint = LogicalAnd::fromConstraints($constraint, $locationConstraint);
+            $constraint = class_exists(ResponseHeaderLocationSame::class)
+                ? new ResponseHeaderLocationSame($this->getClient()->getRequest(), $expectedLocation)
+                : new ResponseHeaderSame('Location', $expectedLocation);
+            $this->assertThatForResponse($constraint, $message);
         }
+
         if ($expectedCode) {
-            $constraint = LogicalAnd::fromConstraints($constraint, new ResponseStatusCodeSame($expectedCode));
+            $this->assertThatForResponse(new ResponseStatusCodeSame($expectedCode), $message);
         }
-
-        $this->assertThatForResponse($constraint, $message);
     }
 
     /**
-     * Asserts a specific HTTP status code.
+     * Asserts that the response status code matches the expected code.
      */
     public function assertResponseStatusCodeSame(int $expectedCode, string $message = '', bool $verbose = true): void
     {
@@ -178,23 +174,18 @@ trait BrowserAssertionsTrait
     /**
      * Asserts the request matches the given route and optionally route parameters.
      */
-    public function assertRouteSame(string $expectedRoute, array $parameters = [], string $message = ''): void
-    {
-        $constraint = new RequestAttributeValueSame('_route', $expectedRoute);
-        $constraints = [];
-        foreach ($parameters as $key => $value) {
-            $constraints[] = new RequestAttributeValueSame($key, $value);
-        }
-        if ($constraints) {
-            $constraint = LogicalAnd::fromConstraints($constraint, ...$constraints);
-        }
+    public function assertRouteSame(string $expectedRoute, array $parameters = [], string $message = ''): void {
+        $request = $this->getClient()->getRequest();
+        $this->assertThat($request, new RequestAttributeValueSame('_route', $expectedRoute));
 
-        $this->assertThat($this->getClient()->getRequest(), $constraint, $message);
+        foreach ($parameters as $key => $value) {
+            $this->assertThat($request, new RequestAttributeValueSame($key, $value), $message);
+        }
     }
 
     /**
-     * Reboot client's kernel.
-     * Can be used to manually reboot kernel when 'rebootable_client' => false
+     * Reboots the client's kernel.
+     * Can be used to manually reboot the kernel when 'rebootable_client' is set to false.
      *
      * ```php
      * <?php
@@ -214,7 +205,7 @@ trait BrowserAssertionsTrait
 
     /**
      * Verifies that a page is available.
-     * By default, it checks the current page, specify the `$url` parameter to change it.
+     * By default, it checks the current page. Specify the `$url` parameter to change the page being checked.
      *
      * ```php
      * <?php
@@ -224,7 +215,7 @@ trait BrowserAssertionsTrait
      * $I->seePageIsAvailable('/dashboard'); // Same as above
      * ```
      *
-     * @param string|null $url
+     * @param string|null $url The URL of the page to check. If null, the current page is checked.
      */
     public function seePageIsAvailable(?string $url = null): void
     {
@@ -237,7 +228,7 @@ trait BrowserAssertionsTrait
     }
 
     /**
-     * Goes to a page and check that it redirects to another.
+     * Navigates to a page and verifies that it redirects to another page.
      *
      * ```php
      * <?php
@@ -246,21 +237,24 @@ trait BrowserAssertionsTrait
      */
     public function seePageRedirectsTo(string $page, string $redirectsTo): void
     {
-        $this->getClient()->followRedirects(false);
+        $client = $this->getClient();
+        $client->followRedirects(false);
         $this->amOnPage($page);
-        $response = $this->getClient()->getResponse();
+
         $this->assertTrue(
-            $response->isRedirection()
+            $client->getResponse()->isRedirection(),
+            'The response is not a redirection.'
         );
-        $this->getClient()->followRedirect();
+
+        $client->followRedirect();
         $this->seeInCurrentUrl($redirectsTo);
     }
 
     /**
-     * Submit a form specifying the form name only once.
+     * Submits a form by specifying the form name only once.
      *
      * Use this function instead of [`$I->submitForm()`](#submitForm) to avoid repeating the form name in the field selectors.
-     * If you customized the names of the field selectors use `$I->submitForm()` for full control.
+     * If you have customized the names of the field selectors, use `$I->submitForm()` for full control.
      *
      * ```php
      * <?php
@@ -270,8 +264,8 @@ trait BrowserAssertionsTrait
      * ]);
      * ```
      *
-     * @param string $name The `name` attribute of the `<form>` (you cannot use an array as selector here)
-     * @param string[] $fields
+     * @param string $name The `name` attribute of the `<form>`. You cannot use an array as a selector here.
+     * @param array<string, mixed> $fields The form fields to submit.
      */
     public function submitSymfonyForm(string $name, array $fields): void
     {
