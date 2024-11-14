@@ -135,22 +135,6 @@ trait MimeAssertionsTrait
     }
 
     /**
-     * Asserts that the subject of the given email does contain the expected subject.
-     */
-    public function assertEmailSubjectContains(RawMessage $email, string $expectedValue, string $message = ''): void
-    {
-        $this->assertThat($email, new MimeConstraint\EmailSubjectContains($expectedValue), $message);
-    }
-
-    /**
-     * Asserts that the subject of the given email does not contain the expected subject.
-     */
-    public function assertEmailSubjectNotContains(RawMessage $email, string $expectedValue, string $message = ''): void
-    {
-        $this->assertThat($email, new LogicalNot(new MimeConstraint\EmailSubjectContains($expectedValue)), $message);
-    }
-
-    /**
      * Verify the text body of an email contains a `$text`.
      * If the Email object is not specified, the last email sent is used instead.
      *

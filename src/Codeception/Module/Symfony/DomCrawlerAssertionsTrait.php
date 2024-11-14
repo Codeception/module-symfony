@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
-use PHPUnit\Framework\Constraint\LogicalAnd;
+use PHPUnit\Framework\Constraint\Constraint;
 use PHPUnit\Framework\Constraint\LogicalNot;
-use Symfony\Component\DomCrawler\Crawler;
-use Symfony\Component\DomCrawler\Test\Constraint\CrawlerAnySelectorTextContains;
-use Symfony\Component\DomCrawler\Test\Constraint\CrawlerAnySelectorTextSame;
 use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorAttributeValueSame;
-use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorCount;
 use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorExists;
 use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorTextContains;
 use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorTextSame;
@@ -18,48 +14,11 @@ use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorTextSame;
 trait DomCrawlerAssertionsTrait
 {
     /**
-     * Asserts that any element matching the given selector does contain the expected text.
-     */
-    public function assertAnySelectorTextContains(string $selector, string $text, string $message = ''): void
-    {
-        $this->assertThat($this->getCrawler(), LogicalAnd::fromConstraints(
-            new CrawlerSelectorExists($selector),
-            new CrawlerAnySelectorTextContains($selector, $text)
-        ), $message);
-    }
-
-    /**
-     * Asserts that any element matching the given selector does not contain the expected text.
-     */
-    public function assertAnySelectorTextNotContains(string $selector, string $text, string $message = ''): void
-    {
-        $this->assertThat($this->getCrawler(), LogicalAnd::fromConstraints(
-            new CrawlerSelectorExists($selector),
-            new LogicalNot(new CrawlerAnySelectorTextContains($selector, $text))
-        ), $message);
-    }
-
-    /**
-     * Asserts that any element matching the given selector does equal the expected text.
-     */
-    public function assertAnySelectorTextSame(string $selector, string $text, string $message = ''): void
-    {
-        $this->assertThat($this->getCrawler(), LogicalAnd::fromConstraints(
-            new CrawlerSelectorExists($selector),
-            new CrawlerAnySelectorTextSame($selector, $text)
-        ), $message);
-    }
-
-    /**
      * Asserts that the checkbox with the given name is checked.
      */
     public function assertCheckboxChecked(string $fieldName, string $message = ''): void
     {
-        $this->assertThat(
-            $this->getCrawler(),
-            new CrawlerSelectorExists("input[name=\"$fieldName\"]:checked"),
-            $message
-        );
+        $this->assertThatCrawler(new CrawlerSelectorExists("input[name=\"$fieldName\"]:checked"), $message);
     }
 
     /**
@@ -67,33 +26,32 @@ trait DomCrawlerAssertionsTrait
      */
     public function assertCheckboxNotChecked(string $fieldName, string $message = ''): void
     {
-        $this->assertThat(
-            $this->getCrawler(),
-            new LogicalNot(new CrawlerSelectorExists("input[name=\"$fieldName\"]:checked")),
-            $message
-        );
+        $this->assertThatCrawler(new LogicalNot(
+            new CrawlerSelectorExists("input[name=\"$fieldName\"]:checked")
+        ), $message);
     }
 
     /**
-     * Asserts that value of the form input with the given name does not equal the expected value.
+     * Asserts that the value of the form input with the given name does not equal the expected value.
      */
     public function assertInputValueNotSame(string $fieldName, string $expectedValue, string $message = ''): void
     {
-        $this->assertThat($this->getCrawler(), LogicalAnd::fromConstraints(
-            new CrawlerSelectorExists("input[name=\"$fieldName\"]"),
-            new LogicalNot(new CrawlerSelectorAttributeValueSame("input[name=\"$fieldName\"]", 'value', $expectedValue))
+        $this->assertThatCrawler(new CrawlerSelectorExists("input[name=\"$fieldName\"]"), $message);
+        $this->assertThatCrawler(new LogicalNot(
+            new CrawlerSelectorAttributeValueSame("input[name=\"$fieldName\"]", 'value', $expectedValue)
         ), $message);
     }
 
     /**
-     * Asserts that value of the form input with the given name does equal the expected value.
+     * Asserts that the value of the form input with the given name equals the expected value.
      */
     public function assertInputValueSame(string $fieldName, string $expectedValue, string $message = ''): void
     {
-        $this->assertThat($this->getCrawler(), LogicalAnd::fromConstraints(
-            new CrawlerSelectorExists("input[name=\"$fieldName\"]"),
-            new CrawlerSelectorAttributeValueSame("input[name=\"$fieldName\"]", 'value', $expectedValue)
-        ), $message);
+        $this->assertThatCrawler(new CrawlerSelectorExists("input[name=\"$fieldName\"]"), $message);
+        $this->assertThatCrawler(
+            new CrawlerSelectorAttributeValueSame("input[name=\"$fieldName\"]", 'value', $expectedValue),
+            $message
+        );
     }
 
     /**
@@ -105,7 +63,7 @@ trait DomCrawlerAssertionsTrait
     }
 
     /**
-     * Asserts that the `<title>` element is equal to the given title.
+     * Asserts that the `<title>` element equals the given title.
      */
     public function assertPageTitleSame(string $expectedTitle, string $message = ''): void
     {
@@ -113,19 +71,11 @@ trait DomCrawlerAssertionsTrait
     }
 
     /**
-     * Asserts that the expected number of selector elements are in the response.
-     */
-    public function assertSelectorCount(int $expectedCount, string $selector, string $message = ''): void
-    {
-        $this->assertThat($this->getCrawler(), new CrawlerSelectorCount($expectedCount, $selector), $message);
-    }
-
-    /**
-     * Asserts that the given selector does match at least one element in the response.
+     * Asserts that the given selector matches at least one element in the response.
      */
     public function assertSelectorExists(string $selector, string $message = ''): void
     {
-        $this->assertThat($this->getCrawler(), new CrawlerSelectorExists($selector), $message);
+        $this->assertThatCrawler(new CrawlerSelectorExists($selector), $message);
     }
 
     /**
@@ -133,18 +83,16 @@ trait DomCrawlerAssertionsTrait
      */
     public function assertSelectorNotExists(string $selector, string $message = ''): void
     {
-        $this->assertThat($this->getCrawler(), new LogicalNot(new CrawlerSelectorExists($selector)), $message);
+        $this->assertThatCrawler(new LogicalNot(new CrawlerSelectorExists($selector)), $message);
     }
 
     /**
-     * Asserts that the first element matching the given selector does contain the expected text.
+     * Asserts that the first element matching the given selector contains the expected text.
      */
     public function assertSelectorTextContains(string $selector, string $text, string $message = ''): void
     {
-        $this->assertThat($this->getCrawler(), LogicalAnd::fromConstraints(
-            new CrawlerSelectorExists($selector),
-            new CrawlerSelectorTextContains($selector, $text)
-        ), $message);
+        $this->assertThatCrawler(new CrawlerSelectorExists($selector), $message);
+        $this->assertThatCrawler(new CrawlerSelectorTextContains($selector, $text), $message);
     }
 
     /**
@@ -152,25 +100,21 @@ trait DomCrawlerAssertionsTrait
      */
     public function assertSelectorTextNotContains(string $selector, string $text, string $message = ''): void
     {
-        $this->assertThat($this->getCrawler(), LogicalAnd::fromConstraints(
-            new CrawlerSelectorExists($selector),
-            new LogicalNot(new CrawlerSelectorTextContains($selector, $text))
-        ), $message);
+        $this->assertThatCrawler(new CrawlerSelectorExists($selector), $message);
+        $this->assertThatCrawler(new LogicalNot(new CrawlerSelectorTextContains($selector, $text)), $message);
     }
 
     /**
-     * Asserts that the contents of the first element matching the given selector does equal the expected text.
+     * Asserts that the text of the first element matching the given selector equals the expected text.
      */
     public function assertSelectorTextSame(string $selector, string $text, string $message = ''): void
     {
-        $this->assertThat($this->getCrawler(), LogicalAnd::fromConstraints(
-            new CrawlerSelectorExists($selector),
-            new CrawlerSelectorTextSame($selector, $text)
-        ), $message);
+        $this->assertThatCrawler(new CrawlerSelectorExists($selector), $message);
+        $this->assertThatCrawler(new CrawlerSelectorTextSame($selector, $text), $message);
     }
 
-    protected function getCrawler(): Crawler
+    protected function assertThatCrawler(Constraint $constraint, string $message): void
     {
-        return $this->client->getCrawler();
+        $this->assertThat($this->getClient()->getCrawler(), $constraint, $message);
     }
 }
