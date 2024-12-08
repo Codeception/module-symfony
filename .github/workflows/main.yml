@@ -1,18 +1,16 @@
 name: CI
-
 on: [push, pull_request]
 
 jobs:
   tests:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         php: [8.1, 8.2, 8.3, 8.4]
-        symfony: ["5.4.*", "6.4.*", "7.1.*"]
+        symfony: ["5.4.*", "6.4.*", "7.2.*"]
         exclude:
           - php: 8.1
-            symfony: "7.1.*"
+            symfony: "7.2.*"
 
     steps:
       - name: Checkout code
@@ -26,40 +24,28 @@ jobs:
           extensions: ctype, iconv, intl, json, mbstring, pdo, pdo_sqlite
           coverage: none
 
-      - name: Checkout Symfony 5.4 Sample
-        if: "matrix.symfony == '5.4.*'"
-        uses: actions/checkout@v4
-        with:
-          repository: Codeception/symfony-module-tests
-          path: framework-tests
-          ref: "5.4"
+      - name: Set Symfony version reference
+        run: echo "SF_REF=${MATRIX_SYMFONY%.*}" >> $GITHUB_ENV
+        env:
+          MATRIX_SYMFONY: ${{ matrix.symfony }}
 
-      - name: Checkout Symfony 6.4 Sample
-        if: "matrix.symfony == '6.4.*'"
+      - name: Checkout Symfony ${{ env.SF_REF }} Sample
         uses: actions/checkout@v4
         with:
           repository: Codeception/symfony-module-tests
           path: framework-tests
-          ref: "6.4"
-
-      - name: Checkout Symfony 7.1 Sample
-        if: "matrix.symfony == '7.1.*'"
-        uses: actions/checkout@v4
-        with:
-          repository: Codeception/symfony-module-tests
-          path: framework-tests
-          ref: "7.1"
+          ref: ${{ env.SF_REF }}
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
-      - name: Cache composer dependencies
+      - name: Cache Composer dependencies
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ matrix.php }}-composer-${{ hashFiles('composer.json') }}
-          restore-keys: ${{ runner.os }}-${{ matrix.php }}-composer-
+          key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('composer.json', 'composer.lock') }}
+          restore-keys: ${{ runner.os }}-php-${{ matrix.php }}-composer-
 
       - name: Install PHPUnit 10
         run: composer require --dev --no-update "phpunit/phpunit=^10.0"
@@ -78,27 +64,27 @@ jobs:
           composer require codeception/module-doctrine="3.*" --no-update
           composer update --prefer-dist --no-progress --no-dev
 
-      - name: Validate composer.json and composer.lock
-        run: composer validate
+      - name: Validate Composer files
+        run: composer validate --strict
         working-directory: framework-tests
 
-      - name: Install PHPUnit 10 in framework-tests
+      - name: Install PHPUnit in framework-tests
         run: composer require --dev --no-update "phpunit/phpunit=^10.0"
         working-directory: framework-tests
 
-      - name: Install Symfony Sample
+      - name: Prepare Symfony sample
         run: |
           composer remove codeception/codeception codeception/module-asserts codeception/module-doctrine codeception/lib-innerbrowser codeception/module-symfony --dev --no-update
           composer update --no-progress
         working-directory: framework-tests
 
-      - name: Prepare the test environment
+      - name: Setup Database
         run: |
           php bin/console doctrine:schema:update --force
           php bin/console doctrine:fixtures:load --quiet
         working-directory: framework-tests
 
-      - name: Run test suite
+      - name: Run tests
         run: |
           php vendor/bin/codecept build -c framework-tests
           php vendor/bin/codecept run Functional -c framework-tests
