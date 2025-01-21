@@ -105,7 +105,7 @@ trait MailerAssertionsTrait
      * Limitation:
      * If your mail is sent in a Symfony console command and you start that command in your test with [$I->runShellCommand()](https://codeception.com/docs/modules/Cli#runShellCommand),
      * Codeception will not notice it.
-     * As a more professional alternative, we recommend Mailpit, wchich also lets you test the content of the mail.
+     * As a more professional alternative, we recommend Mailpit, which also lets you test the content of the mail.
      *
      * ```php
      * <?php
