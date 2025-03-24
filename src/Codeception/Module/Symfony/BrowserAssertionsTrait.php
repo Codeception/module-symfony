@@ -25,6 +25,11 @@ trait BrowserAssertionsTrait
 {
     /**
      * Asserts that the given cookie in the test client is set to the expected value.
+     *
+     * ```php
+     * <?php
+     * $I->assertBrowserCookieValueSame('cookie_name', 'expected_value');
+     * ```
      */
     public function assertBrowserCookieValueSame(string $name, string $expectedValue, bool $raw = false, string $path = '/', ?string $domain = null, string $message = ''): void
     {
@@ -35,6 +40,11 @@ trait BrowserAssertionsTrait
     /**
      * Asserts that the test client has the specified cookie set.
      * This indicates that the cookie was set by any response during the test.
+     *
+     * ```
+     * <?php
+     * $I->assertBrowserHasCookie('cookie_name');
+     * ```
      */
     public function assertBrowserHasCookie(string $name, string $path = '/', ?string $domain = null, string $message = ''): void
     {
@@ -44,6 +54,11 @@ trait BrowserAssertionsTrait
     /**
      * Asserts that the test client does not have the specified cookie set.
      * This indicates that the cookie was not set by any response during the test.
+     *
+     * ```php
+     * <?php
+     * $I->assertBrowserNotHasCookie('cookie_name');
+     * ```
      */
     public function assertBrowserNotHasCookie(string $name, string $path = '/', ?string $domain = null, string $message = ''): void
     {
@@ -52,6 +67,11 @@ trait BrowserAssertionsTrait
 
     /**
      * Asserts that the specified request attribute matches the expected value.
+     *
+     * ```php
+     * <?php
+     * $I->assertRequestAttributeValueSame('attribute_name', 'expected_value');
+     * ```
      */
     public function assertRequestAttributeValueSame(string $name, string $expectedValue, string $message = ''): void
     {
@@ -60,6 +80,11 @@ trait BrowserAssertionsTrait
 
     /**
      * Asserts that the specified response cookie is present and matches the expected value.
+     *
+     * ```php
+     * <?php
+     * $I->assertResponseCookieValueSame('cookie_name', 'expected_value');
+     * ```
      */
     public function assertResponseCookieValueSame(string $name, string $expectedValue, string $path = '/', ?string $domain = null, string $message = ''): void
     {
@@ -69,6 +94,11 @@ trait BrowserAssertionsTrait
 
     /**
      * Asserts that the response format matches the expected format. This checks the format returned by the `Response::getFormat()` method.
+     *
+     * ```php
+     * <?php
+     * $I->assertResponseFormatSame('json');
+     * ```
      */
     public function assertResponseFormatSame(?string $expectedFormat, string $message = ''): void
     {
@@ -77,6 +107,11 @@ trait BrowserAssertionsTrait
 
     /**
      * Asserts that the specified cookie is present in the response. Optionally, it can check for a specific cookie path or domain.
+     *
+     * ```php
+     * <?php
+     * $I->assertResponseHasCookie('cookie_name');
+     * ```
      */
     public function assertResponseHasCookie(string $name, string $path = '/', ?string $domain = null, string $message = ''): void
     {
@@ -86,6 +121,11 @@ trait BrowserAssertionsTrait
     /**
      * Asserts that the specified header is available in the response.
      * For example, use `assertResponseHasHeader('content-type');`.
+     *
+     * ```php
+     * <?php
+     * $I->assertResponseHasHeader('content-type');
+     * ```
      */
     public function assertResponseHasHeader(string $headerName, string $message = ''): void
     {
@@ -95,6 +135,11 @@ trait BrowserAssertionsTrait
     /**
      * Asserts that the specified header does not contain the expected value in the response.
      * For example, use `assertResponseHeaderNotSame('content-type', 'application/octet-stream');`.
+     *
+     * ```php
+     * <?php
+     * $I->assertResponseHeaderNotSame('content-type', 'application/json');
+     * ```
      */
     public function assertResponseHeaderNotSame(string $headerName, string $expectedValue, string $message = ''): void
     {
@@ -104,6 +149,11 @@ trait BrowserAssertionsTrait
     /**
      * Asserts that the specified header contains the expected value in the response.
      * For example, use `assertResponseHeaderSame('content-type', 'application/octet-stream');`.
+     *
+     * ```php
+     * <?php
+     * $I->assertResponseHeaderSame('content-type', 'application/json');
+     * ```
      */
     public function assertResponseHeaderSame(string $headerName, string $expectedValue, string $message = ''): void
     {
@@ -112,6 +162,11 @@ trait BrowserAssertionsTrait
 
     /**
      * Asserts that the response was successful (HTTP status code is in the 2xx range).
+     *
+     * ```php
+     * <?php
+     * $I->assertResponseIsSuccessful();
+     * ```
      */
     public function assertResponseIsSuccessful(string $message = '', bool $verbose = true): void
     {
@@ -120,6 +175,11 @@ trait BrowserAssertionsTrait
 
     /**
      * Asserts that the response is unprocessable (HTTP status code is 422).
+     *
+     * ```php
+     * <?php
+     * $I->assertResponseIsUnprocessable();
+     * ```
      */
     public function assertResponseIsUnprocessable(string $message = '', bool $verbose = true): void
     {
@@ -128,6 +188,11 @@ trait BrowserAssertionsTrait
 
     /**
      * Asserts that the specified cookie is not present in the response. Optionally, it can check for a specific cookie path or domain.
+     *
+     * ```php
+     * <?php
+     * $I->assertResponseNotHasCookie('cookie_name');
+     * ```
      */
     public function assertResponseNotHasCookie(string $name, string $path = '/', ?string $domain = null, string $message = ''): void
     {
@@ -136,7 +201,11 @@ trait BrowserAssertionsTrait
 
     /**
      * Asserts that the specified header is not available in the response.
-     * For example, use `assertResponseNotHasHeader('content-type');`.
+     *
+     * ```php
+     * <?php
+     * $I->assertResponseNotHasHeader('content-type');
+     * ```
      */
     public function assertResponseNotHasHeader(string $headerName, string $message = ''): void
     {
@@ -146,6 +215,12 @@ trait BrowserAssertionsTrait
     /**
      * Asserts that the response is a redirect. Optionally, you can check the target location and status code.
      * The expected location can be either an absolute or a relative path.
+     *
+     * ```php
+     * <?php
+     * // Check that '/admin' redirects to '/login' with status code 302
+     * $I->assertResponseRedirects('/login', 302);
+     * ```
      */
     public function assertResponseRedirects(?string $expectedLocation = null, ?int $expectedCode = null, string $message = '', bool $verbose = true): void
     {
@@ -165,6 +240,11 @@ trait BrowserAssertionsTrait
 
     /**
      * Asserts that the response status code matches the expected code.
+     *
+     * ```php
+     * <?php
+     * $I->assertResponseStatusCodeSame(200);
+     * ```
      */
     public function assertResponseStatusCodeSame(int $expectedCode, string $message = '', bool $verbose = true): void
     {
@@ -173,6 +253,11 @@ trait BrowserAssertionsTrait
 
     /**
      * Asserts the request matches the given route and optionally route parameters.
+     *
+     * ```php
+     * <?php
+     * $I->assertRouteSame('profile', ['id' => 123]);
+     * ```
      */
     public function assertRouteSame(string $expectedRoute, array $parameters = [], string $message = ''): void {
         $request = $this->getClient()->getRequest();
