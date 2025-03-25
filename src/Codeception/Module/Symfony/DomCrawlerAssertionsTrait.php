@@ -15,6 +15,11 @@ trait DomCrawlerAssertionsTrait
 {
     /**
      * Asserts that the checkbox with the given name is checked.
+     *
+     * ```php
+     * <?php
+     * $I->assertCheckboxChecked('agree_terms');
+     * ```
      */
     public function assertCheckboxChecked(string $fieldName, string $message = ''): void
     {
@@ -23,6 +28,11 @@ trait DomCrawlerAssertionsTrait
 
     /**
      * Asserts that the checkbox with the given name is not checked.
+     *
+     * ```php
+     * <?php
+     * $I->assertCheckboxNotChecked('subscribe');
+     * ```
      */
     public function assertCheckboxNotChecked(string $fieldName, string $message = ''): void
     {
@@ -33,6 +43,11 @@ trait DomCrawlerAssertionsTrait
 
     /**
      * Asserts that the value of the form input with the given name does not equal the expected value.
+     *
+     * ```php
+     * <?php
+     * $I->assertInputValueNotSame('username', 'admin');
+     * ```
      */
     public function assertInputValueNotSame(string $fieldName, string $expectedValue, string $message = ''): void
     {
@@ -44,6 +59,11 @@ trait DomCrawlerAssertionsTrait
 
     /**
      * Asserts that the value of the form input with the given name equals the expected value.
+     *
+     * ```php
+     * <?php
+     * $I->assertInputValueSame('username', 'johndoe');
+     * ```
      */
     public function assertInputValueSame(string $fieldName, string $expectedValue, string $message = ''): void
     {
@@ -56,6 +76,11 @@ trait DomCrawlerAssertionsTrait
 
     /**
      * Asserts that the `<title>` element contains the given title.
+     *
+     * ```php
+     * <?php
+     * $I->assertPageTitleContains('Welcome');
+     * ```
      */
     public function assertPageTitleContains(string $expectedTitle, string $message = ''): void
     {
@@ -64,6 +89,11 @@ trait DomCrawlerAssertionsTrait
 
     /**
      * Asserts that the `<title>` element equals the given title.
+     *
+     * ```php
+     * <?php
+     * $I->assertPageTitleSame('Home Page');
+     * ```
      */
     public function assertPageTitleSame(string $expectedTitle, string $message = ''): void
     {
@@ -72,6 +102,11 @@ trait DomCrawlerAssertionsTrait
 
     /**
      * Asserts that the given selector matches at least one element in the response.
+     *
+     * ```php
+     * <?php
+     * $I->assertSelectorExists('.main-content');
+     * ```
      */
     public function assertSelectorExists(string $selector, string $message = ''): void
     {
@@ -80,6 +115,11 @@ trait DomCrawlerAssertionsTrait
 
     /**
      * Asserts that the given selector does not match at least one element in the response.
+     *
+     * ```php
+     * <?php
+     * $I->assertSelectorNotExists('.error');
+     * ```
      */
     public function assertSelectorNotExists(string $selector, string $message = ''): void
     {
@@ -88,6 +128,11 @@ trait DomCrawlerAssertionsTrait
 
     /**
      * Asserts that the first element matching the given selector contains the expected text.
+     *
+     * ```php
+     * <?php
+     * $I->assertSelectorTextContains('h1', 'Dashboard');
+     * ```
      */
     public function assertSelectorTextContains(string $selector, string $text, string $message = ''): void
     {
@@ -97,6 +142,11 @@ trait DomCrawlerAssertionsTrait
 
     /**
      * Asserts that the first element matching the given selector does not contain the expected text.
+     *
+     * ```php
+     * <?php
+     * $I->assertSelectorTextNotContains('p', 'error');
+     * ```
      */
     public function assertSelectorTextNotContains(string $selector, string $text, string $message = ''): void
     {
@@ -106,6 +156,11 @@ trait DomCrawlerAssertionsTrait
 
     /**
      * Asserts that the text of the first element matching the given selector equals the expected text.
+     *
+     * ```php
+     * <?php
+     * $I->assertSelectorTextSame('h1', 'Dashboard');
+     * ```
      */
     public function assertSelectorTextSame(string $selector, string $text, string $message = ''): void
     {

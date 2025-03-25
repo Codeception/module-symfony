@@ -14,6 +14,11 @@ trait FormAssertionsTrait
 {
     /**
      * Asserts that value of the field of the first form matching the given selector does equal the expected value.
+     *
+     * ```php
+     * <?php
+     * $I->assertFormValue('#loginForm', 'username', 'john_doe');
+     * ```
      */
     public function assertFormValue(string $formSelector, string $fieldName, string $value, string $message = ''): void
     {
@@ -25,7 +30,12 @@ trait FormAssertionsTrait
     }
 
     /**
-     * Asserts that value of the field of the first form matching the given selector does equal the expected value.
+     * Asserts that the field of the first form matching the given selector does not have a value.
+     *
+     * ```php
+     * <?php
+     * $I->assertNoFormValue('#registrationForm', 'middle_name');
+     * ```
      */
     public function assertNoFormValue(string $formSelector, string $fieldName, string $message = ''): void
     {
@@ -128,7 +138,6 @@ trait FormAssertionsTrait
      * If you want to specify the error messages, you can do so
      * by sending an associative array instead, with the key being
      * the name of the field and the error message the value.
-     *
      * This method will validate that the expected error message
      * is contained in the actual error message, that is,
      * you can specify either the entire error message or just a part of it:
@@ -136,7 +145,7 @@ trait FormAssertionsTrait
      * ```php
      * <?php
      * $I->seeFormErrorMessages([
-     *     'address'   => 'The address is too long'
+     *     'address'   => 'The address is too long',
      *     'telephone' => 'too short', // the full error message is 'The telephone is too short'
      * ]);
      * ```

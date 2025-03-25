@@ -12,7 +12,18 @@ trait HttpClientAssertionsTrait
 {
     /**
      * Asserts that the given URL has been called using, if specified, the given method body and headers.
-     * By default, it will check on the HttpClient, but you can also pass a specific HttpClient ID. (It will succeed if the request has been called multiple times.)
+     * By default, it will check on the HttpClient, but you can also pass a specific HttpClient ID.
+     * (It will succeed if the request has been called multiple times.)
+     *
+     * ```php
+     * <?php
+     * $I->assertHttpClientRequest(
+     *     'https://example.com/api',
+     *     'POST',
+     *     '{"data": "value"}',
+     *     ['Authorization' => 'Bearer token']
+     * );
+     * ```
      */
     public function assertHttpClientRequest(string $expectedUrl, string $expectedMethod = 'GET', string|array|null $expectedBody = null, array $expectedHeaders = [], string $httpClientId = 'http_client'): void
     {
@@ -77,6 +88,11 @@ trait HttpClientAssertionsTrait
     /**
      * Asserts that the given number of requests has been made on the HttpClient.
      * By default, it will check on the HttpClient, but you can also pass a specific HttpClient ID.
+     *
+     * ```php
+     * <?php
+     * $I->assertHttpClientRequestCount(3);
+     * ```
      */
     public function assertHttpClientRequestCount(int $count, string $httpClientId = 'http_client'): void
     {
@@ -88,6 +104,11 @@ trait HttpClientAssertionsTrait
     /**
      * Asserts that the given URL has not been called using GET or the specified method.
      * By default, it will check on the HttpClient, but a HttpClient id can be specified.
+     *
+     * ```php
+     * <?php
+     * $I->assertNotHttpClientRequest('https://example.com/unexpected', 'GET');
+     * ```
      */
     public function assertNotHttpClientRequest(string $unexpectedUrl, string $expectedMethod = 'GET', string $httpClientId = 'http_client'): void
     {
