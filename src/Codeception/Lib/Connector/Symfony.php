@@ -31,18 +31,16 @@ class Symfony extends HttpKernelBrowser
         parent::__construct($kernel);
         $this->followRedirects();
         $this->container = $this->getContainer();
-        $this->rebootKernel();
+        $this->rebootKernel(); // Ensure the profiler exists
     }
 
     /** @param Request $request */
     protected function doRequest(object $request): Response
     {
-        if ($this->rebootable) {
-            if ($this->hasPerformedRequest) {
-                $this->rebootKernel();
-            } else {
-                $this->hasPerformedRequest = true;
-            }
+        if ($this->hasPerformedRequest && $this->rebootable) {
+            $this->rebootKernel();
+        } else {
+            $this->hasPerformedRequest = true;
         }
 
         return parent::doRequest($request);
@@ -66,7 +64,9 @@ class Symfony extends HttpKernelBrowser
         }
 
         $this->persistDoctrineConnections();
-        $this->kernel->reboot(null);
+        $this->kernel->boot();
+        $this->kernel->shutdown();
+        $this->kernel->boot();
         $this->container = $this->getContainer();
 
         foreach ($this->persistentServices as $serviceName => $service) {
