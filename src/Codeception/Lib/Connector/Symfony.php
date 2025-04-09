@@ -31,7 +31,7 @@ class Symfony extends HttpKernelBrowser
         parent::__construct($kernel);
         $this->followRedirects();
         $this->container = $this->getContainer();
-        $this->rebootKernel(); // Ensure the profiler exists
+        $this->rebootKernel();
     }
 
     /** @param Request $request */
@@ -47,7 +47,7 @@ class Symfony extends HttpKernelBrowser
     }
 
     /**
-     * Reboot kernel
+     * Reboots the kernel.
      *
      * Services from the list of persistent services
      * are updated from service container before kernel shutdown
@@ -64,8 +64,7 @@ class Symfony extends HttpKernelBrowser
         }
 
         $this->persistDoctrineConnections();
-        $this->kernel->boot();
-        $this->kernel->shutdown();
+        $this->ensureKernelShutdown();
         $this->kernel->boot();
         $this->container = $this->getContainer();
 
@@ -80,6 +79,12 @@ class Symfony extends HttpKernelBrowser
         if ($profiler = $this->getProfiler()) {
             $profiler->enable();
         }
+    }
+
+    protected function ensureKernelShutdown(): void
+    {
+        $this->kernel->boot();
+        $this->kernel->shutdown();
     }
 
     private function getContainer(): ?ContainerInterface
@@ -120,7 +125,9 @@ class Symfony extends HttpKernelBrowser
         }
 
         $reflectedContainer = new ReflectionClass($publicContainer);
-        $reflectionTarget = $reflectedContainer->hasProperty('parameters') ? $publicContainer : $publicContainer->getParameterBag();
+        $reflectionTarget = $reflectedContainer->hasProperty('parameters')
+            ? $publicContainer
+            : $publicContainer->getParameterBag();
 
         $reflectedParameters = new ReflectionProperty($reflectionTarget, 'parameters');
         $reflectedParameters->setAccessible(true);
