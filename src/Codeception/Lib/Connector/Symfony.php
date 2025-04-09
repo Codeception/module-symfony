@@ -37,19 +37,17 @@ class Symfony extends HttpKernelBrowser
     /** @param Request $request */
     protected function doRequest(object $request): Response
     {
-        if ($this->rebootable) {
-            if ($this->hasPerformedRequest) {
-                $this->rebootKernel();
-            } else {
-                $this->hasPerformedRequest = true;
-            }
+        if ($this->hasPerformedRequest && $this->rebootable) {
+            $this->rebootKernel();
+        } else {
+            $this->hasPerformedRequest = true;
         }
 
         return parent::doRequest($request);
     }
 
     /**
-     * Reboot kernel
+     * Reboots the kernel.
      *
      * Services from the list of persistent services
      * are updated from service container before kernel shutdown
@@ -66,7 +64,8 @@ class Symfony extends HttpKernelBrowser
         }
 
         $this->persistDoctrineConnections();
-        $this->kernel->reboot(null);
+        $this->ensureKernelShutdown();
+        $this->kernel->boot();
         $this->container = $this->getContainer();
 
         foreach ($this->persistentServices as $serviceName => $service) {
@@ -80,6 +79,12 @@ class Symfony extends HttpKernelBrowser
         if ($profiler = $this->getProfiler()) {
             $profiler->enable();
         }
+    }
+
+    protected function ensureKernelShutdown(): void
+    {
+        $this->kernel->boot();
+        $this->kernel->shutdown();
     }
 
     private function getContainer(): ?ContainerInterface
@@ -120,7 +125,9 @@ class Symfony extends HttpKernelBrowser
         }
 
         $reflectedContainer = new ReflectionClass($publicContainer);
-        $reflectionTarget = $reflectedContainer->hasProperty('parameters') ? $publicContainer : $publicContainer->getParameterBag();
+        $reflectionTarget = $reflectedContainer->hasProperty('parameters')
+            ? $publicContainer
+            : $publicContainer->getParameterBag();
 
         $reflectedParameters = new ReflectionProperty($reflectionTarget, 'parameters');
         $reflectedParameters->setAccessible(true);
