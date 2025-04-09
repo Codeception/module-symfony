@@ -15,6 +15,11 @@ trait MailerAssertionsTrait
 {
     /**
      * Asserts that the expected number of emails was sent.
+     *
+     * ```php
+     * <?php
+     * $I->assertEmailCount(2, 'smtp');
+     * ```
      */
     public function assertEmailCount(int $count, ?string $transport = null, string $message = ''): void
     {
@@ -24,6 +29,12 @@ trait MailerAssertionsTrait
     /**
      * Asserts that the given mailer event is not queued.
      * Use `getMailerEvent(int $index = 0, ?string $transport = null)` to retrieve a mailer event by index.
+     *
+     * ```php
+     * <?php
+     * $event = $I->getMailerEvent();
+     * $I->assertEmailIsNotQueued($event);
+     * ```
      */
     public function assertEmailIsNotQueued(MessageEvent $event, string $message = ''): void
     {
@@ -33,6 +44,12 @@ trait MailerAssertionsTrait
     /**
      * Asserts that the given mailer event is queued.
      * Use `getMailerEvent(int $index = 0, ?string $transport = null)` to retrieve a mailer event by index.
+     *
+     * ```php
+     * <?php
+     * $event = $I->getMailerEvent();
+     * $I->assertEmailIsQueued($event);
+     * ```
      */
     public function assertEmailIsQueued(MessageEvent $event, string $message = ''): void
     {
@@ -41,6 +58,11 @@ trait MailerAssertionsTrait
 
     /**
      * Asserts that the expected number of emails was queued (e.g. using the Messenger component).
+     *
+     * ```php
+     * <?php
+     * $I->assertQueuedEmailCount(1, 'smtp');
+     * ```
      */
     public function assertQueuedEmailCount(int $count, ?string $transport = null, string $message = ''): void
     {
@@ -51,6 +73,11 @@ trait MailerAssertionsTrait
      * Checks that no email was sent.
      * The check is based on `\Symfony\Component\Mailer\EventListener\MessageLoggerListener`, which means:
      * If your app performs an HTTP redirect, you need to suppress it using [stopFollowingRedirects()](#stopFollowingRedirects) first; otherwise this check will *always* pass.
+     *
+     * ```php
+     * <?php
+     * $I->dontSeeEmailIsSent();
+     * ```
      */
     public function dontSeeEmailIsSent(): void
     {
@@ -119,18 +146,31 @@ trait MailerAssertionsTrait
         $this->assertThat($this->getMessageMailerEvents(), new MailerConstraint\EmailCount($expectedCount));
     }
 
+    /**
+     * Returns the mailer event at the specified index.
+     *
+     * ```php
+     * <?php
+     * $event = $I->getMailerEvent();
+     * ```
+     */
+    public function getMailerEvent(int $index = 0, ?string $transport = null): ?MessageEvent
+    {
+        $mailerEvents = $this->getMessageMailerEvents();
+        $events = $mailerEvents->getEvents($transport);
+        return $events[$index] ?? null;
+    }
+
     protected function getMessageMailerEvents(): MessageEvents
     {
-        if ($messageLogger = $this->getService('mailer.message_logger_listener')) {
-            /** @var MessageLoggerListener $messageLogger */
-            return $messageLogger->getEvents();
+        if ($mailer = $this->getService('mailer.message_logger_listener')) {
+            /** @var MessageLoggerListener $mailer */
+            return $mailer->getEvents();
         }
-
-        if ($messageLogger = $this->getService('mailer.logger_message_listener')) {
-            /** @var MessageLoggerListener $messageLogger */
-            return $messageLogger->getEvents();
+        if ($mailer = $this->getService('mailer.logger_message_listener')) {
+            /** @var MessageLoggerListener $mailer */
+            return $mailer->getEvents();
         }
-
         $this->fail("Emails can't be tested without Symfony Mailer service.");
     }
 }

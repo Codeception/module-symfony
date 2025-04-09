@@ -17,6 +17,7 @@ use Codeception\Module\Symfony\DomCrawlerAssertionsTrait;
 use Codeception\Module\Symfony\EventsAssertionsTrait;
 use Codeception\Module\Symfony\FormAssertionsTrait;
 use Codeception\Module\Symfony\HttpClientAssertionsTrait;
+use Codeception\Module\Symfony\LoggerAssertionsTrait;
 use Codeception\Module\Symfony\MailerAssertionsTrait;
 use Codeception\Module\Symfony\MimeAssertionsTrait;
 use Codeception\Module\Symfony\ParameterAssertionsTrait;
@@ -25,6 +26,7 @@ use Codeception\Module\Symfony\SecurityAssertionsTrait;
 use Codeception\Module\Symfony\ServicesAssertionsTrait;
 use Codeception\Module\Symfony\SessionAssertionsTrait;
 use Codeception\Module\Symfony\TimeAssertionsTrait;
+use Codeception\Module\Symfony\TranslationAssertionsTrait;
 use Codeception\Module\Symfony\TwigAssertionsTrait;
 use Codeception\Module\Symfony\ValidatorAssertionsTrait;
 use Codeception\TestInterface;
@@ -141,6 +143,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     use EventsAssertionsTrait;
     use FormAssertionsTrait;
     use HttpClientAssertionsTrait;
+    use LoggerAssertionsTrait;
     use MailerAssertionsTrait;
     use MimeAssertionsTrait;
     use ParameterAssertionsTrait;
@@ -148,6 +151,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     use SecurityAssertionsTrait;
     use ServicesAssertionsTrait;
     use SessionAssertionsTrait;
+    use TranslationAssertionsTrait;
     use TimeAssertionsTrait;
     use TwigAssertionsTrait;
     use ValidatorAssertionsTrait;
@@ -317,7 +321,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         throw new ModuleRequireException(
             self::class,
             "Kernel class was not found.\n"
-            . 'Specify directory where file with Kernel class for your application is located with `app_path` parameter.'
+            . 'Specify directory where file with Kernel class for your application is located with `kernel_class` parameter.'
         );
     }
 
