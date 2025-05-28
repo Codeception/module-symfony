@@ -258,13 +258,16 @@ trait BrowserAssertionsTrait
      * <?php
      * $I->assertRouteSame('profile', ['id' => 123]);
      * ```
+     *
+     * @param array<string, bool|float|int|null|string> $parameters
      */
-    public function assertRouteSame(string $expectedRoute, array $parameters = [], string $message = ''): void {
+    public function assertRouteSame(string $expectedRoute, array $parameters = [], string $message = ''): void
+    {
         $request = $this->getClient()->getRequest();
         $this->assertThat($request, new RequestAttributeValueSame('_route', $expectedRoute));
 
         foreach ($parameters as $key => $value) {
-            $this->assertThat($request, new RequestAttributeValueSame($key, $value), $message);
+            $this->assertThat($request, new RequestAttributeValueSame($key, (string)$value), $message);
         }
     }
 
@@ -349,7 +352,7 @@ trait BrowserAssertionsTrait
      * ]);
      * ```
      *
-     * @param string $name The `name` attribute of the `<form>`. You cannot use an array as a selector here.
+     * @param string               $name   The `name` attribute of the `<form>`. You cannot use an array as a selector here.
      * @param array<string, mixed> $fields The form fields to submit.
      */
     public function submitSymfonyForm(string $name, array $fields): void

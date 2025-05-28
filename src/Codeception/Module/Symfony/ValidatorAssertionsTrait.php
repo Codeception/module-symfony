@@ -20,7 +20,7 @@ trait ValidatorAssertionsTrait
      * $I->dontSeeViolatedConstraint($subject, 'propertyName', 'Symfony\Validator\ConstraintClass');
      * ```
      */
-    public function dontSeeViolatedConstraint(mixed $subject, ?string $propertyPath = null, ?string $constraint = null): void
+    public function dontSeeViolatedConstraint(object $subject, ?string $propertyPath = null, ?string $constraint = null): void
     {
         $violations = $this->getViolationsForSubject($subject, $propertyPath, $constraint);
         $this->assertCount(0, $violations, 'Constraint violations found.');
@@ -37,7 +37,7 @@ trait ValidatorAssertionsTrait
      * $I->seeViolatedConstraint($subject, 'propertyName', 'Symfony\Validator\ConstraintClass');
      * ```
      */
-    public function seeViolatedConstraint(mixed $subject, ?string $propertyPath = null, ?string $constraint = null): void
+    public function seeViolatedConstraint(object $subject, ?string $propertyPath = null, ?string $constraint = null): void
     {
         $violations = $this->getViolationsForSubject($subject, $propertyPath, $constraint);
         $this->assertNotCount(0, $violations, 'No constraint violations found.');
@@ -52,7 +52,7 @@ trait ValidatorAssertionsTrait
      * $I->seeViolatedConstraintsCount(2, $subject, 'propertyName');
      * ```
      */
-    public function seeViolatedConstraintsCount(int $expected, mixed $subject, ?string $propertyPath = null, ?string $constraint = null): void
+    public function seeViolatedConstraintsCount(int $expected, object $subject, ?string $propertyPath = null, ?string $constraint = null): void
     {
         $violations = $this->getViolationsForSubject($subject, $propertyPath, $constraint);
         $this->assertCount($expected, $violations);
@@ -66,12 +66,12 @@ trait ValidatorAssertionsTrait
      * $I->seeViolatedConstraintMessage('too short', $user, 'address');
      * ```
      */
-    public function seeViolatedConstraintMessage(string $expected, mixed $subject, string $propertyPath): void
+    public function seeViolatedConstraintMessage(string $expected, object $subject, string $propertyPath): void
     {
         $violations = $this->getViolationsForSubject($subject, $propertyPath);
         $containsExpected = false;
         foreach ($violations as $violation) {
-            if ($violation->getPropertyPath() === $propertyPath && str_contains($violation->getMessage(), $expected)) {
+            if ($violation->getPropertyPath() === $propertyPath && str_contains((string)$violation->getMessage(), $expected)) {
                 $containsExpected = true;
                 break;
             }
@@ -81,7 +81,7 @@ trait ValidatorAssertionsTrait
     }
 
     /** @return ConstraintViolationInterface[] */
-    protected function getViolationsForSubject(mixed $subject, ?string $propertyPath = null, ?string $constraint = null): array
+    protected function getViolationsForSubject(object $subject, ?string $propertyPath = null, ?string $constraint = null): array
     {
         $validator = $this->getValidatorService();
         $violations = $propertyPath ? $validator->validateProperty($subject, $propertyPath) : $validator->validate($subject);
@@ -89,9 +89,9 @@ trait ValidatorAssertionsTrait
         $violations = iterator_to_array($violations);
 
         if ($constraint !== null) {
-            return array_filter(
+            return (array)array_filter(
                 $violations,
-                static fn($violation): bool => $violation->getConstraint()::class === $constraint &&
+                static fn(ConstraintViolationInterface $violation): bool => get_class((object)$violation->getConstraint()) === $constraint &&
                     ($propertyPath === null || $violation->getPropertyPath() === $propertyPath)
             );
         }

@@ -1,13 +1,17 @@
 {
     "name": "codeception/module-symfony",
     "description": "Codeception module for Symfony framework",
-    "license": "MIT",
     "type": "library",
+    "license": "MIT",
     "keywords": [
         "codeception",
         "functional testing",
         "symfony"
     ],
+    "homepage": "https://codeception.com/",
+    "support": {
+        "docs": "https://codeception.com/docs/modules/Symfony"
+    },
     "authors": [
         {
             "name": "Michael Bodnarchuk"
@@ -17,17 +21,16 @@
             "homepage": "https://medium.com/@ganieves"
         }
     ],
-    "homepage": "https://codeception.com/",
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
         "ext-json": "*",
-        "codeception/codeception": "^5.0.8",
-        "codeception/lib-innerbrowser": "^3.1.1 | ^4.0"
+        "codeception/codeception": "^5.3",
+        "codeception/lib-innerbrowser": "^3.1 | ^4.0"
     },
     "require-dev": {
         "codeception/module-asserts": "^3.0",
         "codeception/module-doctrine": "^3.1",
-        "doctrine/orm": "^2.10",
+        "doctrine/orm": "^2.20",
         "symfony/browser-kit": "^5.4 | ^6.4 | ^7.2",
         "symfony/cache": "^5.4 | ^6.4 | ^7.2",
         "symfony/config": "^5.4 | ^6.4 | ^7.2",
@@ -62,12 +65,12 @@
         "codeception/module-asserts": "Include traditional PHPUnit assertions in your tests",
         "symfony/web-profiler-bundle": "Tool that gives information about the execution of requests"
     },
-    "minimum-stability": "RC",
     "autoload": {
         "classmap": ["src/"]
     },
     "config": {
         "classmap-authoritative": true,
         "sort-packages": true
-    }
+    },
+    "minimum-stability": "RC"
 }

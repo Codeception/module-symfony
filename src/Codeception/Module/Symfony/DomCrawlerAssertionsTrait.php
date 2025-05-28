@@ -36,9 +36,11 @@ trait DomCrawlerAssertionsTrait
      */
     public function assertCheckboxNotChecked(string $fieldName, string $message = ''): void
     {
-        $this->assertThatCrawler(new LogicalNot(
-            new CrawlerSelectorExists("input[name=\"$fieldName\"]:checked")
-        ), $message);
+        $this->assertThatCrawler(
+            new LogicalNot(
+                new CrawlerSelectorExists("input[name=\"$fieldName\"]:checked")
+            ), $message
+        );
     }
 
     /**
@@ -52,9 +54,11 @@ trait DomCrawlerAssertionsTrait
     public function assertInputValueNotSame(string $fieldName, string $expectedValue, string $message = ''): void
     {
         $this->assertThatCrawler(new CrawlerSelectorExists("input[name=\"$fieldName\"]"), $message);
-        $this->assertThatCrawler(new LogicalNot(
-            new CrawlerSelectorAttributeValueSame("input[name=\"$fieldName\"]", 'value', $expectedValue)
-        ), $message);
+        $this->assertThatCrawler(
+            new LogicalNot(
+                new CrawlerSelectorAttributeValueSame("input[name=\"$fieldName\"]", 'value', $expectedValue)
+            ), $message
+        );
     }
 
     /**
