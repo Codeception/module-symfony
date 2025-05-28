@@ -9,6 +9,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpKernel\KernelInterface;
 
+use function in_array;
+use function sprintf;
+
 trait ConsoleAssertionsTrait
 {
     /**
@@ -20,40 +23,42 @@ trait ConsoleAssertionsTrait
      * $result = $I->runSymfonyConsoleCommand('hello:world', ['arg' => 'argValue', 'opt1' => 'optValue'], ['input']);
      * ```
      *
-     * @param string $command          The console command to execute
-     * @param array  $parameters       Parameters (arguments and options) to pass to the command
-     * @param array  $consoleInputs    Console inputs (e.g. used for interactive questions)
-     * @param int    $expectedExitCode The expected exit code of the command
-     * @return string Returns the console output of the command
+     * @param  string                    $command          The console command to execute.
+     * @param  array<string, int|string> $parameters       Arguments and options passed to the command
+     * @param  list<string>              $consoleInputs    Inputs for interactive questions.
+     * @param  int                       $expectedExitCode Expected exit code.
+     * @return string Console output (stdout).
      */
-    public function runSymfonyConsoleCommand(string $command, array $parameters = [], array $consoleInputs = [], int $expectedExitCode = 0): string
-    {
-        $kernel = $this->grabKernelService();
-        $application = new Application($kernel);
-        $consoleCommand = $application->find($command);
-        $commandTester = new CommandTester($consoleCommand);
+    public function runSymfonyConsoleCommand(
+        string $command,
+        array $parameters = [],
+        array $consoleInputs = [],
+        int $expectedExitCode = 0
+    ): string {
+        $kernel          = $this->grabKernelService();
+        $application     = new Application($kernel);
+        $consoleCommand  = $application->find($command);
+        $commandTester   = new CommandTester($consoleCommand);
         $commandTester->setInputs($consoleInputs);
 
-        $input = ['command' => $command] + $parameters;
-        $options = $this->configureOptions($parameters);
-
+        $input    = ['command' => $command] + $parameters;
+        $options  = $this->configureOptions($parameters);
         $exitCode = $commandTester->execute($input, $options);
-        $output = $commandTester->getDisplay();
+        $output   = $commandTester->getDisplay();
 
         $this->assertSame(
             $expectedExitCode,
             $exitCode,
-            sprintf(
-                'Command did not exit with code %d but with %d: %s',
-                $expectedExitCode,
-                $exitCode,
-                $output
-            )
+            sprintf('Command exited with %d instead of expected %d. Output: %s', $exitCode, $expectedExitCode, $output)
         );
 
         return $output;
     }
 
+    /**
+     * @param  array<string, int|string|bool> $parameters
+     * @return array<string, mixed> Options array supported by CommandTester.
+     */
     private function configureOptions(array $parameters): array
     {
         $options = [];
@@ -69,27 +74,24 @@ trait ConsoleAssertionsTrait
         }
 
         if (in_array('--quiet', $parameters, true) || in_array('-q', $parameters, true)) {
-            $options['verbosity'] = OutputInterface::VERBOSITY_QUIET;
+            $options['verbosity']   = OutputInterface::VERBOSITY_QUIET;
             $options['interactive'] = false;
         }
 
-        if (
-            in_array('-vvv', $parameters, true) ||
-            in_array('--verbose=3', $parameters, true) ||
-            (isset($parameters["--verbose"]) && $parameters["--verbose"] === 3)
+        if (in_array('-vvv', $parameters, true) 
+            || in_array('--verbose=3', $parameters, true) 
+            || (isset($parameters['--verbose']) && $parameters['--verbose'] === 3)
         ) {
             $options['verbosity'] = OutputInterface::VERBOSITY_DEBUG;
-        } elseif (
-            in_array('-vv', $parameters, true) ||
-            in_array('--verbose=2', $parameters, true) ||
-            (isset($parameters["--verbose"]) && $parameters["--verbose"] === 2)
+        } elseif (in_array('-vv', $parameters, true) 
+            || in_array('--verbose=2', $parameters, true) 
+            || (isset($parameters['--verbose']) && $parameters['--verbose'] === 2)
         ) {
             $options['verbosity'] = OutputInterface::VERBOSITY_VERY_VERBOSE;
-        } elseif (
-            in_array('-v', $parameters, true) ||
-            in_array('--verbose=1', $parameters, true) ||
-            in_array('--verbose', $parameters, true) ||
-            (isset($parameters["--verbose"]) && $parameters["--verbose"] === 1)
+        } elseif (in_array('-v', $parameters, true) 
+            || in_array('--verbose=1', $parameters, true) 
+            || in_array('--verbose', $parameters, true) 
+            || (isset($parameters['--verbose']) && $parameters['--verbose'] === 1)
         ) {
             $options['verbosity'] = OutputInterface::VERBOSITY_VERBOSE;
         }

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Constraint\LogicalNot;
 use Symfony\Component\Mime\Email;
-use Symfony\Component\Mime\RawMessage;
 use Symfony\Component\Mime\Test\Constraint as MimeConstraint;
 
 trait MimeAssertionsTrait
@@ -171,7 +171,7 @@ trait MimeAssertionsTrait
     {
         $email = $email ?: $this->grabLastSentEmail();
         $errorMsgTemplate = "There is no email to verify. An Email object was not specified when invoking '%s' and the application has not sent one.";
-        return $email ?: $this->fail(
+        return $email ?? Assert::fail(
             sprintf($errorMsgTemplate, $function)
         );
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use Codeception\Lib\Connector\Symfony as SymfonyConnector;
+use PHPUnit\Framework\Assert;
 
 trait ServicesAssertionsTrait
 {
@@ -24,7 +25,7 @@ trait ServicesAssertionsTrait
     public function grabService(string $serviceId): object
     {
         if (!$service = $this->getService($serviceId)) {
-            $this->fail("Service `{$serviceId}` is required by Codeception, but not loaded by Symfony. Possible solutions:\n
+            Assert::fail("Service `{$serviceId}` is required by Codeception, but not loaded by Symfony. Possible solutions:\n
             In your `config/packages/framework.php`/`.yaml`, set `test` to `true` (when in test environment), see https://symfony.com/doc/current/reference/configuration/framework.html#test\n
             If you're still getting this message, you're not using that service in your app, so Symfony isn't loading it at all.\n
             Solution: Set it to `public` in your `config/services.php`/`.yaml`, see https://symfony.com/doc/current/service_container/alias_private.html#marking-services-as-public-private\n");
