@@ -11,9 +11,9 @@ trait ServicesAssertionsTrait
 {
     /**
      * Grabs a service from the Symfony dependency injection container (DIC).
-     * In "test" environment, Symfony uses a special `test.service_container`.
+     * In the "test" environment, Symfony uses a special `test.service_container`.
      * See the "[Public Versus Private Services](https://symfony.com/doc/current/service_container/alias_private.html#marking-services-as-public-private)" documentation.
-     * Services that aren't injected somewhere into your app, need to be defined as `public` to be accessible by Codeception.
+     * Services that aren't injected anywhere in your app, need to be defined as `public` to be accessible by Codeception.
      *
      * ```php
      * <?php
@@ -25,10 +25,10 @@ trait ServicesAssertionsTrait
     public function grabService(string $serviceId): object
     {
         if (!$service = $this->getService($serviceId)) {
-            Assert::fail(
-                "Service `{$serviceId}` is required by Codeception, but not loaded by Symfony since you're not using it anywhere in your app.\n
-            Recommended solution: Set it to `public` in your `config/services_test.php`/`.yaml`, see https://symfony.com/doc/current/service_container/alias_private.html#marking-services-as-public-private"
-            );
+            Assert::fail("Service `{$serviceId}` is required by Codeception, but not loaded by Symfony. Possible solutions:\n
+            In your `config/packages/framework.php`/`.yaml`, set `test` to `true` (when in test environment), see https://symfony.com/doc/current/reference/configuration/framework.html#test\n
+            If you're still getting this message, you're not using that service in your app, so Symfony isn't loading it at all.\n
+            Solution: Set it to `public` in your `config/services.php`/`.yaml`, see https://symfony.com/doc/current/service_container/alias_private.html#marking-services-as-public-private\n");
         }
 
         return $service;
