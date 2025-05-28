@@ -109,7 +109,7 @@ trait TranslationAssertionsTrait
      * $I->seeFallbackLocalesAre(['es', 'fr']);
      * ```
      *
-     * @param array $expectedLocales The expected fallback locales
+     * @param string[] $expectedLocales The expected fallback locales
      */
     public function seeFallbackLocalesAre(array $expectedLocales): void
     {
