@@ -45,6 +45,6 @@ trait TimeAssertionsTrait
 
     protected function grabTimeCollector(string $function): TimeDataCollector
     {
-        return $this->grabCollector('time', $function);
+        return $this->grabCollector(DataCollectorName::TIME, $function);
     }
 }

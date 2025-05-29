@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use InvalidArgumentException;
 use Symfony\Component\BrowserKit\Cookie;
+use Symfony\Component\HttpFoundation\Session\SessionFactoryInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Guard\Token\PostAuthenticationGuardToken;
-use Symfony\Component\Security\Guard\Token\GuardTokenInterface;
 use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
-use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 use Symfony\Component\Security\Http\Logout\LogoutUrlGenerator;
+use function class_exists;
+use function in_array;
 use function is_int;
 use function serialize;
 
@@ -37,26 +39,18 @@ trait SessionAssertionsTrait
      */
     public function amLoggedInAs(UserInterface $user, string $firewallName = 'main', ?string $firewallContext = null): void
     {
-        $token = $this->createAuthenticationToken($user, $firewallName);
-        $this->loginWithToken($token, $firewallName, $firewallContext);
+        $this->amLoggedInWithToken($this->createAuthenticationToken($user, $firewallName), $firewallName, $firewallContext);
     }
 
     public function amLoggedInWithToken(TokenInterface $token, string $firewallName = 'main', ?string $firewallContext = null): void
     {
-        $this->loginWithToken($token, $firewallName, $firewallContext);
-    }
-
-    protected function loginWithToken(TokenInterface $token, string $firewallName, ?string $firewallContext): void
-    {
         $this->getTokenStorage()->setToken($token);
 
         $session = $this->getCurrentSession();
-        $sessionKey = $firewallContext ? "_security_{$firewallContext}" : "_security_{$firewallName}";
-        $session->set($sessionKey, serialize($token));
+        $session->set("_security_" . ($firewallContext ?? $firewallName), serialize($token));
         $session->save();
 
-        $cookie = new Cookie($session->getName(), $session->getId());
-        $this->client->getCookieJar()->set($cookie);
+        $this->getClient()->getCookieJar()->set(new Cookie($session->getName(), $session->getId()));
     }
 
     /**
@@ -72,10 +66,9 @@ trait SessionAssertionsTrait
     {
         $session = $this->getCurrentSession();
 
-        $attributeExists = $session->has($attribute);
-        $this->assertFalse($attributeExists, "Session attribute '{$attribute}' exists.");
-
-        if (null !== $value) {
+        if ($value === null) {
+            $this->assertFalse($session->has($attribute), "Session attribute '{$attribute}' exists.");
+        } else {
             $this->assertNotSame($value, $session->get($attribute));
         }
     }
@@ -88,8 +81,7 @@ trait SessionAssertionsTrait
      */
     public function goToLogoutPath(): void
     {
-        $logoutPath = $this->getLogoutUrlGenerator()->getLogoutPath();
-        $this->amOnPage($logoutPath);
+        $this->amOnPage($this->getLogoutUrlGenerator()->getLogoutPath());
     }
 
     /**
@@ -116,23 +108,20 @@ trait SessionAssertionsTrait
      */
     public function logoutProgrammatically(): void
     {
-        if ($tokenStorage = $this->getTokenStorage()) {
-            $tokenStorage->setToken();
-        }
+        $this->getTokenStorage()->setToken(null);
 
-        $session = $this->getCurrentSession();
+        $session     = $this->getCurrentSession();
         $sessionName = $session->getName();
         $session->invalidate();
 
-        $cookieJar = $this->client->getCookieJar();
-        $cookiesToExpire = ['MOCKSESSID', 'REMEMBERME', $sessionName];
+        $cookieJar        = $this->getClient()->getCookieJar();
+        $cookiesToExpire  = ['MOCKSESSID', 'REMEMBERME', $sessionName];
         foreach ($cookieJar->all() as $cookie) {
             $cookieName = $cookie->getName();
             if (in_array($cookieName, $cookiesToExpire, true)) {
                 $cookieJar->expire($cookieName);
             }
         }
-
         $cookieJar->flushExpiredCookies();
     }
 
@@ -148,11 +137,9 @@ trait SessionAssertionsTrait
     public function seeInSession(string $attribute, mixed $value = null): void
     {
         $session = $this->getCurrentSession();
+        $this->assertTrue($session->has($attribute), "No session attribute with name '{$attribute}'");
 
-        $attributeExists = $session->has($attribute);
-        $this->assertTrue($attributeExists, "No session attribute with name '{$attribute}'");
-
-        if (null !== $value) {
+        if ($value !== null) {
             $this->assertSame($value, $session->get($attribute));
         }
     }
@@ -165,11 +152,18 @@ trait SessionAssertionsTrait
      * $I->seeSessionHasValues(['key1', 'key2']);
      * $I->seeSessionHasValues(['key1' => 'value1', 'key2' => 'value2']);
      * ```
+     *
+     * @param array<int|string, mixed> $bindings
      */
     public function seeSessionHasValues(array $bindings): void
     {
         foreach ($bindings as $key => $value) {
             if (is_int($key)) {
+                if (!is_string($value)) {
+                    throw new InvalidArgumentException(
+                        sprintf('Attribute name must be string, %s given.', get_debug_type($value))
+                    );
+                }
                 $this->seeInSession($value);
             } else {
                 $this->seeInSession($key, $value);
@@ -177,19 +171,25 @@ trait SessionAssertionsTrait
         }
     }
 
-    protected function getTokenStorage(): ?TokenStorageInterface
+    protected function getTokenStorage(): TokenStorageInterface
     {
-        return $this->getService('security.token_storage');
+        /** @var TokenStorageInterface $storage */
+        $storage = $this->grabService('security.token_storage');
+        return $storage;
     }
 
-    protected function getLogoutUrlGenerator(): ?LogoutUrlGenerator
+    protected function getLogoutUrlGenerator(): LogoutUrlGenerator
     {
-        return $this->getService('security.logout_url_generator');
+        /** @var LogoutUrlGenerator $generator */
+        $generator = $this->grabService('security.logout_url_generator');
+        return $generator;
     }
 
-    protected function getAuthenticator(): ?AuthenticatorInterface
+    protected function getAuthenticator(): AuthenticatorInterface
     {
-        return $this->getService(AuthenticatorInterface::class);
+        /** @var AuthenticatorInterface $authenticator */
+        $authenticator = $this->grabService(AuthenticatorInterface::class);
+        return $authenticator;
     }
 
     protected function getCurrentSession(): SessionInterface
@@ -197,10 +197,14 @@ trait SessionAssertionsTrait
         $container = $this->_getContainer();
 
         if ($this->getSymfonyMajorVersion() < 6 || $container->has('session')) {
-            return $container->get('session');
+            /** @var SessionInterface $session */
+            $session = $container->get('session');
+            return $session;
         }
 
-        $session = $container->get('session.factory')->createSession();
+        /** @var SessionFactoryInterface $factory */
+        $factory = $container->get('session.factory');
+        $session = $factory->createSession();
         $container->set('session', $session);
 
         return $session;
@@ -208,28 +212,27 @@ trait SessionAssertionsTrait
 
     protected function getSymfonyMajorVersion(): int
     {
-        return $this->kernel::MAJOR_VERSION;
+        return Kernel::MAJOR_VERSION;
     }
 
-    /**
-     * @return TokenInterface|GuardTokenInterface
-     */
-    protected function createAuthenticationToken(UserInterface $user, string $firewallName)
+    protected function createAuthenticationToken(UserInterface $user, string $firewallName): TokenInterface
     {
         $roles = $user->getRoles();
-        if ($this->getSymfonyMajorVersion() < 6) {
-            return $this->config['guard']
-                ? new PostAuthenticationGuardToken($user, $firewallName, $roles)
-                : new UsernamePasswordToken($user, null, $firewallName, $roles);
+
+        if ($this->getSymfonyMajorVersion() >= 6 && ($this->config['authenticator'] ?? false) === true) {
+            $passport = new SelfValidatingPassport(new UserBadge($user->getUserIdentifier(), static fn () => $user));
+            return $this->getAuthenticator()->createToken($passport, $firewallName);
         }
 
-        if ($this->config['authenticator']) {
-            if ($authenticator = $this->getAuthenticator()) {
-                $passport = new SelfValidatingPassport(new UserBadge($user->getUserIdentifier(), fn () => $user));
-                return $authenticator->createToken($passport, $firewallName);
+        if ($this->getSymfonyMajorVersion() < 6 && ($this->config['guard'] ?? false) === true) {
+            $postClass = 'Symfony\\Component\\Security\\Guard\\Token\\PostAuthenticationGuardToken';
+            if (class_exists($postClass)) {
+                /** @var TokenInterface $token */
+                $token = new $postClass($user, $firewallName, $roles);
+                return $token;
             }
-            return new PostAuthenticationToken($user, $firewallName, $roles);
         }
+
         return new UsernamePasswordToken($user, $firewallName, $roles);
     }
 }

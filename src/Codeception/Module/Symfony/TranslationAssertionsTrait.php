@@ -173,6 +173,6 @@ trait TranslationAssertionsTrait
 
     protected function grabTranslationCollector(string $function): TranslationDataCollector
     {
-        return $this->grabCollector('translation', $function);
+        return $this->grabCollector(DataCollectorName::TRANSLATION, $function);
     }
 }
