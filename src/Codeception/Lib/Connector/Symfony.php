@@ -49,7 +49,7 @@ class Symfony extends HttpKernelBrowser
     }
 
     /**
-     * Reboot kernel
+     * Reboots the kernel.
      *
      * Services from the list of persistent services
      * are updated from service container before kernel shutdown
@@ -66,7 +66,8 @@ class Symfony extends HttpKernelBrowser
         }
 
         $this->persistDoctrineConnections();
-        $this->kernel->reboot(null);
+        $this->ensureKernelShutdown();
+        $this->kernel->boot();
         $this->container = $this->getContainer();
 
         foreach ($this->persistentServices as $serviceName => $service) {
@@ -80,6 +81,12 @@ class Symfony extends HttpKernelBrowser
         if ($profiler = $this->getProfiler()) {
             $profiler->enable();
         }
+    }
+
+    protected function ensureKernelShutdown(): void
+    {
+        $this->kernel->boot();
+        $this->kernel->shutdown();
     }
 
     private function getContainer(): ?ContainerInterface

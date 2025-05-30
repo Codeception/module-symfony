@@ -7,10 +7,7 @@ jobs:
     strategy:
       matrix:
         php: [8.2, 8.3, 8.4]
-        symfony: ["5.4.*", "6.4.*", "7.2.*"]
-        exclude:
-          - php: 8.1
-            symfony: "7.2.*"
+        symfony: ["5.4.*", "6.4.*", "6.4wApi", "7.2.*"]
 
     steps:
       - name: Checkout code
@@ -25,11 +22,26 @@ jobs:
           coverage: none
 
       - name: Set Symfony version reference
-        run: echo "SF_REF=${MATRIX_SYMFONY%.*}" >> $GITHUB_ENV
         env:
           MATRIX_SYMFONY: ${{ matrix.symfony }}
+        run: |
+          if [[ "$MATRIX_SYMFONY" == *'*' ]]; then
+            echo "SF_REF=${MATRIX_SYMFONY%.*}" >> "$GITHUB_ENV"
+          else
+            echo "SF_REF=$MATRIX_SYMFONY" >> "$GITHUB_ENV"
+          fi
 
-      - name: Checkout Symfony ${{ env.SF_REF }} Sample
+      - name: Set Composer Symfony constraint
+        env:
+          MATRIX_SYMFONY: ${{ matrix.symfony }}
+        run: |
+          if [[ "$MATRIX_SYMFONY" == "6.4wApi" ]]; then
+            echo "COMP_SYMFONY=6.4.*" >> "$GITHUB_ENV"
+          else
+            echo "COMP_SYMFONY=$MATRIX_SYMFONY" >> "$GITHUB_ENV"
+          fi
+
+      - name: Checkout Symfony ${{ env.SF_REF }} sample
         uses: actions/checkout@v4
         with:
           repository: Codeception/symfony-module-tests
@@ -51,17 +63,24 @@ jobs:
         run: composer require --dev --no-update "phpunit/phpunit=^10.0"
 
       - name: Install dependencies
+        env:
+          MATRIX_SYMFONY: ${{ matrix.symfony }}
         run: |
-          composer require symfony/finder=${{ matrix.symfony }} --no-update
-          composer require symfony/yaml=${{ matrix.symfony }} --no-update
-          composer require symfony/console=${{ matrix.symfony }} --no-update
-          composer require symfony/event-dispatcher=${{ matrix.symfony }} --no-update
-          composer require symfony/css-selector=${{ matrix.symfony }} --no-update
-          composer require symfony/dom-crawler=${{ matrix.symfony }} --no-update
-          composer require symfony/browser-kit=${{ matrix.symfony }} --no-update
+          composer require symfony/finder=${{ env.COMP_SYMFONY }} --no-update
+          composer require symfony/yaml=${{ env.COMP_SYMFONY }} --no-update
+          composer require symfony/console=${{ env.COMP_SYMFONY }} --no-update
+          composer require symfony/event-dispatcher=${{ env.COMP_SYMFONY }} --no-update
+          composer require symfony/css-selector=${{ env.COMP_SYMFONY }} --no-update
+          composer require symfony/dom-crawler=${{ env.COMP_SYMFONY }} --no-update
+          composer require symfony/browser-kit=${{ env.COMP_SYMFONY }} --no-update
           composer require vlucas/phpdotenv --no-update
           composer require codeception/module-asserts="3.*" --no-update
           composer require codeception/module-doctrine="3.*" --no-update
+
+          if [[ "$MATRIX_SYMFONY" == "6.4wApi" ]]; then
+            composer require codeception/module-rest="3.*" --no-update
+          fi
+
           composer update --prefer-dist --no-progress --no-dev
 
       - name: Validate Composer files
@@ -82,6 +101,11 @@ jobs:
         run: |
           php bin/console doctrine:schema:update --force
           php bin/console doctrine:fixtures:load --quiet
+        working-directory: framework-tests
+
+      - name: Generate JWT keypair
+        if: ${{ matrix.symfony == '6.4wApi' }}
+        run: php bin/console lexik:jwt:generate-keypair --skip-if-exists
         working-directory: framework-tests
 
       - name: Run tests
