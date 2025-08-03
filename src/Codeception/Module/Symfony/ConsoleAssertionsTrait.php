@@ -23,10 +23,10 @@ trait ConsoleAssertionsTrait
      * $result = $I->runSymfonyConsoleCommand('hello:world', ['arg' => 'argValue', 'opt1' => 'optValue'], ['input']);
      * ```
      *
-     * @param  string                    $command          The console command to execute.
-     * @param  array<string, int|string> $parameters       Arguments and options passed to the command
-     * @param  list<string>              $consoleInputs    Inputs for interactive questions.
-     * @param  int                       $expectedExitCode Expected exit code.
+     * @param string                             $command          The console command to execute.
+     * @param array<int|string, int|string|bool> $parameters       Arguments and options passed to the command
+     * @param list<string>                       $consoleInputs    Inputs for interactive questions.
+     * @param int                                $expectedExitCode Expected exit code.
      * @return string Console output (stdout).
      */
     public function runSymfonyConsoleCommand(
@@ -56,8 +56,8 @@ trait ConsoleAssertionsTrait
     }
 
     /**
-     * @param  array<string, int|string|bool> $parameters
-     * @return array<string, mixed> Options array supported by CommandTester.
+     * @param array<int|string, int|string|bool> $parameters
+     * @return array<string, bool|int> Options array supported by CommandTester.
      */
     private function configureOptions(array $parameters): array
     {
@@ -101,6 +101,8 @@ trait ConsoleAssertionsTrait
 
     protected function grabKernelService(): KernelInterface
     {
-        return $this->grabService('kernel');
+        /** @var KernelInterface $kernel */
+        $kernel = $this->grabService(KernelInterface::class);
+        return $kernel;
     }
 }

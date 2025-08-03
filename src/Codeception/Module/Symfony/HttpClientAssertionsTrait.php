@@ -5,15 +5,24 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
+use Symfony\Component\VarDumper\Cloner\Data;
+use function array_change_key_case;
+use function array_filter;
+use function array_intersect_key;
 use function array_key_exists;
-use function is_string;
+use function in_array;
+use function is_array;
+use function is_object;
+use function method_exists;
+use function sprintf;
 
 trait HttpClientAssertionsTrait
 {
     /**
-     * Asserts that the given URL has been called using, if specified, the given method body and headers.
-     * By default, it will check on the HttpClient, but you can also pass a specific HttpClient ID.
-     * (It will succeed if the request has been called multiple times.)
+     * Asserts that the given URL has been called using, if specified, the given method, body and/or headers.
+     * By default, it will inspect the default Symfony HttpClient; you may check a different one by passing its
+     * service-id in $httpClientId.
+     * It succeeds even if the request was executed multiple times.
      *
      * ```php
      * <?php
@@ -24,115 +33,129 @@ trait HttpClientAssertionsTrait
      *     ['Authorization' => 'Bearer token']
      * );
      * ```
+     *
+     * @param string|array<mixed>|null      $expectedBody
+     * @param array<string,string|string[]> $expectedHeaders
      */
-    public function assertHttpClientRequest(string $expectedUrl, string $expectedMethod = 'GET', string|array|null $expectedBody = null, array $expectedHeaders = [], string $httpClientId = 'http_client'): void
-    {
-        $httpClientCollector = $this->grabHttpClientCollector(__FUNCTION__);
-        $expectedRequestHasBeenFound = false;
-
-        if (!array_key_exists($httpClientId, $httpClientCollector->getClients())) {
-            $this->fail(sprintf('HttpClient "%s" is not registered.', $httpClientId));
-        }
-
-        foreach ($httpClientCollector->getClients()[$httpClientId]['traces'] as $trace) {
-            if (($expectedUrl !== $trace['info']['url'] && $expectedUrl !== $trace['url'])
-                || $expectedMethod !== $trace['method']
-            ) {
-                continue;
-            }
-
-            if (null !== $expectedBody) {
-                $actualBody = null;
-
-                if (null !== $trace['options']['body'] && null === $trace['options']['json']) {
-                    $actualBody = is_string($trace['options']['body']) ? $trace['options']['body'] : $trace['options']['body']->getValue(true);
+    public function assertHttpClientRequest(
+        string            $expectedUrl,
+        string            $expectedMethod = 'GET',
+        string|array|null $expectedBody   = null,
+        array             $expectedHeaders = [],
+        string            $httpClientId = 'http_client',
+    ): void {
+        $matchingRequests = array_filter(
+            $this->getHttpClientTraces($httpClientId, __FUNCTION__),
+            function (array $trace) use ($expectedUrl, $expectedMethod, $expectedBody, $expectedHeaders): bool {
+                if (!$this->matchesUrlAndMethod($trace, $expectedUrl, $expectedMethod)) {
+                    return false;
                 }
 
-                if (null === $trace['options']['body'] && null !== $trace['options']['json']) {
-                    $actualBody = $trace['options']['json']->getValue(true);
-                }
+                $options     = $trace['options'] ?? [];
+                $actualBody  = $this->extractValue($options['body'] ?? $options['json'] ?? null);
+                $bodyMatches = $expectedBody === null || $expectedBody === $actualBody;
 
-                if (!$actualBody) {
-                    continue;
-                }
+                $headersMatch = $expectedHeaders === [] || (
+                        is_array($headerValues = $this->extractValue($options['headers'] ?? []))
+                        && ($normalizedExpected = array_change_key_case($expectedHeaders))
+                        === array_intersect_key(array_change_key_case($headerValues), $normalizedExpected)
+                    );
 
-                if ($expectedBody === $actualBody) {
-                    $expectedRequestHasBeenFound = true;
+                return $bodyMatches && $headersMatch;
+            },
+        );
 
-                    if (!$expectedHeaders) {
-                        break;
-                    }
-                }
-            }
-
-            if ($expectedHeaders) {
-                $actualHeaders = $trace['options']['headers'] ?? [];
-
-                foreach ($actualHeaders as $headerKey => $actualHeader) {
-                    if (array_key_exists($headerKey, $expectedHeaders)
-                        && $expectedHeaders[$headerKey] === $actualHeader->getValue(true)
-                    ) {
-                        $expectedRequestHasBeenFound = true;
-                        break 2;
-                    }
-                }
-            }
-
-            $expectedRequestHasBeenFound = true;
-            break;
-        }
-
-        $this->assertTrue($expectedRequestHasBeenFound, 'The expected request has not been called: "' . $expectedMethod . '" - "' . $expectedUrl . '"');
+        $this->assertNotEmpty(
+            $matchingRequests,
+            sprintf('The expected request has not been called: "%s" - "%s"', $expectedMethod, $expectedUrl)
+        );
     }
 
     /**
-     * Asserts that the given number of requests has been made on the HttpClient.
-     * By default, it will check on the HttpClient, but you can also pass a specific HttpClient ID.
+     * Asserts that exactly $count requests have been executed by the given HttpClient.
+     * By default, it will inspect the default Symfony HttpClient; you may check a different one by passing its
+     * service-id in $httpClientId.
      *
      * ```php
-     * <?php
      * $I->assertHttpClientRequestCount(3);
      * ```
      */
     public function assertHttpClientRequestCount(int $count, string $httpClientId = 'http_client'): void
     {
-        $httpClientCollector = $this->grabHttpClientCollector(__FUNCTION__);
-
-        $this->assertCount($count, $httpClientCollector->getClients()[$httpClientId]['traces']);
+        $this->assertCount($count, $this->getHttpClientTraces($httpClientId, __FUNCTION__));
     }
 
     /**
-     * Asserts that the given URL has not been called using GET or the specified method.
-     * By default, it will check on the HttpClient, but a HttpClient id can be specified.
-     *
+     * Asserts that the given URL *has not* been requested with the supplied HTTP method.
+     * By default, it will inspect the default Symfony HttpClient; you may check a different one by passing its
+     * service-id in $httpClientId.
      * ```php
-     * <?php
      * $I->assertNotHttpClientRequest('https://example.com/unexpected', 'GET');
      * ```
      */
-    public function assertNotHttpClientRequest(string $unexpectedUrl, string $expectedMethod = 'GET', string $httpClientId = 'http_client'): void
-    {
-        $httpClientCollector = $this->grabHttpClientCollector(__FUNCTION__);
-        $unexpectedUrlHasBeenFound = false;
+    public function assertNotHttpClientRequest(
+        string $unexpectedUrl,
+        string $unexpectedMethod = 'GET',
+        string $httpClientId = 'http_client',
+    ): void {
+        $matchingRequests = array_filter(
+            $this->getHttpClientTraces($httpClientId, __FUNCTION__),
+            fn(array $trace): bool => $this->matchesUrlAndMethod($trace, $unexpectedUrl, $unexpectedMethod)
+        );
 
-        if (!array_key_exists($httpClientId, $httpClientCollector->getClients())) {
+        $this->assertEmpty(
+            $matchingRequests,
+            sprintf('Unexpected URL was called: "%s" - "%s"', $unexpectedMethod, $unexpectedUrl)
+        );
+    }
+
+    /**
+     * @return list<array{
+     *     info: array{url: string},
+     *     url: string,
+     *     method: string,
+     *     options?: array{body?: mixed, json?: mixed, headers?: mixed}
+     * }>
+     */
+    private function getHttpClientTraces(string $httpClientId, string $function): array
+    {
+        $httpClientCollector = $this->grabHttpClientCollector($function);
+
+        /** @var array<string, array{traces: list<array{
+         *     info: array{url: string},
+         *     url: string,
+         *     method: string,
+         *     options?: array{body?: mixed, json?: mixed, headers?: mixed}
+         * }>}> $clients
+         */
+        $clients = $httpClientCollector->getClients();
+
+        if (!array_key_exists($httpClientId, $clients)) {
             $this->fail(sprintf('HttpClient "%s" is not registered.', $httpClientId));
         }
 
-        foreach ($httpClientCollector->getClients()[$httpClientId]['traces'] as $trace) {
-            if (($unexpectedUrl === $trace['info']['url'] || $unexpectedUrl === $trace['url'])
-                && $expectedMethod === $trace['method']
-            ) {
-                $unexpectedUrlHasBeenFound = true;
-                break;
-            }
-        }
+        return $clients[$httpClientId]['traces'];
+    }
 
-        $this->assertFalse($unexpectedUrlHasBeenFound, sprintf('Unexpected URL called: "%s" - "%s"', $expectedMethod, $unexpectedUrl));
+    /** @param array{info: array{url: string}, url: string, method: string} $trace */
+    private function matchesUrlAndMethod(array $trace, string $expectedUrl, string $expectedMethod): bool
+    {
+        return in_array($expectedUrl, [$trace['info']['url'], $trace['url']], true)
+            && $expectedMethod === $trace['method'];
+    }
+
+    private function extractValue(mixed $value): mixed
+    {
+        return match (true) {
+            $value instanceof Data => $value->getValue(true),
+            is_object($value) && method_exists($value, 'getValue') => $value->getValue(true),
+            is_object($value) && method_exists($value, '__toString') => (string) $value,
+            default => $value,
+        };
     }
 
     protected function grabHttpClientCollector(string $function): HttpClientDataCollector
     {
-        return $this->grabCollector('http_client', $function);
+        return $this->grabCollector(DataCollectorName::HTTP_CLIENT, $function);
     }
 }

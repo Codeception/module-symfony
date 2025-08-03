@@ -17,6 +17,8 @@ trait ParameterAssertionsTrait
      * $I->grabParameter('app.business_name');
      * ```
      * This only works for explicitly set parameters (just using `bind` for Symfony's dependency injection is not enough).
+     *
+     * @return array<array-key, mixed>|bool|string|int|float|UnitEnum|null
      */
     public function grabParameter(string $parameterName): array|bool|string|int|float|UnitEnum|null
     {
@@ -26,6 +28,8 @@ trait ParameterAssertionsTrait
 
     protected function grabParameterBagService(): ParameterBagInterface
     {
-        return $this->grabService('parameter_bag');
+        /** @var ParameterBagInterface $parameterBag */
+        $parameterBag = $this->grabService(ParameterBagInterface::class);
+        return $parameterBag;
     }
 }

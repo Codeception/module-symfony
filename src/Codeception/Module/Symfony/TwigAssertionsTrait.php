@@ -43,7 +43,7 @@ trait TwigAssertionsTrait
         $twigCollector = $this->grabTwigCollector(__FUNCTION__);
 
         $templates = $twigCollector->getTemplates();
-        $actualTemplate = empty($templates) ? 'N/A' : (string) array_key_first($templates);
+        $actualTemplate = $templates === [] ? 'N/A' : (string) array_key_first($templates);
 
         $this->assertSame(
             $expectedTemplate,
@@ -77,6 +77,6 @@ trait TwigAssertionsTrait
 
     protected function grabTwigCollector(string $function): TwigDataCollector
     {
-        return $this->grabCollector('twig', $function);
+        return $this->grabCollector(DataCollectorName::TWIG, $function);
     }
 }

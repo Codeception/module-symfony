@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Constraint\LogicalNot;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\Event\MessageEvents;
@@ -117,7 +118,7 @@ trait MailerAssertionsTrait
      * $emails = $I->grabSentEmails();
      * ```
      *
-     * @return \Symfony\Component\Mime\Email[]
+     * @return \Symfony\Component\Mime\RawMessage[]
      */
     public function grabSentEmails(): array
     {
@@ -163,14 +164,14 @@ trait MailerAssertionsTrait
 
     protected function getMessageMailerEvents(): MessageEvents
     {
-        if ($mailer = $this->getService('mailer.message_logger_listener')) {
-            /** @var MessageLoggerListener $mailer */
+        $mailer = $this->getService('mailer.message_logger_listener');
+        if ($mailer instanceof MessageLoggerListener) {
             return $mailer->getEvents();
         }
-        if ($mailer = $this->getService('mailer.logger_message_listener')) {
-            /** @var MessageLoggerListener $mailer */
+        $mailer = $this->getService('mailer.logger_message_listener');
+        if ($mailer instanceof MessageLoggerListener) {
             return $mailer->getEvents();
         }
-        $this->fail("Emails can't be tested without Symfony Mailer service.");
+        Assert::fail("Emails can't be tested without Symfony Mailer service.");
     }
 }

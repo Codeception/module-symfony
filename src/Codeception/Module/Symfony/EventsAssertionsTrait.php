@@ -4,49 +4,54 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use PHPUnit\Framework\Assert;
 use Symfony\Component\HttpKernel\DataCollector\EventDataCollector;
+use function array_column;
+use function array_merge;
+use function count;
+use function in_array;
 use function is_array;
 use function is_object;
+use function is_string;
+use function str_starts_with;
 
 trait EventsAssertionsTrait
 {
     /**
-     * Verifies that there were no events during the test.
-     * Both regular and orphan events are checked.
+     * Verifies that **no** events (regular **or** orphan) were dispatched during the test.
      *
      * ```php
-     *  <?php
-     *  $I->dontSeeEvent();
-     *  $I->dontSeeEvent('App\MyEvent');
-     *  $I->dontSeeEvent(['App\MyEvent', 'App\MyOtherEvent']);
-     *  ```
+     * <?php
+     * $I->dontSeeEvent();
+     * $I->dontSeeEvent('App\MyEvent');
+     * $I->dontSeeEvent(['App\MyEvent', 'App\MyOtherEvent']);
+     * ```
      *
-     * @param string|string[]|null $expected
+     * @param class-string|list<class-string>|null $expected Fully-qualified event class(es) that must **not** appear.
      */
     public function dontSeeEvent(array|string|null $expected = null): void
     {
-        $actualEvents = [...array_column($this->getCalledListeners(), 'event')];
-        $actual = [$this->getOrphanedEvents(), $actualEvents];
-        $this->assertEventTriggered(false, $expected, $actual);
+        $actual = $this->collectEvents(orphanOnly: false);
+        $this->assertEventTriggered($expected, $actual, shouldExist: false);
     }
 
     /**
-     * Verifies that one or more event listeners were not called during the test.
+     * Verifies that one or more **listeners** were **not** called during the test.
      *
      * ```php
      * <?php
      * $I->dontSeeEventListenerIsCalled('App\MyEventListener');
      * $I->dontSeeEventListenerIsCalled(['App\MyEventListener', 'App\MyOtherEventListener']);
-     * $I->dontSeeEventListenerIsCalled('App\MyEventListener', 'my.event);
+     * $I->dontSeeEventListenerIsCalled('App\MyEventListener', 'my.event');
      * $I->dontSeeEventListenerIsCalled('App\MyEventListener', ['my.event', 'my.other.event']);
      * ```
      *
-     * @param class-string|class-string[] $expected
-     * @param string|string[] $events
+     * @param class-string|object|list<class-string|object> $expected Listeners (class-strings or object instances).
+     * @param string|list<string>                           $events   Event name(s) (empty = any).
      */
     public function dontSeeEventListenerIsCalled(array|object|string $expected, array|string $events = []): void
     {
-        $this->assertListenerCalled(false, $expected, $events);
+        $this->assertListenerCalled($expected, $events, shouldBeCalled: false);
     }
 
     /**
@@ -59,8 +64,8 @@ trait EventsAssertionsTrait
      * $I->dontSeeEventTriggered(['App\MyEvent', 'App\MyOtherEvent']);
      * ```
      *
-     * @param object|string|string[] $expected
-     * @deprecated Use `dontSeeEventListenerIsCalled` instead.
+     * @param      class-string|object|list<class-string|object> $expected
+     * @deprecated Use {@see dontSeeEventListenerIsCalled()} instead.
      */
     public function dontSeeEventTriggered(array|object|string $expected): void
     {
@@ -75,8 +80,8 @@ trait EventsAssertionsTrait
      * Verifies that there were no orphan events during the test.
      *
      * An orphan event is an event that was triggered by manually executing the
-     * [`dispatch()`](https://symfony.com/doc/current/components/event_dispatcher.html#dispatch-the-event) method
-     * of the EventDispatcher but was not handled by any listener after it was dispatched.
+     * {@link https://symfony.com/doc/current/components/event_dispatcher.html#dispatch-the-event dispatch()}
+     * method of the EventDispatcher but was not handled by any listener after it was dispatched.
      *
      * ```php
      * <?php
@@ -85,53 +90,48 @@ trait EventsAssertionsTrait
      * $I->dontSeeOrphanEvent(['App\MyEvent', 'App\MyOtherEvent']);
      * ```
      *
-     * @param string|string[] $expected
+     * @param class-string|list<class-string>|null $expected Event class(es) that must **not** appear as orphan.
      */
     public function dontSeeOrphanEvent(array|string|null $expected = null): void
     {
-        $actual = [$this->getOrphanedEvents()];
-        $this->assertEventTriggered(false, $expected, $actual);
+        $actual = $this->collectEvents(orphanOnly: true);
+        $this->assertEventTriggered($expected, $actual, shouldExist: false);
     }
 
     /**
-     * Verifies that one or more events were dispatched during the test.
-     * Both regular and orphan events are checked.
-     *
-     * If you need to verify that expected event is not orphan,
-     * add `dontSeeOrphanEvent` call.
+     * Verifies that at least one of the given events **was** dispatched (regular **or** orphan).
      *
      * ```php
-     *  <?php
-     *  $I->seeEvent('App\MyEvent');
-     *  $I->seeEvent(['App\MyEvent', 'App\MyOtherEvent']);
-     *  ```
+     * <?php
+     * $I->seeEvent('App\MyEvent');
+     * $I->seeEvent(['App\MyEvent', 'App\MyOtherEvent']);
+     * ```
      *
-     * @param string|string[] $expected
+     * @param class-string|list<class-string> $expected Fully-qualified class-name(s) of the expected event(s).
      */
     public function seeEvent(array|string $expected): void
     {
-        $actualEvents = [...array_column($this->getCalledListeners(), 'event')];
-        $actual = [$this->getOrphanedEvents(), $actualEvents];
-        $this->assertEventTriggered(true, $expected, $actual);
+        $actual = $this->collectEvents(orphanOnly: false);
+        $this->assertEventTriggered($expected, $actual, shouldExist: true);
     }
 
     /**
-     * Verifies that one or more event listeners were called during the test.
+     * Verifies that one or more **listeners** were called during the test.
      *
      * ```php
      * <?php
      * $I->seeEventListenerIsCalled('App\MyEventListener');
      * $I->seeEventListenerIsCalled(['App\MyEventListener', 'App\MyOtherEventListener']);
-     * $I->seeEventListenerIsCalled('App\MyEventListener', 'my.event);
+     * $I->seeEventListenerIsCalled('App\MyEventListener', 'my.event');
      * $I->seeEventListenerIsCalled('App\MyEventListener', ['my.event', 'my.other.event']);
      * ```
      *
-     * @param class-string|class-string[] $expected
-     * @param string|string[] $events
+     * @param class-string|object|list<class-string|object> $expected Listeners (class-strings or object instances).
+     * @param string|list<string>                           $events   Event name(s) (empty = any).
      */
     public function seeEventListenerIsCalled(array|object|string $expected, array|string $events = []): void
     {
-        $this->assertListenerCalled(true, $expected, $events);
+        $this->assertListenerCalled($expected, $events, shouldBeCalled: true);
     }
 
     /**
@@ -144,8 +144,8 @@ trait EventsAssertionsTrait
      * $I->seeEventTriggered(['App\MyEvent', 'App\MyOtherEvent']);
      * ```
      *
-     * @param object|string|string[] $expected
-     * @deprecated Use `seeEventListenerIsCalled` instead.
+     * @param class-string|object|list<class-string|object> $expected
+     * @deprecated Use {@see seeEventListenerIsCalled()} instead.
      */
     public function seeEventTriggered(array|object|string $expected): void
     {
@@ -157,11 +157,11 @@ trait EventsAssertionsTrait
     }
 
     /**
-     * Verifies that one or more orphan events were dispatched during the test.
+     * Verifies that one or more orphan events **were** dispatched during the test.
      *
      * An orphan event is an event that was triggered by manually executing the
-     * [`dispatch()`](https://symfony.com/doc/current/components/event_dispatcher.html#dispatch-the-event) method
-     * of the EventDispatcher but was not handled by any listener after it was dispatched.
+     * {@link https://symfony.com/doc/current/components/event_dispatcher.html#dispatch-the-event dispatch()}
+     * method of the EventDispatcher but was not handled by any listener after it was dispatched.
      *
      * ```php
      * <?php
@@ -169,84 +169,125 @@ trait EventsAssertionsTrait
      * $I->seeOrphanEvent(['App\MyEvent', 'App\MyOtherEvent']);
      * ```
      *
-     * @param string|string[] $expected
+     * @param class-string|list<class-string> $expected Event class-name(s) expected to be orphan.
      */
     public function seeOrphanEvent(array|string $expected): void
     {
-        $actual = [$this->getOrphanedEvents()];
-        $this->assertEventTriggered(true, $expected, $actual);
+        $actual = $this->collectEvents(orphanOnly: true);
+        $this->assertEventTriggered($expected, $actual, shouldExist: true);
     }
 
-    protected function getCalledListeners(): array
+    /** @return list<array{event: string, pretty: string}> */
+    protected function getDispatchedEvents(): array
     {
-        $eventCollector = $this->grabEventCollector(__FUNCTION__);
+        $eventCollector  = $this->grabEventCollector(__FUNCTION__);
         $calledListeners = $eventCollector->getCalledListeners($this->getDefaultDispatcher());
-        return [...$calledListeners->getValue(true)];
+
+        /** @var list<array{event: string, pretty: string}> */
+        return is_array($calledListeners)
+            ? array_values($calledListeners)
+            : $calledListeners->getValue(true);
     }
 
+    /** @return list<string> */
     protected function getOrphanedEvents(): array
     {
         $eventCollector = $this->grabEventCollector(__FUNCTION__);
         $orphanedEvents = $eventCollector->getOrphanedEvents($this->getDefaultDispatcher());
-        return [...$orphanedEvents->getValue(true)];
+
+        /** @var list<string> */
+        return is_array($orphanedEvents)
+            ? array_values($orphanedEvents)
+            : $orphanedEvents->getValue(true);
     }
 
-    protected function assertEventTriggered(bool $assertTrue, array|object|string|null $expected, array $actual): void
+    /** @return list<list<string>> */
+    private function collectEvents(bool $orphanOnly): array
+    {
+        return $orphanOnly
+            ? [$this->getOrphanedEvents()]
+            : [$this->getOrphanedEvents(), array_column($this->getDispatchedEvents(), 'event')];
+    }
+
+    /**
+     * @param class-string|object|list<class-string|object>|null $expected
+     * @param list<list<string>>                                 $actual
+     */
+    protected function assertEventTriggered(array|object|string|null $expected, array $actual, bool $shouldExist): void
     {
         $actualEvents = array_merge(...$actual);
 
-        if ($assertTrue) $this->assertNotEmpty($actualEvents, 'No event was triggered');
+        if ($shouldExist) {
+            $this->assertNotEmpty($actualEvents, 'No event was triggered.');
+        }
         if ($expected === null) {
             $this->assertEmpty($actualEvents);
             return;
         }
 
-        $expected = is_object($expected) ? $expected::class : $expected;
-        foreach ((array)$expected as $expectedEvent) {
-            $expectedEvent = is_object($expectedEvent) ? $expectedEvent::class : $expectedEvent;
-            $eventTriggered = in_array($expectedEvent, $actualEvents);
+        $expectedEvents = is_object($expected) ? [$expected] : (array) $expected;
+        foreach ($expectedEvents as $expectedEvent) {
+            $eventName    = is_object($expectedEvent) ? $expectedEvent::class : $expectedEvent;
+            $wasTriggered = in_array($eventName, $actualEvents, true);
 
-            $message = $assertTrue
-                ? "The '{$expectedEvent}' event did not trigger"
-                : "The '{$expectedEvent}' event triggered";
-            $this->assertSame($assertTrue, $eventTriggered, $message);
+            $this->assertSame(
+                $shouldExist,
+                $wasTriggered,
+                sprintf("The '%s' event %s triggered", $eventName, $shouldExist ? 'did not' : 'was')
+            );
         }
     }
 
-    protected function assertListenerCalled(bool $assertTrue, array|object|string $expectedListeners, array|object|string $expectedEvents): void
-    {
+    /**
+     * @param class-string|object|list<class-string|object> $expectedListeners
+     * @param string|list<string>                           $expectedEvents
+     */
+    protected function assertListenerCalled(
+        array|object|string $expectedListeners,
+        array|string $expectedEvents,
+        bool $shouldBeCalled
+    ): void {
         $expectedListeners = is_array($expectedListeners) ? $expectedListeners : [$expectedListeners];
-        $expectedEvents = is_array($expectedEvents) ? $expectedEvents : [$expectedEvents];
+        $expectedEvents    = is_array($expectedEvents) ? $expectedEvents : [$expectedEvents];
 
-        if (empty($expectedEvents)) {
+        if ($expectedEvents === []) {
             $expectedEvents = [null];
         } elseif (count($expectedListeners) > 1) {
-            $this->fail('You cannot check for events when using multiple listeners. Make multiple assertions instead.');
+            Assert::fail('Cannot check for events when using multiple listeners. Make multiple assertions instead.');
         }
 
-        $actualEvents = $this->getCalledListeners();
-        if ($assertTrue && empty($actualEvents)) {
-            $this->fail('No event listener was called');
+        $actualEvents = $this->getDispatchedEvents();
+
+        if ($shouldBeCalled && $actualEvents === []) {
+            Assert::fail('No event listener was called.');
         }
 
         foreach ($expectedListeners as $expectedListener) {
-            $expectedListener = is_object($expectedListener) ? $expectedListener::class : $expectedListener;
+            $expectedListener = is_string($expectedListener) ? $expectedListener : $expectedListener::class;
 
             foreach ($expectedEvents as $expectedEvent) {
-                $listenerCalled = $this->listenerWasCalled($expectedListener, $expectedEvent, $actualEvents);
-                $message = "The '{$expectedListener}' listener was called"
-                    . ($expectedEvent ? " for the '{$expectedEvent}' event" : '');
-                $this->assertSame($assertTrue, $listenerCalled, $message);
+                $eventName = $expectedEvent ?: null;
+                $wasCalled = $this->listenerWasCalled($expectedListener, $eventName, $actualEvents);
+
+                $this->assertSame(
+                    $shouldBeCalled,
+                    $wasCalled,
+                    sprintf(
+                        "The '%s' listener was %scalled%s",
+                        $expectedListener,
+                        $shouldBeCalled ? 'not ' : '',
+                        $eventName ? " for the '{$eventName}' event" : ''
+                    )
+                );
             }
         }
     }
 
+    /** @param list<array{event: string, pretty: string}> $actualEvents */
     private function listenerWasCalled(string $expectedListener, ?string $expectedEvent, array $actualEvents): bool
     {
         foreach ($actualEvents as $actualEvent) {
-            if (
-                isset($actualEvent['pretty'], $actualEvent['event'])
-                && str_starts_with($actualEvent['pretty'], $expectedListener)
+            if (str_starts_with($actualEvent['pretty'], $expectedListener)
                 && ($expectedEvent === null || $actualEvent['event'] === $expectedEvent)
             ) {
                 return true;
@@ -262,6 +303,6 @@ trait EventsAssertionsTrait
 
     protected function grabEventCollector(string $function): EventDataCollector
     {
-        return $this->grabCollector('events', $function);
+        return $this->grabCollector(DataCollectorName::EVENTS, $function);
     }
 }

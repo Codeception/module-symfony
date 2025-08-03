@@ -17,7 +17,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          tools: composer:v2
+          tools: composer:v2, phpstan
           extensions: ctype, iconv, intl, json, mbstring, pdo, pdo_sqlite
           coverage: none
 
@@ -56,39 +56,38 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('composer.json', 'composer.lock') }}
+          key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.{json,lock}') }}
           restore-keys: ${{ runner.os }}-php-${{ matrix.php }}-composer-
 
       - name: Install PHPUnit 10
-        run: composer require --dev --no-update "phpunit/phpunit=^10.0"
+        run: composer require --dev --no-update phpunit/phpunit:^10.0
 
       - name: Install dependencies
         env:
           MATRIX_SYMFONY: ${{ matrix.symfony }}
         run: |
-          composer require symfony/finder=${{ env.COMP_SYMFONY }} --no-update
-          composer require symfony/yaml=${{ env.COMP_SYMFONY }} --no-update
-          composer require symfony/console=${{ env.COMP_SYMFONY }} --no-update
-          composer require symfony/event-dispatcher=${{ env.COMP_SYMFONY }} --no-update
-          composer require symfony/css-selector=${{ env.COMP_SYMFONY }} --no-update
-          composer require symfony/dom-crawler=${{ env.COMP_SYMFONY }} --no-update
-          composer require symfony/browser-kit=${{ env.COMP_SYMFONY }} --no-update
-          composer require vlucas/phpdotenv --no-update
-          composer require codeception/module-asserts="3.*" --no-update
-          composer require codeception/module-doctrine="3.*" --no-update
+          composer require --no-update \
+            symfony/{finder,yaml,console,event-dispatcher,css-selector,dom-crawler,browser-kit}:${{ env.COMP_SYMFONY }} \
+            vlucas/phpdotenv \
+            codeception/module-asserts:"3.*" \
+            codeception/module-doctrine:"3.*"
 
           if [[ "$MATRIX_SYMFONY" == "6.4wApi" ]]; then
             composer require codeception/module-rest="3.*" --no-update
           fi
 
-          composer update --prefer-dist --no-progress --no-dev
+          composer update --prefer-dist --no-progress
+
+      - name: Run PHPStan (max)
+        if: ${{ matrix.symfony == '7.2.*' }}
+        run: phpstan analyse src --level=max --no-progress --error-format=github --memory-limit=1G
 
       - name: Validate Composer files
         run: composer validate --strict
         working-directory: framework-tests
 
       - name: Install PHPUnit in framework-tests
-        run: composer require --dev --no-update "phpunit/phpunit=^10.0"
+        run: composer require --dev --no-update phpunit/phpunit:^10.0
         working-directory: framework-tests
 
       - name: Prepare Symfony sample

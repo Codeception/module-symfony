@@ -23,38 +23,35 @@ trait LoggerAssertionsTrait
      */
     public function dontSeeDeprecations(string $message = ''): void
     {
-        $loggerCollector = $this->grabLoggerCollector(__FUNCTION__);
-        $logs = $loggerCollector->getProcessedLogs();
-
+        $logs = $this->grabLoggerCollector(__FUNCTION__)->getProcessedLogs();
         $foundDeprecations = [];
 
+        /** @var array<string, mixed> $log */
         foreach ($logs as $log) {
-            if (isset($log['type']) && $log['type'] === 'deprecation') {
-                $msg = $log['message'];
-                if ($msg instanceof Data) {
-                    $msg = $msg->getValue(true);
-                }
-                if (!is_string($msg)) {
-                    $msg = (string)$msg;
-                }
-                $foundDeprecations[] = $msg;
+            if (!isset($log['type']) || $log['type'] !== 'deprecation') {
+                continue;
             }
+            $msg = $log['message'];
+            if ($msg instanceof Data) {
+                $msg = $msg->getValue(true);
+            }
+            if (!is_string($msg) && !is_scalar($msg)) {
+                $msg = json_encode($msg, JSON_THROW_ON_ERROR);
+            }
+            $foundDeprecations[] = (string) $msg;
         }
-
+        $count = count($foundDeprecations);
         $errorMessage = $message ?: sprintf(
             "Found %d deprecation message%s in the log:\n%s",
-            count($foundDeprecations),
-            count($foundDeprecations) > 1 ? 's' : '',
-            implode("\n", array_map(static function ($msg) {
-                return "  - " . $msg;
-            }, $foundDeprecations))
+            $count,
+            $count !== 1 ? 's' : '',
+            implode("\n", array_map(static fn(string $m): string => "  - $m", $foundDeprecations)),
         );
-
         $this->assertEmpty($foundDeprecations, $errorMessage);
     }
 
     protected function grabLoggerCollector(string $function): LoggerDataCollector
     {
-        return $this->grabCollector('logger', $function);
+        return $this->grabCollector(DataCollectorName::LOGGER, $function);
     }
 }
