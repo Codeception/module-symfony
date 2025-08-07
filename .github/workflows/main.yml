@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         php: [8.2, 8.3, 8.4]
-        symfony: ["5.4.*", "6.4.*", "6.4wApi", "7.2.*"]
+        symfony: ["5.4.*", "6.4.*", "6.4wApi", "7.3.*"]
 
     steps:
       - name: Checkout code
