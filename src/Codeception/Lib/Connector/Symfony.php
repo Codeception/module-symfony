@@ -103,7 +103,12 @@ class Symfony extends HttpKernelBrowser
 
     private function getProfiler(): ?Profiler
     {
+        if (!$this->container->has('profiler')) {
+            return null;
+        }
+
         $profiler = $this->container->get('profiler');
+
         return $profiler instanceof Profiler ? $profiler : null;
     }
 
