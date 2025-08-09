@@ -39,7 +39,8 @@ trait DomCrawlerAssertionsTrait
         $this->assertThatCrawler(
             new LogicalNot(
                 new CrawlerSelectorExists("input[name=\"$fieldName\"]:checked")
-            ), $message
+            ),
+            $message
         );
     }
 
@@ -57,7 +58,8 @@ trait DomCrawlerAssertionsTrait
         $this->assertThatCrawler(
             new LogicalNot(
                 new CrawlerSelectorAttributeValueSame("input[name=\"$fieldName\"]", 'value', $expectedValue)
-            ), $message
+            ),
+            $message
         );
     }
 

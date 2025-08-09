@@ -54,6 +54,7 @@ use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
 use Symfony\Component\Translation\DataCollector\TranslationDataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
+
 use function array_keys;
 use function array_map;
 use function array_unique;
@@ -64,6 +65,7 @@ use function count;
 use function file_exists;
 use function implode;
 use function in_array;
+use function extension_loaded;
 use function ini_get;
 use function ini_set;
 use function is_object;
@@ -292,8 +294,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             $this->persistPermanentService($emService);
             $container = $this->_getContainer();
             foreach (
-                ['doctrine', 'doctrine.orm.default_entity_manager', 'doctrine.dbal.default_connection']
-                as $service
+                ['doctrine', 'doctrine.orm.default_entity_manager', 'doctrine.dbal.default_connection'] as $service
             ) {
                 if ($container->has($service)) {
                     $this->persistPermanentService($service);
@@ -495,6 +496,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     private function setXdebugMaxNestingLevel(int $max): void
     {
+        if (!extension_loaded('xdebug')) {
+            return;
+        }
+
         if ((int) ini_get('xdebug.max_nesting_level') < $max) {
             ini_set('xdebug.max_nesting_level', (string) $max);
         }

@@ -6,6 +6,7 @@ namespace Codeception\Module\Symfony;
 
 use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
+
 use function array_change_key_case;
 use function array_filter;
 use function array_intersect_key;
@@ -56,10 +57,10 @@ trait HttpClientAssertionsTrait
                 $bodyMatches = $expectedBody === null || $expectedBody === $actualBody;
 
                 $headersMatch = $expectedHeaders === [] || (
-                        is_array($headerValues = $this->extractValue($options['headers'] ?? []))
+                    is_array($headerValues = $this->extractValue($options['headers'] ?? []))
                         && ($normalizedExpected = array_change_key_case($expectedHeaders))
                         === array_intersect_key(array_change_key_case($headerValues), $normalizedExpected)
-                    );
+                );
 
                 return $bodyMatches && $headersMatch;
             },
@@ -100,7 +101,7 @@ trait HttpClientAssertionsTrait
     ): void {
         $matchingRequests = array_filter(
             $this->getHttpClientTraces($httpClientId, __FUNCTION__),
-            fn(array $trace): bool => $this->matchesUrlAndMethod($trace, $unexpectedUrl, $unexpectedMethod)
+            fn (array $trace): bool => $this->matchesUrlAndMethod($trace, $unexpectedUrl, $unexpectedMethod)
         );
 
         $this->assertEmpty(

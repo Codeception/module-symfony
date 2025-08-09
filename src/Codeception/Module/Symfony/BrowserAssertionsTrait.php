@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Test\Constraint\ResponseIsRedirected;
 use Symfony\Component\HttpFoundation\Test\Constraint\ResponseIsSuccessful;
 use Symfony\Component\HttpFoundation\Test\Constraint\ResponseIsUnprocessable;
 use Symfony\Component\HttpFoundation\Test\Constraint\ResponseStatusCodeSame;
+
 use function sprintf;
 
 trait BrowserAssertionsTrait
@@ -329,10 +330,7 @@ trait BrowserAssertionsTrait
         $client->followRedirects(false);
         $this->amOnPage($page);
 
-        $this->assertTrue(
-            $client->getResponse()->isRedirection(),
-            'The response is not a redirection.'
-        );
+        $this->assertThatForResponse(new ResponseIsRedirected(), 'The response is not a redirection.');
 
         $client->followRedirect();
         $this->seeInCurrentUrl($redirectsTo);

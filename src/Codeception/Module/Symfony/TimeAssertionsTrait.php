@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
+
 use function round;
 use function sprintf;
 
