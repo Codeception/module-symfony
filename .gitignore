@@ -2,3 +2,4 @@
 /vendor/
 /composer.lock
 /framework-tests
+/.php-cs-fixer.cache

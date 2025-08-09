@@ -6,6 +6,7 @@ namespace Codeception\Module\Symfony;
 
 use PHPUnit\Framework\Assert;
 use Symfony\Component\HttpKernel\DataCollector\EventDataCollector;
+
 use function array_column;
 use function array_merge;
 use function count;

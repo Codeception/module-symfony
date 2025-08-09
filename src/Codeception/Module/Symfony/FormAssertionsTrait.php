@@ -6,6 +6,7 @@ namespace Codeception\Module\Symfony;
 
 use Symfony\Component\Form\Extension\DataCollector\FormDataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
+
 use function is_array;
 use function is_int;
 use function is_string;

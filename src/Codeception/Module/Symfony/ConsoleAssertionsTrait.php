@@ -78,19 +78,19 @@ trait ConsoleAssertionsTrait
             $options['interactive'] = false;
         }
 
-        if (in_array('-vvv', $parameters, true) 
-            || in_array('--verbose=3', $parameters, true) 
+        if (in_array('-vvv', $parameters, true)
+            || in_array('--verbose=3', $parameters, true)
             || (isset($parameters['--verbose']) && $parameters['--verbose'] === 3)
         ) {
             $options['verbosity'] = OutputInterface::VERBOSITY_DEBUG;
-        } elseif (in_array('-vv', $parameters, true) 
-            || in_array('--verbose=2', $parameters, true) 
+        } elseif (in_array('-vv', $parameters, true)
+            || in_array('--verbose=2', $parameters, true)
             || (isset($parameters['--verbose']) && $parameters['--verbose'] === 2)
         ) {
             $options['verbosity'] = OutputInterface::VERBOSITY_VERY_VERBOSE;
-        } elseif (in_array('-v', $parameters, true) 
-            || in_array('--verbose=1', $parameters, true) 
-            || in_array('--verbose', $parameters, true) 
+        } elseif (in_array('-v', $parameters, true)
+            || in_array('--verbose=1', $parameters, true)
+            || in_array('--verbose', $parameters, true)
             || (isset($parameters['--verbose']) && $parameters['--verbose'] === 1)
         ) {
             $options['verbosity'] = OutputInterface::VERBOSITY_VERBOSE;
