@@ -21,6 +21,7 @@ use Codeception\Module\Symfony\HttpClientAssertionsTrait;
 use Codeception\Module\Symfony\LoggerAssertionsTrait;
 use Codeception\Module\Symfony\MailerAssertionsTrait;
 use Codeception\Module\Symfony\MimeAssertionsTrait;
+use Codeception\Module\Symfony\NotifierAssertionsTrait;
 use Codeception\Module\Symfony\ParameterAssertionsTrait;
 use Codeception\Module\Symfony\RouterAssertionsTrait;
 use Codeception\Module\Symfony\SecurityAssertionsTrait;
@@ -52,6 +53,7 @@ use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\Profiler\Profile;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
+use Symfony\Component\Notifier\DataCollector\NotificationDataCollector;
 use Symfony\Component\Translation\DataCollector\TranslationDataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
 
@@ -156,6 +158,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     use LoggerAssertionsTrait;
     use MailerAssertionsTrait;
     use MimeAssertionsTrait;
+    use NotifierAssertionsTrait;
     use ParameterAssertionsTrait;
     use RouterAssertionsTrait;
     use SecurityAssertionsTrait;
@@ -412,6 +415,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *     ($collector is DataCollectorName::TWIG ? TwigDataCollector :
      *     ($collector is DataCollectorName::SECURITY ? SecurityDataCollector :
      *     ($collector is DataCollectorName::MAILER ? MessageDataCollector :
+     *     ($collector is DataCollectorName::NOTIFIER ? NotificationDataCollector :
      *      DataCollectorInterface
      *     ))))))))
      * )
@@ -462,6 +466,13 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             $mailerCollector = $profile->getCollector(DataCollectorName::MAILER->value);
             if ($mailerCollector instanceof MessageDataCollector) {
                 $this->debugMailerData($mailerCollector);
+            }
+        }
+
+        if ($profile->hasCollector(DataCollectorName::NOTIFIER->value)) {
+            $notifierCollector = $profile->getCollector(DataCollectorName::NOTIFIER->value);
+            if ($notifierCollector instanceof NotificationDataCollector) {
+                $this->debugNotifierData($notifierCollector);
             }
         }
 
@@ -541,6 +552,12 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     {
         $count = count($messageCollector->getEvents()->getMessages());
         $this->debugSection('Emails', sprintf('%d sent', $count));
+    }
+
+    private function debugNotifierData(NotificationDataCollector $notificationCollector): void
+    {
+        $count = count($notificationCollector->getEvents()->getMessages());
+        $this->debugSection('Notifications', sprintf('%d sent', $count));
     }
 
     private function debugTimeData(TimeDataCollector $timeCollector): void
