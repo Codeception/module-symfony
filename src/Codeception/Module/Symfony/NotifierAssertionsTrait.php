@@ -11,6 +11,7 @@ use Symfony\Component\Notifier\Event\NotificationEvents;
 use Symfony\Component\Notifier\EventListener\NotificationLoggerListener;
 use Symfony\Component\Notifier\Message\MessageInterface;
 use Symfony\Component\Notifier\Test\Constraint as NotifierConstraint;
+use Symfony\Component\HttpKernel\Kernel;
 
 trait NotifierAssertionsTrait
 {
@@ -69,8 +70,7 @@ trait NotifierAssertionsTrait
      */
     public function assertNotificationSubjectContains(MessageInterface $notification, string $text, string $message = ''): void
     {
-        $bbep = $this->assertThat($notification, new NotifierConstraint\NotificationSubjectContains($text), $message);
-        $test = $notification;
+        $this->assertThat($notification, new NotifierConstraint\NotificationSubjectContains($text), $message);
     }
 
     /**
@@ -240,6 +240,10 @@ trait NotifierAssertionsTrait
 
     protected function getNotificationEvents(): NotificationEvents
     {
+        if (version_compare(Kernel::VERSION, '6.2', '<')) {
+            Assert::fail('Notifier assertions require Symfony 6.2 or higher.');
+        }
+
         $notifier = $this->getService('notifier.notification_logger_listener');
         if ($notifier instanceof NotificationLoggerListener) {
             return $notifier->getEvents();
