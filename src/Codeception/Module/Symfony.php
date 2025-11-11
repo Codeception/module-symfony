@@ -417,7 +417,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      *     ($collector is DataCollectorName::MAILER ? MessageDataCollector :
      *     ($collector is DataCollectorName::NOTIFIER ? NotificationDataCollector :
      *      DataCollectorInterface
-     *     ))))))))
+     *     )))))))))
      * )
      *
      * @throws AssertionFailedError
