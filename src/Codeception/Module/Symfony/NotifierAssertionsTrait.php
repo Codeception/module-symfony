@@ -178,7 +178,7 @@ trait NotifierAssertionsTrait
      * $notifications = $I->grabSentNotifications();
      * ```
      *
-     * @return MessageEvent[]
+     * @return MessageInterface[]
      */
     public function grabSentNotifications(): array
     {
@@ -202,6 +202,9 @@ trait NotifierAssertionsTrait
         $this->assertThat($this->getNotificationEvents(), new NotifierConstraint\NotificationCount($expectedCount));
     }
 
+    /**
+     * @return MessageEvent[]
+     */
     public function getNotifierEvents(?string $transportName = null): array
     {
         return $this->getNotificationEvents()->getEvents($transportName);
@@ -220,6 +223,9 @@ trait NotifierAssertionsTrait
         return $this->getNotifierEvents($transportName)[$index] ?? null;
     }
 
+    /**
+     * @return MessageInterface[]
+     */
     public function getNotifierMessages(?string $transportName = null): array
     {
         return $this->getNotificationEvents()->getMessages($transportName);
@@ -240,6 +246,7 @@ trait NotifierAssertionsTrait
 
     protected function getNotificationEvents(): NotificationEvents
     {
+        // @phpstan-ignore if.alwaysFalse
         if (version_compare(Kernel::VERSION, '6.2', '<')) {
             Assert::fail('Notifier assertions require Symfony 6.2 or higher.');
         }
