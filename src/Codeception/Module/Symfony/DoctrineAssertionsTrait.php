@@ -4,12 +4,21 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Tools\SchemaValidator;
+use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\Assert;
+use Throwable;
 
+use function implode;
 use function interface_exists;
+use function is_dir;
 use function is_object;
+use function is_string;
 use function is_subclass_of;
+use function is_writable;
 use function json_encode;
 use function sprintf;
 
@@ -106,5 +115,100 @@ trait DoctrineAssertionsTrait
                 json_encode($criteria, JSON_THROW_ON_ERROR)
             )
         );
+    }
+
+    /**
+     * Asserts that Doctrine can connect to a database.
+     *
+     * ```php
+     * <?php
+     * $I->seeDoctrineDatabaseIsUp();
+     * $I->seeDoctrineDatabaseIsUp('custom');
+     * ```
+     *
+     * @param non-empty-string $connectionName The name of the Doctrine connection to check.
+     */
+    public function seeDoctrineDatabaseIsUp(string $connectionName = 'default'): void
+    {
+        try {
+            /** @var ManagerRegistry $doctrine */
+            $doctrine   = $this->grabService('doctrine');
+            /** @var Connection $connection */
+            $connection = $doctrine->getConnection($connectionName);
+            $connection->executeQuery($connection->getDatabasePlatform()->getDummySelectSQL());
+        } catch (Throwable $e) {
+            Assert::fail(sprintf('Doctrine connection "%s" failed: %s', $connectionName, $e->getMessage()));
+        }
+    }
+
+    /**
+     * Asserts that the Doctrine mapping is valid and the DB schema is in sync for one entity manager.
+     * Programmatic equivalent of `bin/console doctrine:schema:validate`.
+     *
+     * ```php
+     * <?php
+     * $I->seeDoctrineSchemaIsValid();
+     * $I->seeDoctrineSchemaIsValid('custom');
+     * ```
+     *
+     * @param non-empty-string $entityManagerName
+     */
+    public function seeDoctrineSchemaIsValid(string $entityManagerName = 'default'): void
+    {
+        try {
+            /** @var ManagerRegistry $doctrine */
+            $doctrine = $this->grabService('doctrine');
+            /** @var EntityManagerInterface $em */
+            $em = $doctrine->getManager($entityManagerName);
+            $validator = new SchemaValidator($em);
+            $errors = $validator->validateMapping();
+            $errorMessages = [];
+            foreach ($errors as $className => $classErrors) {
+                $errorMessages[] = sprintf(' - %s: %s', $className, implode('; ', $classErrors));
+            }
+            $this->assertEmpty(
+                $errors,
+                sprintf(
+                    "The Doctrine mapping is invalid for the '%s' entity manager:\n%s",
+                    $entityManagerName,
+                    implode("\n", $errorMessages)
+                )
+            );
+
+            if (!$validator->schemaInSyncWithMetadata()) {
+                Assert::fail(
+                    sprintf(
+                        'The database schema is not in sync with the current mapping for the "%s" entity manager. Generate and run a new migration.',
+                        $entityManagerName
+                    )
+                );
+            }
+        } catch (Throwable $e) {
+            Assert::fail(
+                sprintf('Could not validate Doctrine schema for the "%s" entity manager: %s', $entityManagerName, $e->getMessage())
+            );
+        }
+    }
+
+    /**
+     * Asserts that Doctrine proxy directory is writable for a given entity manager.
+     *
+     * ```php
+     * <?php
+     * $I->seeDoctrineProxyDirIsWritable();
+     * $I->seeDoctrineProxyDirIsWritable('custom');
+     * ```
+     */
+    public function seeDoctrineProxyDirIsWritable(string $entityManagerName = 'default'): void
+    {
+        /** @var ManagerRegistry $doctrine */
+        $doctrine = $this->grabService('doctrine');
+        /** @var EntityManagerInterface $em */
+        $em = $doctrine->getManager($entityManagerName);
+        $proxyDir = $em->getConfiguration()->getProxyDir();
+
+        $this->assertIsString($proxyDir, sprintf('Doctrine proxy dir is not configured for EM "%s".', $entityManagerName));
+        $this->assertTrue(is_dir($proxyDir), sprintf('Doctrine proxy dir does not exist: %s', $proxyDir));
+        $this->assertTrue(is_writable($proxyDir), sprintf('Doctrine proxy dir is not writable: %s', $proxyDir));
     }
 }
