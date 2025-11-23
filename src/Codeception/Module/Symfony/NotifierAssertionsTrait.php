@@ -251,13 +251,12 @@ trait NotifierAssertionsTrait
             Assert::fail('Notifier assertions require Symfony 6.2 or higher.');
         }
 
-        $notifier = $this->getService('notifier.notification_logger_listener');
-        if ($notifier instanceof NotificationLoggerListener) {
-            return $notifier->getEvents();
-        }
-        $notifier = $this->getService('notifier.logger_notification_listener');
-        if ($notifier instanceof NotificationLoggerListener) {
-            return $notifier->getEvents();
+        $services = ['notifier.notification_logger_listener', 'notifier.logger_notification_listener'];
+        foreach ($services as $serviceId) {
+            $notifier = $this->getService($serviceId);
+            if ($notifier instanceof NotificationLoggerListener) {
+                return $notifier->getEvents();
+            }
         }
         Assert::fail("Notifications can't be tested without Symfony Notifier service.");
     }
