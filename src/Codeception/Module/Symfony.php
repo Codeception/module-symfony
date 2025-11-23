@@ -334,6 +334,14 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     protected function getKernelClass(): string
     {
+        /** @var class-string<Kernel> $kernelClass */
+        $kernelClass = $this->config['kernel_class'];
+        $this->requireAdditionalAutoloader();
+
+        if (class_exists($kernelClass)) {
+            return $kernelClass;
+        }
+
         /** @var string $rootDir */
         $rootDir = codecept_root_dir();
         $path    = $rootDir . $this->config['app_path'];
@@ -346,40 +354,21 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             );
         }
 
-        $this->requireAdditionalAutoloader();
+        $finder = new Finder();
+        $finder->name('*Kernel.php')->depth('0')->in($path);
 
-        $finder  = new Finder();
-        $results = iterator_to_array($finder->name('*Kernel.php')->depth('0')->in($path));
-
-        if ($results === []) {
-            throw new ModuleRequireException(
-                self::class,
-                "File with Kernel class was not found at {$path}.\n" .
-                'Specify directory where file with Kernel class for your application is located with `app_path` parameter.'
-            );
-        }
-
-        $kernelClass   = $this->config['kernel_class'];
-        $filesRealPath = [];
-
-        foreach ($results as $file) {
+        foreach ($finder as $file) {
             include_once $file->getRealPath();
-            $filesRealPath[] = $file->getRealPath();
         }
 
-        if (class_exists($kernelClass)) {
-            $ref      = new ReflectionClass($kernelClass);
-            $fileName = $ref->getFileName();
-            if ($fileName !== false && in_array($fileName, $filesRealPath, true)) {
-                /** @var class-string<Kernel> $kernelClass */
-                return $kernelClass;
-            }
+        if (class_exists($kernelClass, false)) {
+            return $kernelClass;
         }
 
         throw new ModuleRequireException(
             self::class,
-            "Kernel class was not found.\n" .
-            'Specify directory where file with Kernel class for your application is located with `kernel_class` parameter.'
+            "Kernel class was not found at {$path}.\n" .
+            'Specify directory where file with Kernel class for your application is located with `app_path` parameter.'
         );
     }
 
@@ -455,31 +444,19 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             return;
         }
 
-        if ($profile->hasCollector(DataCollectorName::SECURITY->value)) {
-            $securityCollector = $profile->getCollector(DataCollectorName::SECURITY->value);
-            if ($securityCollector instanceof SecurityDataCollector) {
-                $this->debugSecurityData($securityCollector);
-            }
-        }
+        $collectors = [
+            DataCollectorName::SECURITY->value => [$this->debugSecurityData(...), SecurityDataCollector::class],
+            DataCollectorName::MAILER->value   => [$this->debugMailerData(...), MessageDataCollector::class],
+            DataCollectorName::NOTIFIER->value => [$this->debugNotifierData(...), NotificationDataCollector::class],
+            DataCollectorName::TIME->value     => [$this->debugTimeData(...), TimeDataCollector::class],
+        ];
 
-        if ($profile->hasCollector(DataCollectorName::MAILER->value)) {
-            $mailerCollector = $profile->getCollector(DataCollectorName::MAILER->value);
-            if ($mailerCollector instanceof MessageDataCollector) {
-                $this->debugMailerData($mailerCollector);
-            }
-        }
-
-        if ($profile->hasCollector(DataCollectorName::NOTIFIER->value)) {
-            $notifierCollector = $profile->getCollector(DataCollectorName::NOTIFIER->value);
-            if ($notifierCollector instanceof NotificationDataCollector) {
-                $this->debugNotifierData($notifierCollector);
-            }
-        }
-
-        if ($profile->hasCollector(DataCollectorName::TIME->value)) {
-            $timeCollector = $profile->getCollector(DataCollectorName::TIME->value);
-            if ($timeCollector instanceof TimeDataCollector) {
-                $this->debugTimeData($timeCollector);
+        foreach ($collectors as $name => [$callback, $expectedClass]) {
+            if ($profile->hasCollector($name)) {
+                $collector = $profile->getCollector($name);
+                if ($collector instanceof $expectedClass) {
+                    $callback($collector);
+                }
             }
         }
     }

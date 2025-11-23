@@ -164,13 +164,12 @@ trait MailerAssertionsTrait
 
     protected function getMessageMailerEvents(): MessageEvents
     {
-        $mailer = $this->getService('mailer.message_logger_listener');
-        if ($mailer instanceof MessageLoggerListener) {
-            return $mailer->getEvents();
-        }
-        $mailer = $this->getService('mailer.logger_message_listener');
-        if ($mailer instanceof MessageLoggerListener) {
-            return $mailer->getEvents();
+        $services = ['mailer.message_logger_listener', 'mailer.logger_message_listener'];
+        foreach ($services as $serviceId) {
+            $mailer = $this->getService($serviceId);
+            if ($mailer instanceof MessageLoggerListener) {
+                return $mailer->getEvents();
+            }
         }
         Assert::fail("Emails can't be tested without Symfony Mailer service.");
     }

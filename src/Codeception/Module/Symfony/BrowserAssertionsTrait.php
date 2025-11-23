@@ -359,8 +359,7 @@ trait BrowserAssertionsTrait
 
         $params = [];
         foreach ($fields as $key => $value) {
-            $fixedKey = sprintf('%s%s', $name, $key);
-            $params[$fixedKey] = $value;
+            $params[$name . $key] = $value;
         }
 
         $button = sprintf('%s_submit', $name);
