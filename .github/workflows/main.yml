@@ -8,8 +8,13 @@ jobs:
       matrix:
         php: [8.2, 8.3, 8.4, 8.5]
         symfony: ["5.4.*", "6.4.*", "6.4wApi", "7.3.*", "7.4.*"]
+        include:
+          - php: 8.4
+            symfony: "8.0.*"
+          - php: 8.5
+            symfony: "8.0.*"
     env:
-      only_sf_latest: &only_sf_latest ${{ matrix.symfony == '7.4.*' }}
+      only_sf_latest: &only_sf_latest ${{ matrix.symfony == '8.0.*' }}
 
     steps:
       - name: Checkout code
@@ -75,8 +80,15 @@ jobs:
           key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.{json,lock}') }}
           restore-keys: ${{ runner.os }}-php-${{ matrix.php }}-composer-
 
-      - name: Install PHPUnit 10
-        run: composer require --dev --no-update phpunit/phpunit:^10.0
+      - name: Install PHPUnit
+        env:
+          MATRIX_SYMFONY: ${{ matrix.symfony }}
+        run: |
+          if [[ "$MATRIX_SYMFONY" == "8.0.*" ]]; then
+            composer require --dev --no-update phpunit/phpunit:^12.5
+          else
+            composer require --dev --no-update phpunit/phpunit:^10.0
+          fi
 
       - name: Install dependencies
         env:
@@ -111,7 +123,14 @@ jobs:
         working-directory: framework-tests
 
       - name: Install PHPUnit in framework-tests
-        run: composer require --dev --no-update phpunit/phpunit:^10.0
+        env:
+          MATRIX_SYMFONY: ${{ matrix.symfony }}
+        run: |
+          if [[ "$MATRIX_SYMFONY" == "8.0.*" ]]; then
+            composer require --dev --no-update phpunit/phpunit:^12.5
+          else
+            composer require --dev --no-update phpunit/phpunit:^10.0
+          fi
         working-directory: framework-tests
 
       - name: Prepare Symfony sample
