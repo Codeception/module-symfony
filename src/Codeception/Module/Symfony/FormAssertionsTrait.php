@@ -25,7 +25,7 @@ trait FormAssertionsTrait
     public function assertFormValue(string $formSelector, string $fieldName, string $value, string $message = ''): void
     {
         $node = $this->getClient()->getCrawler()->filter($formSelector);
-        $this->assertNotEmpty($node, sprintf('Form "%s" not found.', $formSelector));
+        $this->assertNotCount(0, $node, sprintf('Form "%s" not found.', $formSelector));
 
         $values = $node->form()->getValues();
         $this->assertArrayHasKey(
@@ -47,7 +47,7 @@ trait FormAssertionsTrait
     public function assertNoFormValue(string $formSelector, string $fieldName, string $message = ''): void
     {
         $node = $this->getClient()->getCrawler()->filter($formSelector);
-        $this->assertNotEmpty($node, sprintf('Form "%s" not found.', $formSelector));
+        $this->assertNotCount(0, $node, sprintf('Form "%s" not found.', $formSelector));
 
         $values = $node->form()->getValues();
         $this->assertArrayNotHasKey(

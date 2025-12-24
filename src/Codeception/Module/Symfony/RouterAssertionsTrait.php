@@ -65,6 +65,8 @@ trait RouterAssertionsTrait
      * $I->seeCurrentActionIs('PostController::index');
      * $I->seeCurrentActionIs('HomeController');
      * ```
+     *
+     * @param non-empty-string $action
      */
     public function seeCurrentActionIs(string $action): void
     {
