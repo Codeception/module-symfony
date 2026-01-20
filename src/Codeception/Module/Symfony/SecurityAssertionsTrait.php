@@ -6,11 +6,16 @@ namespace Codeception\Module\Symfony;
 
 use PHPUnit\Framework\Assert;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Throwable;
 
+use function array_keys;
+use function array_unique;
+use function array_values;
 use function sprintf;
 
 trait SecurityAssertionsTrait
@@ -145,6 +150,100 @@ trait SecurityAssertionsTrait
 
         $hasher = $this->grabPasswordHasherService();
         $this->assertFalse($hasher->needsRehash($userToValidate), 'User password needs rehash.');
+    }
+
+    /**
+     * Asserts that a security firewall is configured and active.
+     *
+     * ```php
+     * <?php
+     * $I->seeFirewallIsActive('main');
+     * ```
+     */
+    public function seeFirewallIsActive(string $firewallName): void
+    {
+        $container = $this->_getContainer();
+
+        if ($container->hasParameter('security.firewalls')) {
+            /** @var list<string> $firewalls */
+            $firewalls = $container->getParameter('security.firewalls');
+            $this->assertContains(
+                $firewallName,
+                $firewalls,
+                sprintf('Firewall "%s" is not configured. Check your security.yaml.', $firewallName)
+            );
+
+            return;
+        }
+
+        $contextId = 'security.firewall.map.context.' . $firewallName;
+        $this->assertTrue(
+            $container->has($contextId),
+            sprintf('Firewall "%s" context was not found (checked "%s").', $firewallName, $contextId)
+        );
+    }
+
+    /**
+     * Asserts that a role is present either as a key of the role hierarchy or among any inherited roles.
+     * Skips when role hierarchy is not configured.
+     *
+     * ```php
+     * <?php
+     * $I->seeRoleInHierarchy('ROLE_ADMIN');
+     * ```
+     */
+    public function seeRoleInHierarchy(string $role): void
+    {
+        $container = $this->_getContainer();
+        if (!$container->hasParameter('security.role_hierarchy.roles')) {
+            Assert::markTestSkipped('Role hierarchy is not configured; skipping role hierarchy assertion.');
+        }
+
+        /** @var array<string, list<string>> $hierarchy */
+        $hierarchy = $container->getParameter('security.role_hierarchy.roles');
+
+        $all = array_keys($hierarchy);
+        foreach ($hierarchy as $children) {
+            foreach ($children as $child) {
+                $all[] = $child;
+            }
+        }
+        $all = array_values(array_unique($all));
+
+        $this->assertContains(
+            $role,
+            $all,
+            sprintf('Role "%s" was not found in the role hierarchy. Check security.yaml.', $role)
+        );
+    }
+
+    /**
+     * Asserts that a secret stored in Symfony's vault can be resolved.
+     *
+     * ```php
+     * <?php
+     * $I->seeSecretCanBeResolved('DATABASE_PASSWORD');
+     * ```
+     *
+     * @param non-empty-string $secretName The name of the secret (e.g., 'DATABASE_PASSWORD').
+     */
+    public function seeSecretCanBeResolved(string $secretName): void
+    {
+        try {
+            /** @var ContainerBagInterface $params */
+            $params = $this->grabService('parameter_bag');
+            $value = $params->get(sprintf('env(resolve:%s)', $secretName));
+
+            Assert::assertIsString($value, sprintf('Secret "%s" could be resolved but did not return a string.', $secretName));
+        } catch (Throwable $e) {
+            Assert::fail(
+                sprintf(
+                    'Failed to resolve secret "%s". Check your vault and decryption keys. Error: %s',
+                    $secretName,
+                    $e->getMessage()
+                )
+            );
+        }
     }
 
     private function getAuthenticatedUser(): UserInterface
