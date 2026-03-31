@@ -1,0 +1,20 @@
+{% extends 'layout.html.twig' %}
+
+{% block body %}
+    <p class="page-title">{{ 'register.title'|trans }}</p>
+
+    <h1>{{ 'register.heading'|trans }}</h1>
+
+    <form name="registration_form" method="post" action="{{ action|default('/register') }}">
+        <label for="registration_form_email">{{ 'register.email_label'|trans }}</label>
+        <input id="registration_form_email" type="email" name="registration_form[email]" />
+
+        <label for="registration_form_password">{{ 'register.password_label'|trans }}</label>
+        <input id="registration_form_password" type="password" name="registration_form[password]" />
+
+        <label for="registration_form_agreeTerms">{{ 'register.agree_terms_label'|trans }}</label>
+        <input id="registration_form_agreeTerms" type="checkbox" name="registration_form[agreeTerms]" value="1" />
+
+        <button name="registration_form_submit" type="submit">{{ 'register.submit_button'|trans }}</button>
+    </form>
+{% endblock %}
