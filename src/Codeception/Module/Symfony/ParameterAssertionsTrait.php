@@ -28,8 +28,6 @@ trait ParameterAssertionsTrait
 
     protected function grabParameterBagService(): ParameterBagInterface
     {
-        /** @var ParameterBagInterface $parameterBag */
-        $parameterBag = $this->grabService(ParameterBagInterface::class);
-        return $parameterBag;
+        return $this->grabService(ParameterBagInterface::class);
     }
 }

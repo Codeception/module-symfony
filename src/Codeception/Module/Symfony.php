@@ -11,6 +11,7 @@ use Codeception\Lib\Framework;
 use Codeception\Lib\Interfaces\DoctrineProvider;
 use Codeception\Lib\Interfaces\PartedModule;
 use Codeception\Module\Symfony\BrowserAssertionsTrait;
+use Codeception\Module\Symfony\CacheTrait;
 use Codeception\Module\Symfony\ConsoleAssertionsTrait;
 use Codeception\Module\Symfony\DataCollectorName;
 use Codeception\Module\Symfony\DoctrineAssertionsTrait;
@@ -18,6 +19,7 @@ use Codeception\Module\Symfony\DomCrawlerAssertionsTrait;
 use Codeception\Module\Symfony\EventsAssertionsTrait;
 use Codeception\Module\Symfony\FormAssertionsTrait;
 use Codeception\Module\Symfony\HttpClientAssertionsTrait;
+use Codeception\Module\Symfony\HttpKernelAssertionsTrait;
 use Codeception\Module\Symfony\LoggerAssertionsTrait;
 use Codeception\Module\Symfony\MailerAssertionsTrait;
 use Codeception\Module\Symfony\MimeAssertionsTrait;
@@ -35,43 +37,31 @@ use Codeception\TestInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\AssertionFailedError;
-use ReflectionClass;
 use ReflectionException;
-use Symfony\Bridge\Twig\DataCollector\TwigDataCollector;
 use Symfony\Bundle\SecurityBundle\DataCollector\SecurityDataCollector;
 use Symfony\Component\BrowserKit\AbstractBrowser;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Form\Extension\DataCollector\FormDataCollector;
-use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
-use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
-use Symfony\Component\HttpKernel\DataCollector\EventDataCollector;
-use Symfony\Component\HttpKernel\DataCollector\LoggerDataCollector;
 use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\Profiler\Profile;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
 use Symfony\Component\Notifier\DataCollector\NotificationDataCollector;
-use Symfony\Component\Translation\DataCollector\TranslationDataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
 
-use function array_keys;
+use function array_filter;
 use function array_map;
-use function array_unique;
-use function array_values;
 use function class_exists;
 use function codecept_root_dir;
 use function count;
+use function extension_loaded;
 use function file_exists;
 use function implode;
-use function in_array;
-use function extension_loaded;
 use function ini_get;
 use function ini_set;
 use function is_object;
-use function iterator_to_array;
+use function is_subclass_of;
 use function sprintf;
 
 /**
@@ -149,12 +139,14 @@ use function sprintf;
 class Symfony extends Framework implements DoctrineProvider, PartedModule
 {
     use BrowserAssertionsTrait;
+    use CacheTrait;
     use ConsoleAssertionsTrait;
     use DoctrineAssertionsTrait;
     use DomCrawlerAssertionsTrait;
     use EventsAssertionsTrait;
     use FormAssertionsTrait;
     use HttpClientAssertionsTrait;
+    use HttpKernelAssertionsTrait;
     use LoggerAssertionsTrait;
     use MailerAssertionsTrait;
     use MimeAssertionsTrait;
@@ -164,8 +156,8 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     use SecurityAssertionsTrait;
     use ServicesAssertionsTrait;
     use SessionAssertionsTrait;
-    use TranslationAssertionsTrait;
     use TimeAssertionsTrait;
+    use TranslationAssertionsTrait;
     use TwigAssertionsTrait;
     use ValidatorAssertionsTrait;
 
@@ -201,22 +193,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         'guard'             => false,
     ];
 
-    /** @var class-string<Kernel>|null */
     protected ?string $kernelClass = null;
-
-    /**
-     * Services that should be persistent permanently for all tests
-     *
-     * @var array<non-empty-string, object>
-     */
-    protected array $permanentServices = [];
-
-    /**
-     * Services that should be persistent during test execution between kernel reboots
-     *
-     * @var array<non-empty-string, object>
-     */
-    protected array $persistentServices = [];
 
     /** @return list<string> */
     public function _parts(): array
@@ -252,7 +229,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function _before(TestInterface $test): void
     {
-        $this->persistentServices = array_merge($this->persistentServices, $this->permanentServices);
+        $this->state = [];
+
+        $this->persistentServices = $this->persistentServices === []
+            ? $this->permanentServices
+            : [...$this->persistentServices, ...$this->permanentServices];
 
         $this->client = new SymfonyConnector(
             $this->kernel,
@@ -266,7 +247,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     public function _after(TestInterface $test): void
     {
-        foreach (array_keys($this->permanentServices) as $serviceName) {
+        foreach ($this->permanentServices as $serviceName => $_) {
             $service = $this->getService($serviceName);
             if (is_object($service)) {
                 $this->permanentServices[$serviceName] = $service;
@@ -274,6 +255,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
                 unset($this->permanentServices[$serviceName]);
             }
         }
+        $this->persistentServices = [];
+
+        $this->cachedResponse = null;
+        $this->cachedProfile  = null;
+
         parent::_after($test);
     }
 
@@ -296,34 +282,24 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if (!isset($this->permanentServices[$emService])) {
             $this->persistPermanentService($emService);
             $container = $this->_getContainer();
-            foreach (
-                ['doctrine', 'doctrine.orm.default_entity_manager', 'doctrine.dbal.default_connection'] as $service
-            ) {
+            foreach (['doctrine', 'doctrine.orm.default_entity_manager', 'doctrine.dbal.default_connection'] as $service) {
                 if ($container->has($service)) {
                     $this->persistPermanentService($service);
                 }
             }
         }
 
-        /** @var EntityManagerInterface */
-        return $this->permanentServices[$emService];
-    }
+        $em = $this->permanentServices[$emService];
+        if (!$em instanceof EntityManagerInterface) {
+            Assert::fail(sprintf('Service "%s" is not an instance of EntityManagerInterface.', $emService));
+        }
 
-    public function _getContainer(): ContainerInterface
-    {
-        $container = $this->kernel->getContainer();
-        /** @var ContainerInterface $testContainer */
-        $testContainer = $container->has('test.service_container') ? $container->get('test.service_container') : $container;
-        return $testContainer;
+        return $em;
     }
 
     protected function getClient(): SymfonyConnector
     {
-        if ($this->client === null) {
-            Assert::fail('Client is not initialized');
-        }
-
-        return $this->client;
+        return $this->client ?? Assert::fail('Client is not initialized');
     }
 
     /**
@@ -334,11 +310,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     protected function getKernelClass(): string
     {
-        /** @var class-string<Kernel> $kernelClass */
         $kernelClass = $this->config['kernel_class'];
         $this->requireAdditionalAutoloader();
 
-        if (class_exists($kernelClass)) {
+        if (class_exists($kernelClass) && is_subclass_of($kernelClass, Kernel::class)) {
+            /** @var class-string<Kernel> $kernelClass */
             return $kernelClass;
         }
 
@@ -349,26 +325,27 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if (!file_exists($path)) {
             throw new ModuleRequireException(
                 self::class,
-                "Can't load Kernel from {$path}.\n" .
-                'Directory does not exist. Set `app_path` in your suite configuration to a valid application path.'
+                "Can't load Kernel from {$path}.\nDirectory does not exist. Set `app_path` in your suite configuration to a valid application path."
             );
         }
 
-        $finder = new Finder();
-        $finder->name('*Kernel.php')->depth('0')->in($path);
-
-        foreach ($finder as $file) {
-            include_once $file->getRealPath();
+        $expectedKernelPath = $path . DIRECTORY_SEPARATOR . 'Kernel.php';
+        if (file_exists($expectedKernelPath)) {
+            include_once $expectedKernelPath;
+        } else {
+            foreach ((new Finder())->name('*Kernel.php')->depth('0')->in($path) as $file) {
+                include_once $file->getRealPath();
+            }
         }
 
-        if (class_exists($kernelClass, false)) {
+        if (class_exists($kernelClass, false) && is_subclass_of($kernelClass, Kernel::class)) {
+            /** @var class-string<Kernel> $kernelClass */
             return $kernelClass;
         }
 
         throw new ModuleRequireException(
             self::class,
-            "Kernel class was not found at {$path}.\n" .
-            'Specify directory where file with Kernel class for your application is located with `app_path` parameter.'
+            "Kernel class was not found at {$path}.\nSpecify directory where file with Kernel class for your application is located with `app_path` parameter."
         );
     }
 
@@ -385,51 +362,20 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         }
 
         try {
-            return $profiler->loadProfileFromResponse($this->getClient()->getResponse());
+            $response = $this->getClient()->getResponse();
+            if ($this->cachedResponse === $response) {
+                return $this->cachedProfile;
+            }
+
+            $profile = $profiler->loadProfileFromResponse($response);
+
+            $this->cachedResponse = $response;
+            $this->cachedProfile  = $profile;
+
+            return $profile;
         } catch (BadMethodCallException) {
             Assert::fail('You must perform a request before using this method.');
         }
-    }
-
-    /**
-     * Grab a Symfony Data Collector from the current profile.
-     *
-     * @phpstan-return (
-     *     $collector is DataCollectorName::EVENTS ? EventDataCollector :
-     *     ($collector is DataCollectorName::FORM ? FormDataCollector :
-     *     ($collector is DataCollectorName::HTTP_CLIENT ? HttpClientDataCollector :
-     *     ($collector is DataCollectorName::LOGGER ? LoggerDataCollector :
-     *     ($collector is DataCollectorName::TIME ? TimeDataCollector :
-     *     ($collector is DataCollectorName::TRANSLATION ? TranslationDataCollector :
-     *     ($collector is DataCollectorName::TWIG ? TwigDataCollector :
-     *     ($collector is DataCollectorName::SECURITY ? SecurityDataCollector :
-     *     ($collector is DataCollectorName::MAILER ? MessageDataCollector :
-     *     ($collector is DataCollectorName::NOTIFIER ? NotificationDataCollector :
-     *      DataCollectorInterface
-     *     )))))))))
-     * )
-     *
-     * @throws AssertionFailedError
-     */
-    protected function grabCollector(DataCollectorName $collector, string $function, ?string $message = null): DataCollectorInterface
-    {
-        $profile = $this->getProfile();
-
-        if ($profile === null) {
-            Assert::fail(sprintf("The Profile is needed to use the '%s' function.", $function));
-        }
-
-        if (!$profile->hasCollector($collector->value)) {
-            Assert::fail(
-                $message ?: sprintf(
-                    "The '%s' collector is needed to use the '%s' function.",
-                    $collector->value,
-                    $function
-                )
-            );
-        }
-
-        return $profile->getCollector($collector->value);
     }
 
     /**
@@ -439,44 +385,21 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     {
         parent::debugResponse($url);
 
-        $profile = $this->getProfile();
-        if ($profile === null) {
+        if (!$profile = $this->getProfile()) {
             return;
         }
 
-        $collectors = [
-            DataCollectorName::SECURITY->value => [$this->debugSecurityData(...), SecurityDataCollector::class],
-            DataCollectorName::MAILER->value   => [$this->debugMailerData(...), MessageDataCollector::class],
-            DataCollectorName::NOTIFIER->value => [$this->debugNotifierData(...), NotificationDataCollector::class],
-            DataCollectorName::TIME->value     => [$this->debugTimeData(...), TimeDataCollector::class],
-        ];
-
-        foreach ($collectors as $name => [$callback, $expectedClass]) {
-            if ($profile->hasCollector($name)) {
-                $collector = $profile->getCollector($name);
-                if ($collector instanceof $expectedClass) {
-                    $callback($collector);
-                }
-            }
-        }
+        $this->debugCollector($profile, DataCollectorName::SECURITY->value);
+        $this->debugCollector($profile, DataCollectorName::MAILER->value);
+        $this->debugCollector($profile, DataCollectorName::NOTIFIER->value);
+        $this->debugCollector($profile, DataCollectorName::TIME->value);
     }
 
-    /** @return list<non-empty-string> */
-    protected function getInternalDomains(): array
+    protected function doRebootClientKernel(): void
     {
-        $domains = [];
-
-        foreach ($this->grabRouterService()->getRouteCollection() as $route) {
-            if ($route->getHost() !== '') {
-                $regex = $route->compile()->getHostRegex();
-                if ($regex !== null && $regex !== '') {
-                    $domains[] = $regex;
-                }
-            }
+        if ($this->client instanceof SymfonyConnector) {
+            $this->client->rebootKernel();
         }
-
-        /** @var list<non-empty-string> */
-        return array_values(array_unique($domains));
     }
 
     /**
@@ -527,19 +450,33 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     private function debugMailerData(MessageDataCollector $messageCollector): void
     {
-        $count = count($messageCollector->getEvents()->getMessages());
-        $this->debugSection('Emails', sprintf('%d sent', $count));
+        $this->debugSection('Emails', sprintf('%d sent', count($messageCollector->getEvents()->getMessages())));
     }
 
     private function debugNotifierData(NotificationDataCollector $notificationCollector): void
     {
-        $count = count($notificationCollector->getEvents()->getMessages());
-        $this->debugSection('Notifications', sprintf('%d sent', $count));
+        $this->debugSection('Notifications', sprintf('%d sent', count($notificationCollector->getEvents()->getMessages())));
     }
 
     private function debugTimeData(TimeDataCollector $timeCollector): void
     {
         $this->debugSection('Time', sprintf('%.2f ms', $timeCollector->getDuration()));
+    }
+
+    private function debugCollector(Profile $profile, string $name): void
+    {
+        if (!$profile->hasCollector($name)) {
+            return;
+        }
+
+        $collector = $profile->getCollector($name);
+        match (true) {
+            $collector instanceof SecurityDataCollector => $this->debugSecurityData($collector),
+            $collector instanceof MessageDataCollector => $this->debugMailerData($collector),
+            $collector instanceof NotificationDataCollector => $this->debugNotifierData($collector),
+            $collector instanceof TimeDataCollector => $this->debugTimeData($collector),
+            default => null,
+        };
     }
 
     /**
@@ -554,6 +491,20 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
         if (file_exists($autoload)) {
             include_once $autoload;
+        }
+    }
+
+    /** @param non-empty-string $name */
+    protected function updateClientPersistentService(string $name, ?object $service): void
+    {
+        if (!$this->client instanceof SymfonyConnector) {
+            return;
+        }
+
+        if ($service === null) {
+            unset($this->client->persistentServices[$name]);
+        } else {
+            $this->client->persistentServices[$name] = $service;
         }
     }
 }

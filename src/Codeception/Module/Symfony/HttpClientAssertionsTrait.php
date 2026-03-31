@@ -10,10 +10,10 @@ use Symfony\Component\VarDumper\Cloner\Data;
 use function array_change_key_case;
 use function array_filter;
 use function array_intersect_key;
-use function array_key_exists;
 use function in_array;
 use function is_array;
 use function is_object;
+use function is_string;
 use function method_exists;
 use function sprintf;
 
@@ -45,29 +45,35 @@ trait HttpClientAssertionsTrait
         array             $expectedHeaders = [],
         string            $httpClientId = 'http_client',
     ): void {
-        $matchingRequests = array_filter(
+        $matchingTraces = array_filter(
             $this->getHttpClientTraces($httpClientId, __FUNCTION__),
-            function (array $trace) use ($expectedUrl, $expectedMethod, $expectedBody, $expectedHeaders): bool {
-                if (!$this->matchesUrlAndMethod($trace, $expectedUrl, $expectedMethod)) {
+            function ($trace) use ($expectedUrl, $expectedMethod, $expectedBody, $expectedHeaders): bool {
+                if (!is_array($trace) || !$this->matchesUrlAndMethod($trace, $expectedUrl, $expectedMethod)) {
                     return false;
                 }
 
-                $options     = $trace['options'] ?? [];
-                $actualBody  = $this->extractValue($options['body'] ?? $options['json'] ?? null);
-                $bodyMatches = $expectedBody === null || $expectedBody === $actualBody;
+                $options = $this->extractValue($trace['options'] ?? []);
+                $options = is_array($options) ? $options : [];
 
-                $headersMatch = $expectedHeaders === [] || (
-                    is_array($headerValues = $this->extractValue($options['headers'] ?? []))
-                        && ($normalizedExpected = array_change_key_case($expectedHeaders))
-                        === array_intersect_key(array_change_key_case($headerValues), $normalizedExpected)
-                );
+                $expectedTraceBody = $this->extractValue($options['body'] ?? $options['json'] ?? null);
+                if ($expectedBody !== null && $expectedBody !== $expectedTraceBody) {
+                    return false;
+                }
 
-                return $bodyMatches && $headersMatch;
+                if ($expectedHeaders === []) {
+                    return true;
+                }
+
+                $actualHeaders = $this->extractValue($options['headers'] ?? []);
+                $expected = array_change_key_case($expectedHeaders);
+
+                return is_array($actualHeaders)
+                    && $expected === array_intersect_key(array_change_key_case($actualHeaders), $expected);
             },
         );
 
         $this->assertNotEmpty(
-            $matchingRequests,
+            $matchingTraces,
             sprintf('The expected request has not been called: "%s" - "%s"', $expectedMethod, $expectedUrl)
         );
     }
@@ -90,6 +96,7 @@ trait HttpClientAssertionsTrait
      * Asserts that the given URL *has not* been requested with the supplied HTTP method.
      * By default, it will inspect the default Symfony HttpClient; you may check a different one by passing its
      * service-id in $httpClientId.
+     *
      * ```php
      * $I->assertNotHttpClientRequest('https://example.com/unexpected', 'GET');
      * ```
@@ -99,50 +106,45 @@ trait HttpClientAssertionsTrait
         string $unexpectedMethod = 'GET',
         string $httpClientId = 'http_client',
     ): void {
-        $matchingRequests = array_filter(
+        $matchingTraces = array_filter(
             $this->getHttpClientTraces($httpClientId, __FUNCTION__),
-            fn (array $trace): bool => $this->matchesUrlAndMethod($trace, $unexpectedUrl, $unexpectedMethod)
+            fn($trace): bool => is_array($trace) && $this->matchesUrlAndMethod($trace, $unexpectedUrl, $unexpectedMethod),
         );
 
         $this->assertEmpty(
-            $matchingRequests,
+            $matchingTraces,
             sprintf('Unexpected URL was called: "%s" - "%s"', $unexpectedMethod, $unexpectedUrl)
         );
     }
 
-    /**
-     * @return list<array{
-     *     info: array{url: string},
-     *     url: string,
-     *     method: string,
-     *     options?: array{body?: mixed, json?: mixed, headers?: mixed}
-     * }>
-     */
+    /** @return array<mixed> */
     private function getHttpClientTraces(string $httpClientId, string $function): array
     {
-        $httpClientCollector = $this->grabHttpClientCollector($function);
+        $clients = $this->grabHttpClientCollector($function)->getClients();
 
-        /** @var array<string, array{traces: list<array{
-         *     info: array{url: string},
-         *     url: string,
-         *     method: string,
-         *     options?: array{body?: mixed, json?: mixed, headers?: mixed}
-         * }>}> $clients
-         */
-        $clients = $httpClientCollector->getClients();
-
-        if (!array_key_exists($httpClientId, $clients)) {
+        if (!isset($clients[$httpClientId])) {
             $this->fail(sprintf('HttpClient "%s" is not registered.', $httpClientId));
         }
 
-        return $clients[$httpClientId]['traces'];
+        /** @var array{traces: array<mixed>} $clientData */
+        $clientData = $clients[$httpClientId];
+        return $clientData['traces'];
     }
 
-    /** @param array{info: array{url: string}, url: string, method: string} $trace */
+    /** @param array<mixed> $trace */
     private function matchesUrlAndMethod(array $trace, string $expectedUrl, string $expectedMethod): bool
     {
-        return in_array($expectedUrl, [$trace['info']['url'], $trace['url']], true)
-            && $expectedMethod === $trace['method'];
+        $method = $trace['method'] ?? null;
+        $url = $trace['url'] ?? null;
+
+        if (!is_string($method) || !is_string($url) || $expectedMethod !== $method) {
+            return false;
+        }
+
+        $info = $this->extractValue($trace['info'] ?? []);
+        $infoUrl = is_array($info) ? ($info['url'] ?? $info['original_url'] ?? null) : null;
+
+        return in_array($expectedUrl, [$infoUrl, $url], true);
     }
 
     private function extractValue(mixed $value): mixed

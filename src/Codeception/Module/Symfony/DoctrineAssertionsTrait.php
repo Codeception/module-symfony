@@ -29,17 +29,7 @@ trait DoctrineAssertionsTrait
      */
     public function grabNumRecords(string $entityClass, array $criteria = []): int
     {
-        $em         = $this->_getEntityManager();
-        $repository = $em->getRepository($entityClass);
-
-        if ($criteria === []) {
-            return (int)$repository->createQueryBuilder('e')
-                ->select('count(e.id)')
-                ->getQuery()
-                ->getSingleScalarResult();
-        }
-
-        return $repository->count($criteria);
+        return $this->_getEntityManager()->getRepository($entityClass)->count($criteria);
     }
 
     /**

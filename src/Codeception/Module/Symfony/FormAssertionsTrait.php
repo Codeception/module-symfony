@@ -9,6 +9,7 @@ use Symfony\Component\VarDumper\Cloner\Data;
 
 use function is_array;
 use function is_int;
+use function is_numeric;
 use function is_string;
 use function sprintf;
 
@@ -25,7 +26,7 @@ trait FormAssertionsTrait
     public function assertFormValue(string $formSelector, string $fieldName, string $value, string $message = ''): void
     {
         $node = $this->getClient()->getCrawler()->filter($formSelector);
-        $this->assertNotEmpty($node, sprintf('Form "%s" not found.', $formSelector));
+        $this->assertGreaterThan(0, count($node), sprintf('Form "%s" not found.', $formSelector));
 
         $values = $node->form()->getValues();
         $this->assertArrayHasKey(
@@ -47,7 +48,7 @@ trait FormAssertionsTrait
     public function assertNoFormValue(string $formSelector, string $fieldName, string $message = ''): void
     {
         $node = $this->getClient()->getCrawler()->filter($formSelector);
-        $this->assertNotEmpty($node, sprintf('Form "%s" not found.', $formSelector));
+        $this->assertGreaterThan(0, count($node), sprintf('Form "%s" not found.', $formSelector));
 
         $values = $node->form()->getValues();
         $this->assertArrayNotHasKey(
@@ -67,10 +68,7 @@ trait FormAssertionsTrait
      */
     public function dontSeeFormErrors(): void
     {
-        $formCollector = $this->grabFormCollector(__FUNCTION__);
-        $errors        = $this->extractFormCollectorScalar($formCollector, 'nb_errors');
-
-        $this->assertSame(0, $errors, 'Expecting that the form does not have errors, but there were!');
+        $this->assertSame(0, $this->getFormErrorsCount(__FUNCTION__), 'Expecting that the form does not have errors, but there were!');
     }
 
     /**
@@ -85,86 +83,46 @@ trait FormAssertionsTrait
      */
     public function seeFormErrorMessage(string $field, ?string $message = null): void
     {
-        $formCollector = $this->grabFormCollector(__FUNCTION__);
-        $rawData       = $this->getRawCollectorData($formCollector);
-        $formsData     = array_values(is_array($rawData['forms'] ?? null) ? $rawData['forms'] : []);
+        $errors = $this->getErrorsForField($field);
 
-        $fieldExists    = false;
-        $errorsForField = [];
-
-        foreach ($formsData as $form) {
-            if (!is_array($form)) {
-                continue;
-            }
-            $children = is_array($form['children'] ?? null) ? $form['children'] : [];
-            foreach ($children as $child) {
-                if (!is_array($child) || ($child['name'] ?? null) !== $field) {
-                    continue;
-                }
-
-                $fieldExists = true;
-
-                $errs = is_array($child['errors'] ?? null) ? $child['errors'] : [];
-                foreach ($errs as $error) {
-                    if (is_array($error) && is_string($error['message'] ?? null)) {
-                        $errorsForField[] = $error['message'];
-                    }
-                }
-            }
-        }
-
-        if (!$fieldExists) {
-            $this->fail("The field '{$field}' does not exist in the form.");
-        }
-
-        if ($errorsForField === []) {
+        if ($errors === []) {
             $this->fail("No form error message for field '{$field}'.");
         }
 
-        if ($message === null) {
-            return;
+        if ($message !== null) {
+            $this->assertStringContainsString(
+                $message,
+                implode("\n", $errors),
+                sprintf("There is an error message for the field '%s', but it does not match the expected message.", $field)
+            );
         }
-
-        $this->assertStringContainsString(
-            $message,
-            implode("\n", $errorsForField),
-            sprintf(
-                "There is an error message for the field '%s', but it does not match the expected message.",
-                $field
-            )
-        );
     }
 
     /**
      * Verifies that multiple fields on a form have errors.
      *
-     * If you only specify the name of the fields, this method will
-     * verify that the field contains at least one error of any type:
+     * Use a list of field names when you only need to assert that each field
+     * has at least one validation error:
      *
      * ```php
      * <?php
      * $I->seeFormErrorMessages(['telephone', 'address']);
      * ```
      *
-     * If you want to specify the error messages, you can do so
-     * by sending an associative array instead, with the key being
-     * the name of the field and the error message the value.
-     * This method will validate that the expected error message
-     * is contained in the actual error message, that is,
-     * you can specify either the entire error message or just a part of it:
+     * Use an associative array to also verify the error text for one or more
+     * fields. The expected message is matched as a substring, so partial
+     * fragments are allowed:
      *
      * ```php
      * <?php
      * $I->seeFormErrorMessages([
      *     'address'   => 'The address is too long',
-     *     'telephone' => 'too short', // the full error message is 'The telephone is too short'
+     *     'telephone' => 'too short',
      * ]);
      * ```
      *
-     * If you don't want to specify the error message for some fields,
-     * you can pass `null` as value instead of the message string,
-     * or you can directly omit the value of that field. If that is the case,
-     * it will be validated that that field has at least one error of any type:
+     * You can mix both styles in the same call. If a field maps to `null`,
+     * only the existence of an error is checked for that field:
      *
      * ```php
      * <?php
@@ -180,11 +138,7 @@ trait FormAssertionsTrait
     public function seeFormErrorMessages(array $expectedErrors): void
     {
         foreach ($expectedErrors as $field => $msg) {
-            if (is_int($field)) {
-                $this->seeFormErrorMessage((string) $msg);
-            } else {
-                $this->seeFormErrorMessage($field, $msg);
-            }
+            is_int($field) ? $this->seeFormErrorMessage((string) $msg) : $this->seeFormErrorMessage($field, $msg);
         }
     }
 
@@ -198,36 +152,71 @@ trait FormAssertionsTrait
      */
     public function seeFormHasErrors(): void
     {
-        $formCollector = $this->grabFormCollector(__FUNCTION__);
-        $errors        = $this->extractFormCollectorScalar($formCollector, 'nb_errors');
-
-        $this->assertGreaterThan(0, $errors, 'Expecting that the form has errors, but there were none!');
+        $this->assertGreaterThan(0, $this->getFormErrorsCount(__FUNCTION__), 'Expecting that the form has errors, but there were none!');
     }
 
-    private function extractFormCollectorScalar(FormDataCollector $collector, string $key): int
+    protected function grabFormCollector(string $function): FormDataCollector
     {
-        $rawData  = $this->getRawCollectorData($collector);
-        $valueRaw = $rawData[$key] ?? null;
+        return $this->grabCollector(DataCollectorName::FORM, $function);
+    }
 
-        return is_numeric($valueRaw) ? (int) $valueRaw : 0;
+    private function getFormErrorsCount(string $function): int
+    {
+        $collector = $this->grabFormCollector($function);
+        $rawData = $this->getRawCollectorData($collector);
+
+        return isset($rawData['nb_errors']) && is_numeric($rawData['nb_errors']) ? (int) $rawData['nb_errors'] : 0;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getErrorsForField(string $field): array
+    {
+        $collector = $this->grabFormCollector('seeFormErrorMessage');
+        $formsData = $this->getRawCollectorData($collector)['forms'] ?? [];
+        if (!is_array($formsData)) {
+            return [];
+        }
+
+        $errorsForField = [];
+        $fieldFound = false;
+
+        foreach ($formsData as $form) {
+            if (!is_array($form) || !isset($form['children']) || !is_array($form['children'])) {
+                continue;
+            }
+
+            foreach ($form['children'] as $child) {
+                if (!is_array($child) || ($child['name'] ?? null) !== $field) {
+                    continue;
+                }
+                $fieldFound = true;
+                if (isset($child['errors']) && is_array($child['errors'])) {
+                    foreach ($child['errors'] as $error) {
+                        if (is_array($error) && isset($error['message']) && is_string($error['message'])) {
+                            $errorsForField[] = $error['message'];
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!$fieldFound) {
+            $this->fail("The field '{$field}' does not exist in the form.");
+        }
+
+        return $errorsForField;
     }
 
     /** @return array<string, mixed> */
     private function getRawCollectorData(FormDataCollector $collector): array
     {
         $data = $collector->getData();
-
         if ($data instanceof Data) {
             $data = $data->getValue(true);
         }
-
-        /** @var array<string, mixed> $result */
-        $result = is_array($data) ? $data : [];
-        return $result;
-    }
-
-    protected function grabFormCollector(string $function): FormDataCollector
-    {
-        return $this->grabCollector(DataCollectorName::FORM, $function);
+        /** @var array<string, mixed> */
+        return is_array($data) ? $data : [];
     }
 }

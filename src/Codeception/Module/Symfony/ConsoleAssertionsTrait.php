@@ -9,14 +9,15 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpKernel\KernelInterface;
 
-use function in_array;
 use function sprintf;
 
 trait ConsoleAssertionsTrait
 {
     /**
      * Run Symfony console command, grab response and return as string.
-     * Recommended to use for integration or functional testing.
+     * Recommended to use for functional testing.
+     *
+     * Note: The command execution is isolated to bypass global application events, preventing unintended side effects.
      *
      * ```php
      * <?php
@@ -35,15 +36,12 @@ trait ConsoleAssertionsTrait
         array $consoleInputs = [],
         int $expectedExitCode = 0
     ): string {
-        $kernel          = $this->grabKernelService();
-        $application     = new Application($kernel);
-        $consoleCommand  = $application->find($command);
-        $commandTester   = new CommandTester($consoleCommand);
+        $consoleCommand = (new Application($this->kernel))->find($command);
+        $commandTester  = new CommandTester($consoleCommand);
         $commandTester->setInputs($consoleInputs);
 
-        $input    = ['command' => $command] + $parameters;
         $options  = $this->configureOptions($parameters);
-        $exitCode = $commandTester->execute($input, $options);
+        $exitCode = $commandTester->execute(['command' => $command] + $parameters, $options);
         $output   = $commandTester->getDisplay();
 
         $this->assertSame(
@@ -63,37 +61,28 @@ trait ConsoleAssertionsTrait
     {
         $options = [];
 
-        if (in_array('--ansi', $parameters, true)) {
-            $options['decorated'] = true;
-        } elseif (in_array('--no-ansi', $parameters, true)) {
-            $options['decorated'] = false;
+        foreach ($parameters as $key => $value) {
+            $option = is_int($key) ? (string) $value : $key;
+
+            match ($option) {
+                '--ansi'                 => $options['decorated'] = true,
+                '--no-ansi'              => $options['decorated'] = false,
+                '--no-interaction', '-n' => $options['interactive'] = false,
+                '-q', '--quiet'          => $options['verbosity'] = OutputInterface::VERBOSITY_QUIET,
+                '-v', '--verbose=1'      => $options['verbosity'] = OutputInterface::VERBOSITY_VERBOSE,
+                '-vv', '--verbose=2'     => $options['verbosity'] = OutputInterface::VERBOSITY_VERY_VERBOSE,
+                '-vvv', '--verbose=3'    => $options['verbosity'] = OutputInterface::VERBOSITY_DEBUG,
+                '--verbose'              => $options['verbosity'] = match ((int) $value) {
+                    3       => OutputInterface::VERBOSITY_DEBUG,
+                    2       => OutputInterface::VERBOSITY_VERY_VERBOSE,
+                    default => OutputInterface::VERBOSITY_VERBOSE,
+                },
+                default => null,
+            };
         }
 
-        if (in_array('--no-interaction', $parameters, true) || in_array('-n', $parameters, true)) {
+        if (($options['verbosity'] ?? null) === OutputInterface::VERBOSITY_QUIET) {
             $options['interactive'] = false;
-        }
-
-        if (in_array('--quiet', $parameters, true) || in_array('-q', $parameters, true)) {
-            $options['verbosity']   = OutputInterface::VERBOSITY_QUIET;
-            $options['interactive'] = false;
-        }
-
-        if (in_array('-vvv', $parameters, true)
-            || in_array('--verbose=3', $parameters, true)
-            || (isset($parameters['--verbose']) && $parameters['--verbose'] === 3)
-        ) {
-            $options['verbosity'] = OutputInterface::VERBOSITY_DEBUG;
-        } elseif (in_array('-vv', $parameters, true)
-            || in_array('--verbose=2', $parameters, true)
-            || (isset($parameters['--verbose']) && $parameters['--verbose'] === 2)
-        ) {
-            $options['verbosity'] = OutputInterface::VERBOSITY_VERY_VERBOSE;
-        } elseif (in_array('-v', $parameters, true)
-            || in_array('--verbose=1', $parameters, true)
-            || in_array('--verbose', $parameters, true)
-            || (isset($parameters['--verbose']) && $parameters['--verbose'] === 1)
-        ) {
-            $options['verbosity'] = OutputInterface::VERBOSITY_VERBOSE;
         }
 
         return $options;
@@ -101,8 +90,6 @@ trait ConsoleAssertionsTrait
 
     protected function grabKernelService(): KernelInterface
     {
-        /** @var KernelInterface $kernel */
-        $kernel = $this->grabService(KernelInterface::class);
-        return $kernel;
+        return $this->grabService(KernelInterface::class);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use PHPUnit\Framework\Constraint\Constraint;
+use PHPUnit\Framework\Constraint\LogicalAnd;
 use PHPUnit\Framework\Constraint\LogicalNot;
 use Symfony\Component\BrowserKit\Test\Constraint\BrowserCookieValueSame;
 use Symfony\Component\BrowserKit\Test\Constraint\BrowserHasCookie;
@@ -34,8 +35,10 @@ trait BrowserAssertionsTrait
      */
     public function assertBrowserCookieValueSame(string $name, string $expectedValue, bool $raw = false, string $path = '/', ?string $domain = null, string $message = ''): void
     {
-        $this->assertThatForClient(new BrowserHasCookie($name, $path, $domain), $message);
-        $this->assertThatForClient(new BrowserCookieValueSame($name, $expectedValue, $raw, $path, $domain), $message);
+        $this->assertThatForClient(LogicalAnd::fromConstraints(
+            new BrowserHasCookie($name, $path, $domain),
+            new BrowserCookieValueSame($name, $expectedValue, $raw, $path, $domain)
+        ), $message);
     }
 
     /**
@@ -89,8 +92,10 @@ trait BrowserAssertionsTrait
      */
     public function assertResponseCookieValueSame(string $name, string $expectedValue, string $path = '/', ?string $domain = null, string $message = ''): void
     {
-        $this->assertThatForResponse(new ResponseHasCookie($name, $path, $domain), $message);
-        $this->assertThatForResponse(new ResponseCookieValueSame($name, $expectedValue, $path, $domain), $message);
+        $this->assertThatForResponse(LogicalAnd::fromConstraints(
+            new ResponseHasCookie($name, $path, $domain),
+            new ResponseCookieValueSame($name, $expectedValue, $path, $domain)
+        ), $message);
     }
 
     /**
@@ -268,7 +273,7 @@ trait BrowserAssertionsTrait
         $this->assertThat($request, new RequestAttributeValueSame('_route', $expectedRoute));
 
         foreach ($parameters as $key => $value) {
-            $this->assertThat($request, new RequestAttributeValueSame($key, (string)$value), $message);
+            $this->assertThat($request, new RequestAttributeValueSame($key, (string) $value), $message);
         }
     }
 
@@ -289,8 +294,10 @@ trait BrowserAssertionsTrait
      */
     public function rebootClientKernel(): void
     {
-        $this->getClient()->rebootKernel();
+        $this->doRebootClientKernel();
     }
+
+    protected function doRebootClientKernel(): void {}
 
     /**
      * Verifies that a page is available.
@@ -309,8 +316,8 @@ trait BrowserAssertionsTrait
     public function seePageIsAvailable(?string $url = null): void
     {
         if ($url !== null) {
-            $this->amOnPage($url);
-            $this->seeInCurrentUrl($url);
+            $this->getClient()->request('GET', $url);
+            $this->assertStringContainsString($url, $this->getClient()->getRequest()->getRequestUri());
         }
 
         $this->assertResponseIsSuccessful();
@@ -328,12 +335,12 @@ trait BrowserAssertionsTrait
     {
         $client = $this->getClient();
         $client->followRedirects(false);
-        $this->amOnPage($page);
+        $client->request('GET', $page);
 
         $this->assertThatForResponse(new ResponseIsRedirected(), 'The response is not a redirection.');
 
         $client->followRedirect();
-        $this->seeInCurrentUrl($redirectsTo);
+        $this->assertStringContainsString($redirectsTo, $client->getRequest()->getRequestUri());
     }
 
     /**
@@ -362,9 +369,10 @@ trait BrowserAssertionsTrait
             $params[$name . $key] = $value;
         }
 
-        $button = sprintf('%s_submit', $name);
-
-        $this->submitForm($selector, $params, $button);
+        $node = $this->getClient()->getCrawler()->filter($selector);
+        $this->assertGreaterThan(0, count($node), sprintf('Form "%s" not found.', $selector));
+        $form = $node->form();
+        $this->getClient()->submit($form, $params);
     }
 
     protected function assertThatForClient(Constraint $constraint, string $message = ''): void

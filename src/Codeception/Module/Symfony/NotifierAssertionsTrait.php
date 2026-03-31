@@ -6,12 +6,15 @@ namespace Codeception\Module\Symfony;
 
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Constraint\LogicalNot;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Notifier\Event\MessageEvent;
 use Symfony\Component\Notifier\Event\NotificationEvents;
 use Symfony\Component\Notifier\EventListener\NotificationLoggerListener;
 use Symfony\Component\Notifier\Message\MessageInterface;
 use Symfony\Component\Notifier\Test\Constraint as NotifierConstraint;
-use Symfony\Component\HttpKernel\Kernel;
+
+use function end;
+use function version_compare;
 
 trait NotifierAssertionsTrait
 {
@@ -50,7 +53,7 @@ trait NotifierAssertionsTrait
      * ```php
      * <?php
      * $event = $I->getNotifierEvent();
-     * $I->assertNotificationlIsQueued($event);
+     * $I->assertNotificationIsQueued($event);
      * ```
      */
     public function assertNotificationIsQueued(MessageEvent $event, string $message = ''): void
@@ -166,7 +169,6 @@ trait NotifierAssertionsTrait
         return $lastNotification ?: null;
     }
 
-
     /**
      * Returns an array of all sent notifications.
      * The check is based on `\Symfony\Component\Notifier\EventListener\NotificationLoggerListener`, which means:
@@ -192,7 +194,7 @@ trait NotifierAssertionsTrait
      *
      * ```php
      * <?php
-     * $I->seeNotificatoinIsSent(2);
+     * $I->seeNotificationIsSent(2);
      * ```
      *
      * @param int $expectedCount The expected number of notifications sent
@@ -202,9 +204,7 @@ trait NotifierAssertionsTrait
         $this->assertThat($this->getNotificationEvents(), new NotifierConstraint\NotificationCount($expectedCount));
     }
 
-    /**
-     * @return MessageEvent[]
-     */
+    /** @return MessageEvent[] */
     public function getNotifierEvents(?string $transportName = null): array
     {
         return $this->getNotificationEvents()->getEvents($transportName);
@@ -223,9 +223,7 @@ trait NotifierAssertionsTrait
         return $this->getNotifierEvents($transportName)[$index] ?? null;
     }
 
-    /**
-     * @return MessageInterface[]
-     */
+    /** @return MessageInterface[] */
     public function getNotifierMessages(?string $transportName = null): array
     {
         return $this->getNotificationEvents()->getMessages($transportName);
@@ -251,13 +249,20 @@ trait NotifierAssertionsTrait
             Assert::fail('Notifier assertions require Symfony 6.2 or higher.');
         }
 
-        $services = ['notifier.notification_logger_listener', 'notifier.logger_notification_listener'];
-        foreach ($services as $serviceId) {
-            $notifier = $this->getService($serviceId);
-            if ($notifier instanceof NotificationLoggerListener) {
-                return $notifier->getEvents();
-            }
+        $notifier = $this->getNotifierLoggerListener();
+
+        if ($notifier !== null) {
+            return $notifier->getEvents();
         }
+
         Assert::fail("Notifications can't be tested without Symfony Notifier service.");
+    }
+
+    private function getNotifierLoggerListener(): ?NotificationLoggerListener
+    {
+        return $this->grabCachedService(
+            NotificationLoggerListener::class,
+            ['notifier.notification_logger_listener', 'notifier.logger_notification_listener']
+        );
     }
 }
