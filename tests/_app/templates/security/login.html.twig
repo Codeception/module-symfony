@@ -1,0 +1,19 @@
+{% extends 'layout.html.twig' %}
+
+{% block body %}
+    <form name="login" method="post" action="/login">
+        <h1>Please sign in</h1>
+        <label for="inputEmail">Email</label>
+        <input type="email" value="{{ last_username|default('') }}" name="email" id="inputEmail" required autofocus>
+        <label for="inputPassword">Password</label>
+        <input type="password" name="password" id="inputPassword" required>
+
+        <div>
+            <label>
+                <input type="checkbox" name="_remember_me"> Remember me
+            </label>
+        </div>
+
+        <button type="submit">Sign in</button>
+    </form>
+{% endblock %}
