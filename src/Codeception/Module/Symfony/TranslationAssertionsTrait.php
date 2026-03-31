@@ -23,8 +23,8 @@ trait TranslationAssertionsTrait
         $fallbacks = $translationCollector->getCountFallbacks();
 
         $this->assertSame(
-            $fallbacks,
             0,
+            $fallbacks,
             "Expected no fallback translations, but found {$fallbacks}."
         );
     }
@@ -43,8 +43,8 @@ trait TranslationAssertionsTrait
         $missings = $translationCollector->getCountMissings();
 
         $this->assertSame(
-            $missings,
             0,
+            $missings,
             "Expected no missing translations, but found {$missings}."
         );
     }

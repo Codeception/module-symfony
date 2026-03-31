@@ -7,7 +7,7 @@ namespace Codeception\Module\Symfony;
 use PHPUnit\Framework\Assert;
 use Symfony\Component\Routing\RouterInterface;
 
-use function array_intersect_assoc;
+use function array_intersect_key;
 use function is_string;
 use function parse_url;
 use function sprintf;
@@ -25,7 +25,7 @@ trait RouterAssertionsTrait
      * $I->amOnAction('ArticleController', ['slug' => 'lorem-ipsum']);
      * ```
      *
-     * @param array<string, mixed> $params
+     * @param array<non-empty-string, mixed> $params
      */
     public function amOnAction(string $action, array $params = []): void
     {
@@ -55,6 +55,7 @@ trait RouterAssertionsTrait
     public function invalidateCachedRouter(): void
     {
         $this->unpersistService('router');
+        $this->clearInternalDomainsCache();
     }
 
     /**
@@ -65,11 +66,11 @@ trait RouterAssertionsTrait
      * $I->seeCurrentActionIs('PostController::index');
      * $I->seeCurrentActionIs('HomeController');
      * ```
+     * @param non-empty-string $action
      */
     public function seeCurrentActionIs(string $action): void
     {
         $this->findRouteByActionOrFail($action);
-
         /** @var string $current */
         $current = $this->getClient()->getRequest()->attributes->get('_controller');
         $this->assertStringEndsWith($action, $current, "Current action is '{$current}'.");
@@ -88,9 +89,9 @@ trait RouterAssertionsTrait
      */
     public function seeCurrentRouteIs(string $routeName, array $params = []): void
     {
-        $match    = $this->getCurrentRouteMatch($routeName);
+        $match = $this->getCurrentRouteMatch($routeName);
         $expected = ['_route' => $routeName] + $params;
-        $this->assertSame($expected, array_intersect_assoc($expected, $match));
+        $this->assertSame($expected, array_intersect_key($match, $expected));
     }
 
     /**
@@ -111,14 +112,8 @@ trait RouterAssertionsTrait
     private function getCurrentRouteMatch(string $routeName): array
     {
         $this->assertRouteExists($routeName);
-
-        $url  = $this->grabFromCurrentUrl();
-        Assert::assertIsString($url, 'Unable to obtain current URL.');
-        $path = (string) parse_url($url, PHP_URL_PATH);
-
-        /** @var array<string, mixed> $match */
-        $match = $this->grabRouterService()->match($path);
-        return $match;
+        /** @var array<string, mixed> */
+        return $this->grabRouterService()->match((string) parse_url($this->getClient()->getRequest()->getRequestUri(), PHP_URL_PATH));
     }
 
     private function findRouteByActionOrFail(string $action): string
@@ -143,13 +138,12 @@ trait RouterAssertionsTrait
     /** @param array<string, mixed> $params */
     private function openRoute(string $routeName, array $params = []): void
     {
-        $this->amOnPage($this->grabRouterService()->generate($routeName, $params));
+        $this->getClient()->request('GET', $this->grabRouterService()->generate($routeName, $params));
     }
 
     protected function grabRouterService(): RouterInterface
     {
-        /** @var RouterInterface $router */
-        $router = $this->grabService('router');
-        return $router;
+        /** @var RouterInterface */
+        return $this->grabService('router');
     }
 }

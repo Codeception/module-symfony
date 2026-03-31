@@ -46,7 +46,7 @@ trait LoggerAssertionsTrait
             "Found %d deprecation message%s in the log:\n%s",
             $count,
             $count !== 1 ? 's' : '',
-            implode("\n", array_map(static fn (string $m): string => "  - $m", $foundDeprecations)),
+            implode("\n", array_map(static fn(string $m): string => "  - $m", $foundDeprecations)),
         );
         $this->assertEmpty($foundDeprecations, $errorMessage);
     }

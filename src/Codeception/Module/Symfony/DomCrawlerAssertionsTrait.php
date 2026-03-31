@@ -23,7 +23,7 @@ trait DomCrawlerAssertionsTrait
      */
     public function assertCheckboxChecked(string $fieldName, string $message = ''): void
     {
-        $this->assertThatCrawler(new CrawlerSelectorExists("input[name=\"$fieldName\"]:checked"), $message);
+        $this->assertCheckboxState($fieldName, true, $message);
     }
 
     /**
@@ -36,12 +36,7 @@ trait DomCrawlerAssertionsTrait
      */
     public function assertCheckboxNotChecked(string $fieldName, string $message = ''): void
     {
-        $this->assertThatCrawler(
-            new LogicalNot(
-                new CrawlerSelectorExists("input[name=\"$fieldName\"]:checked")
-            ),
-            $message
-        );
+        $this->assertCheckboxState($fieldName, false, $message);
     }
 
     /**
@@ -54,13 +49,7 @@ trait DomCrawlerAssertionsTrait
      */
     public function assertInputValueNotSame(string $fieldName, string $expectedValue, string $message = ''): void
     {
-        $this->assertThatCrawler(new CrawlerSelectorExists("input[name=\"$fieldName\"]"), $message);
-        $this->assertThatCrawler(
-            new LogicalNot(
-                new CrawlerSelectorAttributeValueSame("input[name=\"$fieldName\"]", 'value', $expectedValue)
-            ),
-            $message
-        );
+        $this->assertInputValue($fieldName, $expectedValue, false, $message);
     }
 
     /**
@@ -73,11 +62,7 @@ trait DomCrawlerAssertionsTrait
      */
     public function assertInputValueSame(string $fieldName, string $expectedValue, string $message = ''): void
     {
-        $this->assertThatCrawler(new CrawlerSelectorExists("input[name=\"$fieldName\"]"), $message);
-        $this->assertThatCrawler(
-            new CrawlerSelectorAttributeValueSame("input[name=\"$fieldName\"]", 'value', $expectedValue),
-            $message
-        );
+        $this->assertInputValue($fieldName, $expectedValue, true, $message);
     }
 
     /**
@@ -142,7 +127,6 @@ trait DomCrawlerAssertionsTrait
      */
     public function assertSelectorTextContains(string $selector, string $text, string $message = ''): void
     {
-        $this->assertThatCrawler(new CrawlerSelectorExists($selector), $message);
         $this->assertThatCrawler(new CrawlerSelectorTextContains($selector, $text), $message);
     }
 
@@ -156,7 +140,6 @@ trait DomCrawlerAssertionsTrait
      */
     public function assertSelectorTextNotContains(string $selector, string $text, string $message = ''): void
     {
-        $this->assertThatCrawler(new CrawlerSelectorExists($selector), $message);
         $this->assertThatCrawler(new LogicalNot(new CrawlerSelectorTextContains($selector, $text)), $message);
     }
 
@@ -170,12 +153,30 @@ trait DomCrawlerAssertionsTrait
      */
     public function assertSelectorTextSame(string $selector, string $text, string $message = ''): void
     {
-        $this->assertThatCrawler(new CrawlerSelectorExists($selector), $message);
         $this->assertThatCrawler(new CrawlerSelectorTextSame($selector, $text), $message);
     }
 
     protected function assertThatCrawler(Constraint $constraint, string $message): void
     {
         $this->assertThat($this->getClient()->getCrawler(), $constraint, $message);
+    }
+
+    private function assertCheckboxState(string $fieldName, bool $checked, string $message): void
+    {
+        $constraint = new CrawlerSelectorExists("input[name=\"$fieldName\"]:checked");
+        if (!$checked) {
+            $constraint = new LogicalNot($constraint);
+        }
+        $this->assertThatCrawler($constraint, $message);
+    }
+
+    private function assertInputValue(string $fieldName, string $value, bool $same, string $message): void
+    {
+        $this->assertThatCrawler(new CrawlerSelectorExists("input[name=\"$fieldName\"]"), $message);
+        $constraint = new CrawlerSelectorAttributeValueSame("input[name=\"$fieldName\"]", 'value', $value);
+        if (!$same) {
+            $constraint = new LogicalNot($constraint);
+        }
+        $this->assertThatCrawler($constraint, $message);
     }
 }

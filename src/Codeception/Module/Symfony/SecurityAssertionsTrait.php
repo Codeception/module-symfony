@@ -25,9 +25,8 @@ trait SecurityAssertionsTrait
      */
     public function dontSeeAuthentication(): void
     {
-        $security = $this->grabSecurityService();
         $this->assertFalse(
-            $security->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY),
+            $this->grabSecurityService()->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY),
             'There is an user authenticated.'
         );
     }
@@ -42,12 +41,7 @@ trait SecurityAssertionsTrait
      */
     public function dontSeeRememberedAuthentication(): void
     {
-        $security  = $this->grabSecurityService();
-        $client    = $this->getClient();
-        $hasCookie = $client->getCookieJar()->get('REMEMBERME') !== null;
-        $hasRole   = $security->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED);
-
-        $this->assertFalse($hasCookie && $hasRole, 'User does have remembered authentication.');
+        $this->assertFalse($this->isRemembered(), 'User does have remembered authentication.');
     }
 
     /**
@@ -60,9 +54,8 @@ trait SecurityAssertionsTrait
      */
     public function seeAuthentication(): void
     {
-        $security = $this->grabSecurityService();
         $this->assertTrue(
-            $security->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY),
+            $this->grabSecurityService()->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY),
             'There is no authenticated user.'
         );
     }
@@ -77,12 +70,7 @@ trait SecurityAssertionsTrait
      */
     public function seeRememberedAuthentication(): void
     {
-        $security  = $this->grabSecurityService();
-        $client    = $this->getClient();
-        $hasCookie = $client->getCookieJar()->get('REMEMBERME') !== null;
-        $hasRole   = $security->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED);
-
-        $this->assertTrue($hasCookie && $hasRole, 'User does not have remembered authentication.');
+        $this->assertTrue($this->isRemembered(), 'User does not have remembered authentication.');
     }
 
     /**
@@ -95,12 +83,9 @@ trait SecurityAssertionsTrait
      */
     public function seeUserHasRole(string $role): void
     {
-        $user       = $this->getAuthenticatedUser();
-        $identifier = $user->getUserIdentifier();
-
         $this->assertTrue(
             $this->grabSecurityService()->isGranted($role),
-            sprintf('User %s has no role %s', $identifier, $role)
+            sprintf('User %s has no role %s', $this->getAuthenticatedUser()->getUserIdentifier(), $role)
         );
     }
 
@@ -143,31 +128,30 @@ trait SecurityAssertionsTrait
             Assert::fail('Provided user does not implement PasswordAuthenticatedUserInterface.');
         }
 
-        $hasher = $this->grabPasswordHasherService();
-        $this->assertFalse($hasher->needsRehash($userToValidate), 'User password needs rehash.');
+        $this->assertFalse($this->grabPasswordHasherService()->needsRehash($userToValidate), 'User password needs rehash.');
     }
 
     private function getAuthenticatedUser(): UserInterface
     {
-        $user = $this->grabSecurityService()->getUser();
-        if ($user === null) {
-            Assert::fail('No user found in session to perform this check.');
-        }
-        return $user;
+        return $this->grabSecurityService()->getUser() ?? Assert::fail('No user found in session to perform this check.');
+    }
+
+    private function isRemembered(): bool
+    {
+        return $this->getClient()->getCookieJar()->get('REMEMBERME') !== null
+            && $this->grabSecurityService()->isGranted(AuthenticatedVoter::IS_AUTHENTICATED_REMEMBERED);
     }
 
     /** @return Security */
     protected function grabSecurityService()
     {
-        /** @var Security $security */
-        $security = $this->grabService('security.helper');
-        return $security;
+        /** @var Security */
+        return $this->grabService('security.helper');
     }
 
     protected function grabPasswordHasherService(): UserPasswordHasherInterface
     {
-        /** @var UserPasswordHasherInterface $hasher */
-        $hasher = $this->getService('security.password_hasher');
-        return $hasher;
+        /** @var UserPasswordHasherInterface */
+        return $this->grabService('security.password_hasher');
     }
 }
