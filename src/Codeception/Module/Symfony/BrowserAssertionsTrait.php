@@ -9,6 +9,8 @@ use PHPUnit\Framework\Constraint\LogicalAnd;
 use PHPUnit\Framework\Constraint\LogicalNot;
 use Symfony\Component\BrowserKit\Test\Constraint\BrowserCookieValueSame;
 use Symfony\Component\BrowserKit\Test\Constraint\BrowserHasCookie;
+use Symfony\Component\BrowserKit\Test\Constraint\BrowserHistoryIsOnFirstPage;
+use Symfony\Component\BrowserKit\Test\Constraint\BrowserHistoryIsOnLastPage;
 use Symfony\Component\HttpFoundation\Test\Constraint\RequestAttributeValueSame;
 use Symfony\Component\HttpFoundation\Test\Constraint\ResponseCookieValueSame;
 use Symfony\Component\HttpFoundation\Test\Constraint\ResponseFormatSame;
@@ -69,6 +71,78 @@ trait BrowserAssertionsTrait
     public function assertBrowserNotHasCookie(string $name, string $path = '/', ?string $domain = null, string $message = ''): void
     {
         $this->assertThatForClient(new LogicalNot(new BrowserHasCookie($name, $path, $domain)), $message);
+    }
+
+    /**
+     * Asserts that the browser history is currently on the first page.
+     *
+     * ```php
+     * <?php
+     * $I->assertBrowserHistoryIsOnFirstPage();
+     * ```
+     */
+    public function assertBrowserHistoryIsOnFirstPage(string $message = ''): void
+    {
+        $this->assertTrue(
+            class_exists(BrowserHistoryIsOnFirstPage::class),
+            'The assertBrowserHistoryIsOnFirstPage method requires symfony/browser-kit >= 7.4.'
+        );
+
+        $this->assertThatForClient(new BrowserHistoryIsOnFirstPage(), $message);
+    }
+
+    /**
+     * Asserts that the browser history is not currently on the first page.
+     *
+     * ```php
+     * <?php
+     * $I->assertBrowserHistoryIsNotOnFirstPage();
+     * ```
+     */
+    public function assertBrowserHistoryIsNotOnFirstPage(string $message = ''): void
+    {
+        $this->assertTrue(
+            class_exists(BrowserHistoryIsOnFirstPage::class),
+            'The assertBrowserHistoryIsNotOnFirstPage method requires symfony/browser-kit >= 7.4.'
+        );
+
+        $this->assertThatForClient(new LogicalNot(new BrowserHistoryIsOnFirstPage()), $message);
+    }
+
+    /**
+     * Asserts that the browser history is currently on the last page.
+     *
+     * ```php
+     * <?php
+     * $I->assertBrowserHistoryIsOnLastPage();
+     * ```
+     */
+    public function assertBrowserHistoryIsOnLastPage(string $message = ''): void
+    {
+        $this->assertTrue(
+            class_exists(BrowserHistoryIsOnLastPage::class),
+            'The assertBrowserHistoryIsOnLastPage method requires symfony/browser-kit >= 7.4.'
+        );
+
+        $this->assertThatForClient(new BrowserHistoryIsOnLastPage(), $message);
+    }
+
+    /**
+     * Asserts that the browser history is not currently on the last page.
+     *
+     * ```php
+     * <?php
+     * $I->assertBrowserHistoryIsNotOnLastPage();
+     * ```
+     */
+    public function assertBrowserHistoryIsNotOnLastPage(string $message = ''): void
+    {
+        $this->assertTrue(
+            class_exists(BrowserHistoryIsOnLastPage::class),
+            'The assertBrowserHistoryIsNotOnLastPage method requires symfony/browser-kit >= 7.4.'
+        );
+
+        $this->assertThatForClient(new LogicalNot(new BrowserHistoryIsOnLastPage()), $message);
     }
 
     /**
