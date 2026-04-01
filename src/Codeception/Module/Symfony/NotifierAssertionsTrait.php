@@ -13,7 +13,7 @@ use Symfony\Component\Notifier\EventListener\NotificationLoggerListener;
 use Symfony\Component\Notifier\Message\MessageInterface;
 use Symfony\Component\Notifier\Test\Constraint as NotifierConstraint;
 
-use function end;
+use function array_key_last;
 use function version_compare;
 
 trait NotifierAssertionsTrait
@@ -163,10 +163,9 @@ trait NotifierAssertionsTrait
      */
     public function grabLastSentNotification(): ?MessageInterface
     {
-        $notification = $this->getNotifierMessages();
-        $lastNotification = end($notification);
+        $notifications = $this->getNotifierMessages();
 
-        return $lastNotification ?: null;
+        return $notifications ? $notifications[array_key_last($notifications)] : null;
     }
 
     /**
@@ -205,7 +204,7 @@ trait NotifierAssertionsTrait
     }
 
     /** @return MessageEvent[] */
-    public function getNotifierEvents(?string $transportName = null): array
+    protected function getNotifierEvents(?string $transportName = null): array
     {
         return $this->getNotificationEvents()->getEvents($transportName);
     }
@@ -224,7 +223,7 @@ trait NotifierAssertionsTrait
     }
 
     /** @return MessageInterface[] */
-    public function getNotifierMessages(?string $transportName = null): array
+    protected function getNotifierMessages(?string $transportName = null): array
     {
         return $this->getNotificationEvents()->getMessages($transportName);
     }

@@ -7,6 +7,12 @@ namespace Codeception\Module\Symfony;
 use Symfony\Component\HttpKernel\DataCollector\LoggerDataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
 
+use function array_map;
+use function count;
+use function implode;
+use function is_scalar;
+use function is_string;
+use function json_encode;
 use function sprintf;
 
 trait LoggerAssertionsTrait

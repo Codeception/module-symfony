@@ -46,6 +46,15 @@ trait SessionAssertionsTrait
         $this->amLoggedInWithToken($this->createAuthenticationToken($user, $firewallName), $firewallName, $firewallContext);
     }
 
+    /**
+     * Login with the given authentication token.
+     * If you have more than one firewall or firewall context, you can specify the desired one as a parameter.
+     *
+     * ```php
+     * <?php
+     * $I->amLoggedInWithToken($token);
+     * ```
+     */
     public function amLoggedInWithToken(TokenInterface $token, string $firewallName = 'main', ?string $firewallContext = null): void
     {
         $this->getTokenStorage()->setToken($token);

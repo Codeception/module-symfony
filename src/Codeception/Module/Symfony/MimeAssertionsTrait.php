@@ -9,6 +9,8 @@ use PHPUnit\Framework\Constraint\LogicalNot;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Mime\Test\Constraint as MimeConstraint;
 
+use function sprintf;
+
 trait MimeAssertionsTrait
 {
     /**
