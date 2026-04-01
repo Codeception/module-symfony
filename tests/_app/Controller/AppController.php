@@ -20,7 +20,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Validator\Constraints\Email as EmailConstraint;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use Tests\App\Event\TestEvent;
 use Tests\App\Mailer\RegistrationMailer;
 use Twig\Environment;
@@ -130,11 +129,6 @@ final class AppController extends AbstractController
         return new RedirectResponse('/');
     }
 
-    public function redirectToSample(): RedirectResponse
-    {
-        return new RedirectResponse('/sample');
-    }
-
     public function register(Request $request, Environment $twig): Response
     {
         if ($request->isMethod('POST')) {
@@ -169,14 +163,9 @@ final class AppController extends AbstractController
         return $response;
     }
 
-    public function sample(Request $request, Environment $twig): Response
+    public function sample(Environment $twig): Response
     {
-        $request->attributes->set('foo', 'bar');
-
-        $response = new Response($twig->render('sample.html.twig'), 200, ['X-Test' => '1']);
-        $response->headers->setCookie(new Cookie('response_cookie', 'yum'));
-
-        return $response;
+        return new Response($twig->render('sample.html.twig'));
     }
 
     public function sendEmail(RegistrationMailer $mailer): Response
@@ -189,18 +178,6 @@ final class AppController extends AbstractController
     public function testPage(Environment $twig): Response
     {
         return new Response($twig->render('test_page.html.twig'));
-    }
-
-    public function translation(TranslatorInterface $translator): Response
-    {
-        $translator->trans('defined_message');
-
-        return new Response('Translation');
-    }
-
-    public function twig(Environment $twig): Response
-    {
-        return new Response($twig->render('home.html.twig'));
     }
 
     public function unprocessableEntity(): JsonResponse

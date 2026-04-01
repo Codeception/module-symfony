@@ -17,7 +17,6 @@ return function (RoutingConfigurator $routes): void {
     $routes->add('http_client', '/http-client')->controller(AppController::class . '::httpClientRequests');
     $routes->add('index', '/')->controller(AppController::class . '::index');
     $routes->add('logout', '/logout')->controller(AppController::class . '::logout');
-    $routes->add('redirect', '/redirect')->controller(AppController::class . '::redirectToSample');
     $routes->add('redirect_home', '/redirect_home')->controller(AppController::class . '::redirectToHome');
     $routes->add('request_attr', '/request_attr')->controller(AppController::class . '::requestWithAttribute');
     $routes->add('response_cookie', '/response_cookie')->controller(AppController::class . '::responseWithCookie');
@@ -25,7 +24,5 @@ return function (RoutingConfigurator $routes): void {
     $routes->add('sample', '/sample')->controller(AppController::class . '::sample');
     $routes->add('send_email', '/send-email')->controller(AppController::class . '::sendEmail');
     $routes->add('test_page', '/test_page')->controller(AppController::class . '::testPage');
-    $routes->add('translation', '/translation')->controller(AppController::class . '::translation');
-    $routes->add('twig', '/twig')->controller(AppController::class . '::twig');
     $routes->add('unprocessable_entity', '/unprocessable_entity')->controller(AppController::class . '::unprocessableEntity');
 };

@@ -13,7 +13,6 @@ use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\TraceableHttpClient;
 use Symfony\Component\HttpKernel\DataCollector\LoggerDataCollector;
-use Symfony\Component\HttpKernel\Kernel as BaseKernel;
 use Symfony\Component\Mailer\EventListener\MessageLoggerListener;
 use Symfony\Component\Notifier\EventListener\NotificationLoggerListener;
 use Tests\App\Command\TestCommand;
@@ -57,7 +56,6 @@ return static function (ContainerConfigurator $container): void {
         ->tag('security.user_provider');
 
     $services->alias('security.password_hasher', 'security.user_password_hasher')->public();
-    $services->alias(UserPasswordHasherInterface::class, 'security.user_password_hasher')->public();
 
     if (class_exists(Security::class)) {
         $services->set(Security::class)->arg('$container', service('test.service_container'));
@@ -106,9 +104,4 @@ return static function (ContainerConfigurator $container): void {
         ->tag('data_collector', ['id' => 'logger', 'template' => '@WebProfiler/Collector/logger.html.twig', 'priority' => 300]);
     $services->alias('data_collector.logger', LoggerDataCollector::class)->public();
 
-    if (BaseKernel::VERSION_ID < 60100) {
-        $services->defaults()
-            ->bind(\Symfony\Contracts\HttpClient\HttpClientInterface::class . ' $httpClient', service('app.http_client'))
-            ->bind(\Symfony\Contracts\HttpClient\HttpClientInterface::class . ' $jsonClient', service('app.http_client.json_client'));
-    }
 };
