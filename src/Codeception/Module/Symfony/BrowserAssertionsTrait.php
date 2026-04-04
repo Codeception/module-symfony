@@ -21,6 +21,8 @@ use Symfony\Component\HttpFoundation\Test\Constraint\ResponseIsSuccessful;
 use Symfony\Component\HttpFoundation\Test\Constraint\ResponseIsUnprocessable;
 use Symfony\Component\HttpFoundation\Test\Constraint\ResponseStatusCodeSame;
 
+use function class_exists;
+use function count;
 use function sprintf;
 
 trait BrowserAssertionsTrait

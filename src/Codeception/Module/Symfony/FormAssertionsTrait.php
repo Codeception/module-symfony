@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use PHPUnit\Framework\Assert;
 use Symfony\Component\Form\Extension\DataCollector\FormDataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
 
+use function count;
+use function implode;
 use function is_array;
 use function is_int;
 use function is_numeric;
@@ -86,7 +89,7 @@ trait FormAssertionsTrait
         $errors = $this->getErrorsForField($field);
 
         if ($errors === []) {
-            $this->fail("No form error message for field '{$field}'.");
+            Assert::fail("No form error message for field '{$field}'.");
         }
 
         if ($message !== null) {
@@ -203,7 +206,7 @@ trait FormAssertionsTrait
         }
 
         if (!$fieldFound) {
-            $this->fail("The field '{$field}' does not exist in the form.");
+            Assert::fail("The field '{$field}' does not exist in the form.");
         }
 
         return $errorsForField;

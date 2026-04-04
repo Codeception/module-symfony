@@ -37,7 +37,7 @@ trait TimeAssertionsTrait
             $expectedMilliseconds,
             $actualMilliseconds,
             sprintf(
-                'The request duration was expected to be less than %d ms, but it was actually %d ms.',
+                'The request duration was expected to be less than %.2f ms, but it was actually %.2f ms.',
                 $expectedMilliseconds,
                 $actualMilliseconds
             )

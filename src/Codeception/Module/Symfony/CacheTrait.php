@@ -32,10 +32,8 @@ trait CacheTrait
     protected function getInternalDomains(): array
     {
         if (isset($this->state['internalDomains'])) {
-            /** @var list<non-empty-string> $domains */
-            $domains = $this->state['internalDomains'];
-
-            return $domains;
+            /** @var list<non-empty-string> */
+            return $this->state['internalDomains'];
         }
 
         $domains = [];
@@ -48,12 +46,14 @@ trait CacheTrait
             }
         }
 
-        return $this->state['internalDomains'] = array_values(array_unique($domains));
+        /** @var list<non-empty-string> $domains */
+        $domains = array_values(array_unique($domains));
+        return $this->state['internalDomains'] = $domains;
     }
 
-    protected function clearInternalDomainsCache(): void
+    protected function clearRouterCache(): void
     {
-        unset($this->state['internalDomains']);
+        unset($this->state['internalDomains'], $this->state['cachedRoutes']);
     }
 
     /**
@@ -64,7 +64,6 @@ trait CacheTrait
      */
     protected function grabCachedService(string $expectedClass, array $serviceIds): ?object
     {
-        /** @var ?string $serviceId */
         $serviceId = $this->state[$expectedClass] ??= (function () use ($serviceIds, $expectedClass): ?string {
             foreach ($serviceIds as $id) {
                 if ($this->getService($id) instanceof $expectedClass) {
@@ -75,7 +74,7 @@ trait CacheTrait
             return null;
         })();
 
-        if ($serviceId === null) {
+        if (!is_string($serviceId)) {
             return null;
         }
 

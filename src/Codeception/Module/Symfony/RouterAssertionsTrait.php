@@ -55,7 +55,7 @@ trait RouterAssertionsTrait
     public function invalidateCachedRouter(): void
     {
         $this->unpersistService('router');
-        $this->clearInternalDomainsCache();
+        $this->clearRouterCache();
     }
 
     /**
@@ -118,13 +118,32 @@ trait RouterAssertionsTrait
 
     private function findRouteByActionOrFail(string $action): string
     {
-        foreach ($this->grabRouterService()->getRouteCollection()->all() as $name => $route) {
-            $ctrl = $route->getDefault('_controller');
-            if (is_string($ctrl) && str_ends_with($ctrl, $action)) {
+        foreach ($this->getCachedRoutes() as $ctrl => $name) {
+            if (str_ends_with($ctrl, $action)) {
                 return $name;
             }
         }
+
         Assert::fail(sprintf("Action '%s' does not exist.", $action));
+    }
+
+    /** @return array<string, string> */
+    private function getCachedRoutes(): array
+    {
+        if (isset($this->state['cachedRoutes'])) {
+            /** @var array<string, string> */
+            return $this->state['cachedRoutes'];
+        }
+
+        $routes = [];
+        foreach ($this->grabRouterService()->getRouteCollection()->all() as $name => $route) {
+            $ctrl = $route->getDefault('_controller');
+            if (is_string($ctrl) && !isset($routes[$ctrl])) {
+                $routes[$ctrl] = (string) $name;
+            }
+        }
+
+        return $this->state['cachedRoutes'] = $routes;
     }
 
     private function assertRouteExists(string $routeName): void
