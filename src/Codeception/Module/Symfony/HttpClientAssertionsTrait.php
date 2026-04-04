@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use PHPUnit\Framework\Assert;
+use Stringable;
 use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
 
@@ -149,7 +150,7 @@ trait HttpClientAssertionsTrait
         return match (true) {
             $value instanceof Data => $value->getValue(true),
             is_object($value) && method_exists($value, 'getValue') => $value->getValue(true),
-            is_object($value) && method_exists($value, '__toString') => (string) $value,
+            $value instanceof Stringable => (string) $value,
             default => $value,
         };
     }
