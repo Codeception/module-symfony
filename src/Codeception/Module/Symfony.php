@@ -389,10 +389,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             return;
         }
 
-        $this->debugCollector($profile, DataCollectorName::SECURITY->value);
-        $this->debugCollector($profile, DataCollectorName::MAILER->value);
-        $this->debugCollector($profile, DataCollectorName::NOTIFIER->value);
-        $this->debugCollector($profile, DataCollectorName::TIME->value);
+        $this->debugCollector($profile, DataCollectorName::SECURITY);
+        $this->debugCollector($profile, DataCollectorName::MAILER);
+        $this->debugCollector($profile, DataCollectorName::NOTIFIER);
+        $this->debugCollector($profile, DataCollectorName::TIME);
     }
 
     protected function doRebootClientKernel(): void
@@ -463,13 +463,13 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         $this->debugSection('Time', sprintf('%.2f ms', $timeCollector->getDuration()));
     }
 
-    private function debugCollector(Profile $profile, string $name): void
+    private function debugCollector(Profile $profile, DataCollectorName $name): void
     {
-        if (!$profile->hasCollector($name)) {
+        if (!$profile->hasCollector($name->value)) {
             return;
         }
 
-        $collector = $profile->getCollector($name);
+        $collector = $profile->getCollector($name->value);
         match (true) {
             $collector instanceof SecurityDataCollector => $this->debugSecurityData($collector),
             $collector instanceof MessageDataCollector => $this->debugMailerData($collector),
