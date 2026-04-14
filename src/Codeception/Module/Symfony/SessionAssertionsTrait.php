@@ -20,7 +20,6 @@ use Symfony\Component\Security\Http\Logout\LogoutUrlGenerator;
 
 use function class_exists;
 use function get_debug_type;
-use function in_array;
 use function is_int;
 use function is_string;
 use function serialize;
@@ -125,8 +124,9 @@ trait SessionAssertionsTrait
 
         $cookieJar = $this->getClient()->getCookieJar();
         foreach ($cookieJar->all() as $cookie) {
-            if (in_array($cookie->getName(), ['MOCKSESSID', 'REMEMBERME', $sessionName], true)) {
-                $cookieJar->expire($cookie->getName());
+            $cookieName = $cookie->getName();
+            if ($cookieName === 'MOCKSESSID' || $cookieName === 'REMEMBERME' || $cookieName === $sessionName) {
+                $cookieJar->expire($cookieName);
             }
         }
         $cookieJar->flushExpiredCookies();
@@ -164,15 +164,18 @@ trait SessionAssertionsTrait
      */
     public function seeSessionHasValues(array $bindings): void
     {
+        $session = $this->getCurrentSession();
+
         foreach ($bindings as $key => $value) {
             if (!is_int($key)) {
-                $this->seeInSession($key, $value);
+                $this->assertTrue($session->has($key), "No session attribute with name '{$key}'");
+                $this->assertSame($value, $session->get($key));
                 continue;
             }
             if (!is_string($value)) {
                 throw new InvalidArgumentException(sprintf('Attribute name must be string, %s given.', get_debug_type($value)));
             }
-            $this->seeInSession($value);
+            $this->assertTrue($session->has($value), "No session attribute with name '{$value}'");
         }
     }
 
