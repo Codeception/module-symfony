@@ -38,7 +38,7 @@ trait NotifierAssertionsTrait
      * ```php
      * <?php
      * $event = $I->getNotifierEvent();
-     * $I->asserNotificationIsNotQueued($event);
+     * $I->assertNotificationIsNotQueued($event);
      * ```
      */
     public function assertNotificationIsNotQueued(MessageEvent $event, string $message = ''): void

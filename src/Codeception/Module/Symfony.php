@@ -80,7 +80,7 @@ use function sprintf;
  *
  * ## Config
  *
- * ### Symfony 5.4 or higher
+ * ### Symfony 5.4, 6.4, 7.4 or 8.0
  *
  * * `app_path`: 'src' - Specify custom path to your app dir, where the kernel interface is located.
  * * `environment`: 'local' - Environment used for load kernel
@@ -91,7 +91,7 @@ use function sprintf;
  * * `rebootable_client`: 'true' - Reboot client's kernel before each request
  * * `guard`: 'false' - Enable custom authentication system with guard (only for Symfony 5.4)
  * * `bootstrap`: 'false' - Enable the test environment setup with the tests/bootstrap.php file if it exists or with Symfony DotEnv otherwise. If false, it does nothing.
- * * `authenticator`: 'false' - Reboot client's kernel before each request (only for Symfony 6.0 or higher)
+ * * `authenticator`: 'false' - Enable custom authentication system with authenticator (only for Symfony 6.0 or higher)
  *
  * #### Sample `Functional.suite.yml`
  *
@@ -181,7 +181,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * }
      */
     public array $config = [
-        'app_path'          => 'app',
+        'app_path'          => 'src',
         'kernel_class'      => 'App\\Kernel',
         'environment'       => 'test',
         'debug'             => true,
