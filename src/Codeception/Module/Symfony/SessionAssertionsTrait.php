@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use InvalidArgumentException;
+use PHPUnit\Framework\Assert;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\HttpFoundation\Session\SessionFactoryInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
@@ -20,8 +21,12 @@ use Symfony\Component\Security\Http\Logout\LogoutUrlGenerator;
 
 use function class_exists;
 use function get_debug_type;
+use function ini_get;
+use function is_array;
+use function is_dir;
 use function is_int;
 use function is_string;
+use function is_writable;
 use function serialize;
 use function sprintf;
 
@@ -177,6 +182,58 @@ trait SessionAssertionsTrait
             }
             $this->assertTrue($session->has($value), "No session attribute with name '{$value}'");
         }
+    }
+
+    /**
+     * Asserts that the session save path is writable when using file-based sessions.
+     * Skips when session storage is not file-based.
+     *
+     * ```php
+     * <?php
+     * $I->seeSessionSavePathIsWritable();
+     * ```
+     */
+    public function seeSessionSavePathIsWritable(): void
+    {
+        $container = $this->_getContainer();
+
+        $isFileBased = false;
+        if ($container->has('session.storage.factory.native_file') || $container->has('session.handler.native_file')) {
+            $isFileBased = true;
+        }
+
+        $iniHandler = (string) (ini_get('session.save_handler') ?: '');
+        if ($iniHandler === 'files') {
+            $isFileBased = true;
+        }
+
+        if (!$isFileBased) {
+            $this->markTestSkipped('Session storage is not file-based; skipping save path writability check.');
+        }
+
+        $savePath = null;
+
+        if ($container->hasParameter('session.storage.options')) {
+            $options = $container->getParameter('session.storage.options');
+            if (is_array($options) && isset($options['save_path']) && is_string($options['save_path']) && $options['save_path'] !== '') {
+                $savePath = $options['save_path'];
+            }
+        }
+
+        if (!$savePath) {
+            $ini = (string) (ini_get('session.save_path') ?: '');
+            if ($ini !== '') {
+                $savePath = $ini;
+            }
+        }
+
+        if (!$savePath) {
+            $env = $this->kernel->getEnvironment();
+            $savePath = $this->kernel->getProjectDir() . '/var/sessions/' . $env;
+        }
+
+        $this->assertTrue(is_dir($savePath), sprintf('Session save path is not a directory: %s', $savePath));
+        $this->assertTrue(is_writable($savePath), sprintf('Session save path is not writable: %s', $savePath));
     }
 
     protected function getTokenStorage(): TokenStorageInterface

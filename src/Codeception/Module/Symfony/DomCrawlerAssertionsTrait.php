@@ -5,11 +5,18 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use PHPUnit\Framework\Constraint\Constraint;
+use PHPUnit\Framework\Constraint\LogicalAnd;
 use PHPUnit\Framework\Constraint\LogicalNot;
+use Symfony\Component\DomCrawler\Test\Constraint\CrawlerAnySelectorTextContains;
+use Symfony\Component\DomCrawler\Test\Constraint\CrawlerAnySelectorTextSame;
 use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorAttributeValueSame;
+use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorCount;
 use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorExists;
 use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorTextContains;
 use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorTextSame;
+
+use function class_exists;
+use function sprintf;
 
 trait DomCrawlerAssertionsTrait
 {
@@ -118,6 +125,20 @@ trait DomCrawlerAssertionsTrait
     }
 
     /**
+     * Asserts that the given selector matches the expected number of elements.
+     *
+     * ```php
+     * <?php
+     * $I->assertSelectorCount(3, '.item');
+     * ```
+     */
+    public function assertSelectorCount(int $expectedCount, string $selector, string $message = ''): void
+    {
+        $this->assertDomCrawlerConstraintAvailable(CrawlerSelectorCount::class, __FUNCTION__);
+        $this->assertThatCrawler(new CrawlerSelectorCount($expectedCount, $selector), $message);
+    }
+
+    /**
      * Asserts that the first element matching the given selector contains the expected text.
      *
      * ```php
@@ -131,6 +152,48 @@ trait DomCrawlerAssertionsTrait
     }
 
     /**
+     * Asserts that at least one element matching the given selector contains the expected text.
+     *
+     * ```php
+     * <?php
+     * $I->assertAnySelectorTextContains('.item', 'Available');
+     * ```
+     */
+    public function assertAnySelectorTextContains(string $selector, string $text, string $message = ''): void
+    {
+        $this->assertDomCrawlerConstraintAvailable(CrawlerAnySelectorTextContains::class, __FUNCTION__);
+
+        $this->assertThatCrawler(
+            LogicalAnd::fromConstraints(
+                new CrawlerSelectorExists($selector),
+                new CrawlerAnySelectorTextContains($selector, $text)
+            ),
+            $message
+        );
+    }
+
+    /**
+     * Asserts that at least one element matching the given selector has exactly the expected text.
+     *
+     * ```php
+     * <?php
+     * $I->assertAnySelectorTextSame('.item', 'In stock');
+     * ```
+     */
+    public function assertAnySelectorTextSame(string $selector, string $text, string $message = ''): void
+    {
+        $this->assertDomCrawlerConstraintAvailable(CrawlerAnySelectorTextSame::class, __FUNCTION__);
+
+        $this->assertThatCrawler(
+            LogicalAnd::fromConstraints(
+                new CrawlerSelectorExists($selector),
+                new CrawlerAnySelectorTextSame($selector, $text)
+            ),
+            $message
+        );
+    }
+
+    /**
      * Asserts that the first element matching the given selector does not contain the expected text.
      *
      * ```php
@@ -141,6 +204,27 @@ trait DomCrawlerAssertionsTrait
     public function assertSelectorTextNotContains(string $selector, string $text, string $message = ''): void
     {
         $this->assertThatCrawler(new LogicalNot(new CrawlerSelectorTextContains($selector, $text)), $message);
+    }
+
+    /**
+     * Asserts that no element matching the given selector contains the expected text.
+     *
+     * ```php
+     * <?php
+     * $I->assertAnySelectorTextNotContains('.item', 'Error');
+     * ```
+     */
+    public function assertAnySelectorTextNotContains(string $selector, string $text, string $message = ''): void
+    {
+        $this->assertDomCrawlerConstraintAvailable(CrawlerAnySelectorTextContains::class, __FUNCTION__);
+
+        $this->assertThatCrawler(
+            LogicalAnd::fromConstraints(
+                new CrawlerSelectorExists($selector),
+                new LogicalNot(new CrawlerAnySelectorTextContains($selector, $text))
+            ),
+            $message
+        );
     }
 
     /**
@@ -178,5 +262,17 @@ trait DomCrawlerAssertionsTrait
             $constraint = new LogicalNot($constraint);
         }
         $this->assertThatCrawler($constraint, $message);
+    }
+
+    private function assertDomCrawlerConstraintAvailable(string $constraintClass, string $function): void
+    {
+        $this->assertTrue(
+            class_exists($constraintClass),
+            sprintf(
+                "The '%s' assertion is not available with your installed symfony/dom-crawler version. Missing constraint: %s",
+                $function,
+                $constraintClass
+            )
+        );
     }
 }

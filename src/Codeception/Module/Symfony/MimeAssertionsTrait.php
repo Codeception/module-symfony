@@ -9,6 +9,7 @@ use PHPUnit\Framework\Constraint\LogicalNot;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Mime\Test\Constraint as MimeConstraint;
 
+use function class_exists;
 use function sprintf;
 
 trait MimeAssertionsTrait
@@ -27,6 +28,22 @@ trait MimeAssertionsTrait
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new MimeConstraint\EmailAddressContains($headerName, $expectedValue));
+    }
+
+    /**
+     * Verify that an email does not contain the given address in the specified header.
+     * If the Email object is not specified, the last email sent is used instead.
+     *
+     * ```php
+     * <?php
+     * $I->assertEmailAddressNotContains('To', 'john_doe@example.com');
+     * ```
+     */
+    public function assertEmailAddressNotContains(string $headerName, string $expectedValue, ?Email $email = null): void
+    {
+        $this->assertMimeConstraintAvailable(MimeConstraint\EmailAddressContains::class, __FUNCTION__);
+        $email = $this->verifyEmailObject($email, __FUNCTION__);
+        $this->assertThat($email, new LogicalNot(new MimeConstraint\EmailAddressContains($headerName, $expectedValue)));
     }
 
     /**
@@ -167,6 +184,38 @@ trait MimeAssertionsTrait
     }
 
     /**
+     * Verify that an email subject contains `$expectedValue`.
+     * If the Email object is not specified, the last email sent is used instead.
+     *
+     * ```php
+     * <?php
+     * $I->assertEmailSubjectContains('Account created successfully');
+     * ```
+     */
+    public function assertEmailSubjectContains(string $expectedValue, ?Email $email = null): void
+    {
+        $this->assertMimeConstraintAvailable(MimeConstraint\EmailSubjectContains::class, __FUNCTION__);
+        $email = $this->verifyEmailObject($email, __FUNCTION__);
+        $this->assertThat($email, new MimeConstraint\EmailSubjectContains($expectedValue));
+    }
+
+    /**
+     * Verify that an email subject does not contain `$expectedValue`.
+     * If the Email object is not specified, the last email sent is used instead.
+     *
+     * ```php
+     * <?php
+     * $I->assertEmailSubjectNotContains('Password reset');
+     * ```
+     */
+    public function assertEmailSubjectNotContains(string $expectedValue, ?Email $email = null): void
+    {
+        $this->assertMimeConstraintAvailable(MimeConstraint\EmailSubjectContains::class, __FUNCTION__);
+        $email = $this->verifyEmailObject($email, __FUNCTION__);
+        $this->assertThat($email, new LogicalNot(new MimeConstraint\EmailSubjectContains($expectedValue)));
+    }
+
+    /**
      * Returns the last email sent if $email is null. If no email has been sent it fails.
      */
     private function verifyEmailObject(?Email $email, string $function): Email
@@ -175,6 +224,18 @@ trait MimeAssertionsTrait
         $errorMsgTemplate = "There is no email to verify. An Email object was not specified when invoking '%s' and the application has not sent one.";
         return $email ?? Assert::fail(
             sprintf($errorMsgTemplate, $function)
+        );
+    }
+
+    private function assertMimeConstraintAvailable(string $constraintClass, string $function): void
+    {
+        $this->assertTrue(
+            class_exists($constraintClass),
+            sprintf(
+                "The '%s' assertion is not available with your installed symfony/mime version. Missing constraint: %s",
+                $function,
+                $constraintClass
+            )
         );
     }
 }

@@ -16,6 +16,7 @@ use Codeception\Module\Symfony\ConsoleAssertionsTrait;
 use Codeception\Module\Symfony\DataCollectorName;
 use Codeception\Module\Symfony\DoctrineAssertionsTrait;
 use Codeception\Module\Symfony\DomCrawlerAssertionsTrait;
+use Codeception\Module\Symfony\EnvironmentAssertionsTrait;
 use Codeception\Module\Symfony\EventsAssertionsTrait;
 use Codeception\Module\Symfony\FormAssertionsTrait;
 use Codeception\Module\Symfony\HttpClientAssertionsTrait;
@@ -143,6 +144,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     use ConsoleAssertionsTrait;
     use DoctrineAssertionsTrait;
     use DomCrawlerAssertionsTrait;
+    use EnvironmentAssertionsTrait;
     use EventsAssertionsTrait;
     use FormAssertionsTrait;
     use HttpClientAssertionsTrait;
