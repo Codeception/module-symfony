@@ -7,6 +7,8 @@ namespace Codeception\Module\Symfony;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Constraint\LogicalNot;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Message;
+use Symfony\Component\Mime\RawMessage;
 use Symfony\Component\Mime\Test\Constraint as MimeConstraint;
 
 use function sprintf;
@@ -23,7 +25,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailAddressContains('To', 'jane_doe@example.com');
      * ```
      */
-    public function assertEmailAddressContains(string $headerName, string $expectedValue, ?Email $email = null): void
+    public function assertEmailAddressContains(string $headerName, string $expectedValue, ?Message $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new MimeConstraint\EmailAddressContains($headerName, $expectedValue));
@@ -53,7 +55,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailHasHeader('Bcc');
      * ```
      */
-    public function assertEmailHasHeader(string $headerName, ?Email $email = null): void
+    public function assertEmailHasHeader(string $headerName, ?Message $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new MimeConstraint\EmailHasHeader($headerName));
@@ -69,7 +71,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailHeaderNotSame('To', 'john_doe@gmail.com');
      * ```
      */
-    public function assertEmailHeaderNotSame(string $headerName, string $expectedValue, ?Email $email = null): void
+    public function assertEmailHeaderNotSame(string $headerName, string $expectedValue, ?Message $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new LogicalNot(new MimeConstraint\EmailHeaderSame($headerName, $expectedValue)));
@@ -85,7 +87,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailHeaderSame('To', 'jane_doe@gmail.com');
      * ```
      */
-    public function assertEmailHeaderSame(string $headerName, string $expectedValue, ?Email $email = null): void
+    public function assertEmailHeaderSame(string $headerName, string $expectedValue, ?Message $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new MimeConstraint\EmailHeaderSame($headerName, $expectedValue));
@@ -130,7 +132,7 @@ trait MimeAssertionsTrait
      * $I->assertEmailNotHasHeader('Bcc');
      * ```
      */
-    public function assertEmailNotHasHeader(string $headerName, ?Email $email = null): void
+    public function assertEmailNotHasHeader(string $headerName, ?Message $email = null): void
     {
         $email = $this->verifyEmailObject($email, __FUNCTION__);
         $this->assertThat($email, new LogicalNot(new MimeConstraint\EmailHasHeader($headerName)));
@@ -169,7 +171,7 @@ trait MimeAssertionsTrait
     /**
      * Returns the last email sent if $email is null. If no email has been sent it fails.
      */
-    private function verifyEmailObject(?Email $email, string $function): Email
+    private function verifyEmailObject(?RawMessage $email, string $function): RawMessage
     {
         $email = $email ?: $this->grabLastSentEmail();
         $errorMsgTemplate = "There is no email to verify. An Email object was not specified when invoking '%s' and the application has not sent one.";

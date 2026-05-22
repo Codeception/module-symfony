@@ -10,7 +10,7 @@ use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\Event\MessageEvents;
 use Symfony\Component\Mailer\EventListener\MessageLoggerListener;
 use Symfony\Component\Mailer\Test\Constraint as MailerConstraint;
-use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\RawMessage;
 
 use function array_key_last;
 
@@ -100,9 +100,8 @@ trait MailerAssertionsTrait
      * $I->assertSame('john_doe@example.com', $address->getAddress());
      * ```
      */
-    public function grabLastSentEmail(): ?Email
+    public function grabLastSentEmail(): ?RawMessage
     {
-        /** @var Email[] $emails */
         $emails = $this->getMessageMailerEvents()->getMessages();
 
         return $emails ? $emails[array_key_last($emails)] : null;
@@ -119,7 +118,7 @@ trait MailerAssertionsTrait
      * $emails = $I->grabSentEmails();
      * ```
      *
-     * @return \Symfony\Component\Mime\RawMessage[]
+     * @return RawMessage[]
      */
     public function grabSentEmails(): array
     {
