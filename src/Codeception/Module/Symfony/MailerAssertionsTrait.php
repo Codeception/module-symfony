@@ -88,7 +88,8 @@ trait MailerAssertionsTrait
     }
 
     /**
-     * Returns the last sent email.
+     * Returns the last sent message or `null` if no message was sent.
+     * The return type is `RawMessage`, which covers both `Email` and `Message` objects.
      * The function is based on `\Symfony\Component\Mailer\EventListener\MessageLoggerListener`, which means:
      * If your app performs an HTTP redirect after sending the email, you need to suppress it using [stopFollowingRedirects()](#stopFollowingRedirects) first.
      * See also: [grabSentEmails()](https://codeception.com/docs/modules/Symfony#grabSentEmails)
@@ -96,15 +97,12 @@ trait MailerAssertionsTrait
      * ```php
      * <?php
      * $email = $I->grabLastSentEmail();
-     * $address = $email->getTo()[0];
-     * $I->assertSame('john_doe@example.com', $address->getAddress());
+     * $I->assertEmailHasHeader('To', $email);
      * ```
      */
     public function grabLastSentEmail(): ?RawMessage
     {
-        $emails = $this->getMessageMailerEvents()->getMessages();
-
-        return $emails ? $emails[array_key_last($emails)] : null;
+        return $this->grabLastSentRawMessage();
     }
 
     /**
@@ -158,6 +156,13 @@ trait MailerAssertionsTrait
     public function getMailerEvent(int $index = 0, ?string $transport = null): ?MessageEvent
     {
         return $this->getMessageMailerEvents()->getEvents($transport)[$index] ?? null;
+    }
+
+    protected function grabLastSentRawMessage(): ?RawMessage
+    {
+        $messages = $this->getMessageMailerEvents()->getMessages();
+
+        return $messages ? $messages[array_key_last($messages)] : null;
     }
 
     protected function getMessageMailerEvents(): MessageEvents

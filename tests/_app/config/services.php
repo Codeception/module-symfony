@@ -23,6 +23,7 @@ use Tests\App\Event\TestEvent;
 use Tests\App\HttpClient\MockResponseFactory;
 use Tests\App\Listener\TestEventListener;
 use Tests\App\Logger\ArrayLogger;
+use Tests\App\Mailer\MessageMailer;
 use Tests\App\Mailer\RegistrationMailer;
 use Tests\App\Notifier\NotifierFixture;
 use Tests\App\Repository\UserRepository;
@@ -67,6 +68,7 @@ return static function (ContainerConfigurator $container): void {
     $services->alias('notifier.logger_notification_listener', 'notifier.notification_logger_listener')->public();
 
     $services->set(RegistrationMailer::class)->arg('$mailer', service('mailer'));
+    $services->set(MessageMailer::class)->arg('$mailer', service('mailer'));
     $services->set(NotifierFixture::class)->arg('$dispatcher', service('event_dispatcher'));
 
     $services->set(TestEventListener::class)

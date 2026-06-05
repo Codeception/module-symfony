@@ -6,7 +6,11 @@ namespace Tests;
 
 use Codeception\Module\Symfony\MailerAssertionsTrait;
 use Codeception\Module\Symfony\MimeAssertionsTrait;
+use PHPUnit\Framework\AssertionFailedError;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Header\Headers;
+use Symfony\Component\Mime\Message;
+use Symfony\Component\Mime\Part\TextPart;
 use Tests\Support\CodeceptTestCase;
 
 final class MimeAssertionsTest extends CodeceptTestCase
@@ -78,5 +82,45 @@ final class MimeAssertionsTest extends CodeceptTestCase
         $this->assertEmailAddressContains('To', 'custom@example.com', $email);
         $this->assertEmailTextBodyContains('Custom body text', $email);
         $this->assertEmailNotHasHeader('Cc', $email);
+    }
+
+    public function testHeaderAssertionsWorkWithSentMessage(): void
+    {
+        $this->getService('mailer.message_logger_listener')->reset();
+        $this->client->request('GET', '/send-message');
+
+        $this->assertEmailHasHeader('To');
+        $this->assertEmailHasHeader('From');
+        $this->assertEmailHasHeader('Subject');
+        $this->assertEmailAddressContains('To', 'jane_doe@example.com');
+        $this->assertEmailHeaderSame('Subject', 'Test message');
+        $this->assertEmailHeaderNotSame('Subject', 'Wrong subject');
+        $this->assertEmailNotHasHeader('Bcc');
+    }
+
+    public function testHeaderAssertionsWithProvidedMessage(): void
+    {
+        $headers = new Headers();
+        $headers->addMailboxListHeader('From', ['sender@example.com']);
+        $headers->addMailboxListHeader('To', ['recipient@example.com']);
+        $headers->addTextHeader('Subject', 'Test subject');
+
+        $message = new Message($headers, new TextPart('body content'));
+
+        $this->assertEmailHasHeader('To', $message);
+        $this->assertEmailAddressContains('To', 'recipient@example.com', $message);
+        $this->assertEmailHeaderSame('Subject', 'Test subject', $message);
+        $this->assertEmailHeaderNotSame('Subject', 'Wrong subject', $message);
+        $this->assertEmailNotHasHeader('Bcc', $message);
+    }
+
+    public function testFailsWhenNoMessageSent(): void
+    {
+        $this->getService('mailer.message_logger_listener')->reset();
+
+        $this->expectException(AssertionFailedError::class);
+        $this->expectExceptionMessage('No message to verify for');
+
+        $this->assertEmailHasHeader('To');
     }
 }

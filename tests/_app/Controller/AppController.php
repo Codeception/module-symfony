@@ -21,6 +21,7 @@ use Symfony\Component\Validator\Constraints\Email as EmailConstraint;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Tests\App\Event\TestEvent;
+use Tests\App\Mailer\MessageMailer;
 use Tests\App\Mailer\RegistrationMailer;
 use Twig\Environment;
 
@@ -173,6 +174,13 @@ final class AppController extends AbstractController
         $mailer->sendConfirmationEmail('jane_doe@example.com');
 
         return new Response('Email sent');
+    }
+
+    public function sendMessage(MessageMailer $mailer): Response
+    {
+        $mailer->send('jane_doe@example.com');
+
+        return new Response('Message sent');
     }
 
     public function testPage(Environment $twig): Response
