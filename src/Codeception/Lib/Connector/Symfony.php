@@ -53,11 +53,7 @@ class Symfony extends HttpKernelBrowser
      */
     public function rebootKernel(): void
     {
-        foreach ($this->persistentServices as $name => $_) {
-            if ($this->container->has($name)) {
-                $this->persistentServices[$name] = $this->container->get($name);
-            }
-        }
+        $this->updatePersistentServices();
 
         $this->persistDoctrineConnections();
 
@@ -68,15 +64,7 @@ class Symfony extends HttpKernelBrowser
 
         $this->container = $this->resolveContainer();
 
-        foreach ($this->persistentServices as $name => $service) {
-            try {
-                $this->container->set($name, $service);
-            } catch (InvalidArgumentException $e) {
-                if (function_exists('codecept_debug')) {
-                    codecept_debug("[Symfony] Can't set persistent service {$name}: {$e->getMessage()}");
-                }
-            }
-        }
+        $this->injectPersistentServices();
 
         $this->getProfiler()?->enable();
     }
@@ -115,5 +103,27 @@ class Symfony extends HttpKernelBrowser
                 unset($this->parameters['doctrine.connections']);
             }
         })->call($this->kernel->getContainer());
+    }
+
+    private function updatePersistentServices(): void
+    {
+        foreach ($this->persistentServices as $name => $_) {
+            if ($this->container->has($name)) {
+                $this->persistentServices[$name] = $this->container->get($name);
+            }
+        }
+    }
+
+    private function injectPersistentServices(): void
+    {
+        foreach ($this->persistentServices as $name => $service) {
+            try {
+                $this->container->set($name, $service);
+            } catch (InvalidArgumentException $e) {
+                if (function_exists('codecept_debug')) {
+                    codecept_debug("[Symfony] Can't set persistent service {$name}: {$e->getMessage()}");
+                }
+            }
+        }
     }
 }

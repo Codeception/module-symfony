@@ -7,7 +7,6 @@ namespace Codeception\Module\Symfony;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-use function array_filter;
 use function iterator_to_array;
 use function str_contains;
 
@@ -90,14 +89,18 @@ trait ValidatorAssertionsTrait
         $validator = $this->getValidatorService();
         $violations = $propertyPath ? $validator->validateProperty($subject, $propertyPath) : $validator->validate($subject);
 
+        /** @var ConstraintViolationInterface[] $violations */
         $violations = iterator_to_array($violations);
 
         if ($constraint !== null) {
-            return (array) array_filter(
-                $violations,
-                static fn(ConstraintViolationInterface $violation): bool => $violation->getConstraint() !== null
-                    && $violation->getConstraint()::class === $constraint
-            );
+            $filteredViolations = [];
+            foreach ($violations as $violation) {
+                $violationConstraint = $violation->getConstraint();
+                if ($violationConstraint !== null && $violationConstraint::class === $constraint) {
+                    $filteredViolations[] = $violation;
+                }
+            }
+            return $filteredViolations;
         }
 
         return $violations;
