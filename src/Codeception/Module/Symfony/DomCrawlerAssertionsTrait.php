@@ -170,10 +170,10 @@ trait DomCrawlerAssertionsTrait
         $this->assertThatCrawler($constraint, $message);
     }
 
-    private function assertInputValue(string $fieldName, string $value, bool $same, string $message): void
+    private function assertInputValue(string $fieldName, string $expectedValue, bool $same, string $message): void
     {
         $this->assertThatCrawler(new CrawlerSelectorExists("input[name=\"$fieldName\"]"), $message);
-        $constraint = new CrawlerSelectorAttributeValueSame("input[name=\"$fieldName\"]", 'value', $value);
+        $constraint = new CrawlerSelectorAttributeValueSame("input[name=\"$fieldName\"]", 'value', $expectedValue);
         if (!$same) {
             $constraint = new LogicalNot($constraint);
         }

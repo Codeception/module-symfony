@@ -22,7 +22,6 @@ use Symfony\Component\HttpFoundation\Test\Constraint\ResponseIsUnprocessable;
 use Symfony\Component\HttpFoundation\Test\Constraint\ResponseStatusCodeSame;
 
 use function class_exists;
-use function count;
 use function sprintf;
 
 trait BrowserAssertionsTrait
@@ -372,7 +371,7 @@ trait BrowserAssertionsTrait
         }
 
         $node = $this->getClient()->getCrawler()->filter($selector);
-        $this->assertGreaterThan(0, count($node), sprintf('Form "%s" not found.', $selector));
+        $this->assertGreaterThan(0, $node->count(), sprintf('Form "%s" not found.', $selector));
         $form = $node->form();
         $this->getClient()->submit($form, $params);
     }

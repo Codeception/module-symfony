@@ -145,13 +145,13 @@ trait HttpClientAssertionsTrait
         return $clientData['traces'];
     }
 
-    private function extractValue(mixed $value): mixed
+    private function extractValue(mixed $traceData): mixed
     {
         return match (true) {
-            $value instanceof Data => $value->getValue(true),
-            is_object($value) && method_exists($value, 'getValue') => $value->getValue(true),
-            $value instanceof Stringable => (string) $value,
-            default => $value,
+            $traceData instanceof Data => $traceData->getValue(true),
+            is_object($traceData) && method_exists($traceData, 'getValue') => $traceData->getValue(true),
+            $traceData instanceof Stringable => (string) $traceData,
+            default => $traceData,
         };
     }
 

@@ -74,12 +74,12 @@ trait SessionAssertionsTrait
      * $I->dontSeeInSession('attribute', 'value');
      * ```
      */
-    public function dontSeeInSession(string $attribute, mixed $value = null): void
+    public function dontSeeInSession(string $attribute, mixed $expectedValue = null): void
     {
         $session = $this->getCurrentSession();
-        $value === null
+        $expectedValue === null
             ? $this->assertFalse($session->has($attribute), "Session attribute '{$attribute}' exists.")
-            : $this->assertNotSame($value, $session->get($attribute));
+            : $this->assertNotSame($expectedValue, $session->get($attribute));
     }
 
     /**
@@ -141,13 +141,13 @@ trait SessionAssertionsTrait
      * $I->seeInSession('attribute', 'value');
      * ```
      */
-    public function seeInSession(string $attribute, mixed $value = null): void
+    public function seeInSession(string $attribute, mixed $expectedValue = null): void
     {
         $session = $this->getCurrentSession();
         $this->assertTrue($session->has($attribute), "No session attribute with name '{$attribute}'");
 
-        if ($value !== null) {
-            $this->assertSame($value, $session->get($attribute));
+        if ($expectedValue !== null) {
+            $this->assertSame($expectedValue, $session->get($attribute));
         }
     }
 
@@ -166,16 +166,16 @@ trait SessionAssertionsTrait
     {
         $session = $this->getCurrentSession();
 
-        foreach ($bindings as $key => $value) {
+        foreach ($bindings as $key => $expectedAttr) {
             if (!is_int($key)) {
                 $this->assertTrue($session->has($key), "No session attribute with name '{$key}'");
-                $this->assertSame($value, $session->get($key));
+                $this->assertSame($expectedAttr, $session->get($key));
                 continue;
             }
-            if (!is_string($value)) {
-                throw new InvalidArgumentException(sprintf('Attribute name must be string, %s given.', get_debug_type($value)));
+            if (!is_string($expectedAttr)) {
+                throw new InvalidArgumentException(sprintf('Attribute name must be string, %s given.', get_debug_type($expectedAttr)));
             }
-            $this->assertTrue($session->has($value), "No session attribute with name '{$value}'");
+            $this->assertTrue($session->has($expectedAttr), "No session attribute with name '{$expectedAttr}'");
         }
     }
 
