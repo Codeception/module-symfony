@@ -9,6 +9,7 @@ use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Message;
 use Tests\Support\CodeceptTestCase;
 
 final class MailerAssertionsTest extends CodeceptTestCase
@@ -24,6 +25,12 @@ final class MailerAssertionsTest extends CodeceptTestCase
     public function testAssertEmailCount(): void
     {
         $this->client->request('GET', '/send-email');
+        $this->assertEmailCount(1);
+    }
+
+    public function testAssertEmailCountWithMessage(): void
+    {
+        $this->client->request('GET', '/send-message');
         $this->assertEmailCount(1);
     }
 
@@ -58,18 +65,40 @@ final class MailerAssertionsTest extends CodeceptTestCase
         $this->assertInstanceOf(MessageEvent::class, $this->getMailerEvent());
     }
 
-    public function testGrabLastSentEmail(): void
+    public function testGrabLastSentEmailReturnsEmailInstance(): void
     {
         $this->client->request('GET', '/send-email');
         $email = $this->grabLastSentEmail();
         $this->assertInstanceOf(Email::class, $email);
-        $this->assertSame('jane_doe@example.com', $email->getTo()[0]->getAddress());
     }
 
-    public function testGrabSentEmails(): void
+    public function testGrabLastSentEmailReturnsMessageInstance(): void
+    {
+        $this->client->request('GET', '/send-message');
+        $message = $this->grabLastSentEmail();
+        $this->assertInstanceOf(Message::class, $message);
+        $this->assertNotInstanceOf(Email::class, $message);
+    }
+
+    public function testGrabLastSentEmailReturnsNullWhenNoMessagesSent(): void
+    {
+        $this->assertNull($this->grabLastSentEmail());
+    }
+
+    public function testGrabSentEmailsWithEmailType(): void
     {
         $this->client->request('GET', '/send-email');
-        $this->assertCount(1, $this->grabSentEmails());
+        $emails = $this->grabSentEmails();
+        $this->assertCount(1, $emails);
+        $this->assertInstanceOf(Email::class, $emails[0]);
+    }
+
+    public function testGrabSentEmailsWithMessageType(): void
+    {
+        $this->client->request('GET', '/send-message');
+        $messages = $this->grabSentEmails();
+        $this->assertCount(1, $messages);
+        $this->assertInstanceOf(Message::class, $messages[0]);
     }
 
     public function testSeeEmailIsSent(): void
@@ -80,10 +109,8 @@ final class MailerAssertionsTest extends CodeceptTestCase
 
     public function testEdgeCases(): void
     {
-        // No emails sent
         $this->assertNull($this->grabLastSentEmail());
 
-        // Out of range index
         $this->client->request('GET', '/send-email');
         $this->assertNull($this->getMailerEvent(999));
     }

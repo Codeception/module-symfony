@@ -23,6 +23,7 @@ return function (RoutingConfigurator $routes): void {
     $routes->add('response_json', '/response_json')->controller(AppController::class . '::responseJsonFormat');
     $routes->add('sample', '/sample')->controller(AppController::class . '::sample');
     $routes->add('send_email', '/send-email')->controller(AppController::class . '::sendEmail');
+    $routes->add('send_message', '/send-message')->controller(AppController::class . '::sendMessage');
     $routes->add('test_page', '/test_page')->controller(AppController::class . '::testPage');
     $routes->add('unprocessable_entity', '/unprocessable_entity')->controller(AppController::class . '::unprocessableEntity');
 };
