@@ -7,8 +7,10 @@ namespace Codeception\Module\Symfony;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Profiler\Profile;
 
+use function array_key_exists;
 use function array_unique;
 use function array_values;
+use function is_string;
 
 trait CacheTrait
 {
@@ -40,11 +42,13 @@ trait CacheTrait
 
         $domains = [];
         foreach ($this->grabRouterService()->getRouteCollection() as $route) {
-            if ($route->getHost() !== '') {
-                $regex = $route->compile()->getHostRegex();
-                if ($regex !== null && $regex !== '') {
-                    $domains[] = $regex;
-                }
+            if ($route->getHost() === '') {
+                continue;
+            }
+
+            $hostRegex = $route->compile()->getHostRegex();
+            if ($hostRegex !== null && $hostRegex !== '') {
+                $domains[] = $hostRegex;
             }
         }
 
@@ -67,22 +71,23 @@ trait CacheTrait
      */
     protected function grabCachedService(string $expectedClass, array $serviceIds): ?object
     {
-        $serviceId = $this->state[$expectedClass] ??= (function () use ($serviceIds, $expectedClass): ?string {
+        if (!array_key_exists($expectedClass, $this->state)) {
+            $this->state[$expectedClass] = null;
             foreach ($serviceIds as $id) {
-                if ($this->getService($id) instanceof $expectedClass) {
-                    return $id;
+                $service = $this->getService($id);
+                if ($service instanceof $expectedClass) {
+                    $this->state[$expectedClass] = $id;
+                    break;
                 }
             }
+        }
 
-            return null;
-        })();
-
+        $serviceId = $this->state[$expectedClass];
         if (!is_string($serviceId)) {
             return null;
         }
 
         $service = $this->getService($serviceId);
-
         return $service instanceof $expectedClass ? $service : null;
     }
 }

@@ -171,8 +171,8 @@ trait TranslationAssertionsTrait
         );
     }
 
-    protected function grabTranslationCollector(string $function): TranslationDataCollector
+    protected function grabTranslationCollector(string $callingFunction): TranslationDataCollector
     {
-        return $this->grabCollector(DataCollectorName::TRANSLATION, $function);
+        return $this->grabCollector(DataCollectorName::TRANSLATION, $callingFunction);
     }
 }

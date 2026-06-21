@@ -109,7 +109,8 @@ trait BrowserAssertionsTrait
      */
     public function assertResponseFormatSame(?string $expectedFormat, string $message = ''): void
     {
-        $this->assertThatForResponse(new ResponseFormatSame($this->getClient()->getRequest(), $expectedFormat), $message);
+        $client = $this->getClient();
+        $this->assertThatForResponse(new ResponseFormatSame($client->getRequest(), $expectedFormat), $message);
     }
 
     /**
@@ -233,14 +234,14 @@ trait BrowserAssertionsTrait
     {
         $this->assertThatForResponse(new ResponseIsRedirected($verbose), $message);
 
-        if ($expectedLocation) {
+        if ($expectedLocation !== null) {
             $constraint = class_exists(ResponseHeaderLocationSame::class)
                 ? new ResponseHeaderLocationSame($this->getClient()->getRequest(), $expectedLocation)
                 : new ResponseHeaderSame('Location', $expectedLocation);
             $this->assertThatForResponse($constraint, $message);
         }
 
-        if ($expectedCode) {
+        if ($expectedCode !== null) {
             $this->assertThatForResponse(new ResponseStatusCodeSame($expectedCode), $message);
         }
     }
@@ -317,8 +318,9 @@ trait BrowserAssertionsTrait
     public function seePageIsAvailable(?string $url = null): void
     {
         if ($url !== null) {
-            $this->getClient()->request('GET', $url);
-            $this->assertStringContainsString($url, $this->getClient()->getRequest()->getRequestUri());
+            $client = $this->getClient();
+            $client->request('GET', $url);
+            $this->assertStringContainsString($url, $client->getRequest()->getRequestUri());
         }
 
         $this->assertResponseIsSuccessful();
@@ -370,10 +372,11 @@ trait BrowserAssertionsTrait
             $params[$name . $key] = $value;
         }
 
-        $node = $this->getClient()->getCrawler()->filter($selector);
+        $client = $this->getClient();
+        $node = $client->getCrawler()->filter($selector);
         $this->assertGreaterThan(0, $node->count(), sprintf('Form "%s" not found.', $selector));
         $form = $node->form();
-        $this->getClient()->submit($form, $params);
+        $client->submit($form, $params);
     }
 
     protected function assertThatForClient(Constraint $constraint, string $message = ''): void

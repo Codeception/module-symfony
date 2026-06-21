@@ -76,8 +76,8 @@ trait TwigAssertionsTrait
         );
     }
 
-    protected function grabTwigCollector(string $function): TwigDataCollector
+    protected function grabTwigCollector(string $callingFunction): TwigDataCollector
     {
-        return $this->grabCollector(DataCollectorName::TWIG, $function);
+        return $this->grabCollector(DataCollectorName::TWIG, $callingFunction);
     }
 }

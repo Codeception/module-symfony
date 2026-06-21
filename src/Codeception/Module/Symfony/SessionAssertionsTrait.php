@@ -123,6 +123,7 @@ trait SessionAssertionsTrait
         $session->invalidate();
 
         $cookieJar = $this->getClient()->getCookieJar();
+
         foreach ($cookieJar->all() as $cookie) {
             $cookieName = $cookie->getName();
             if ($cookieName === 'MOCKSESSID' || $cookieName === 'REMEMBERME' || $cookieName === $sessionName) {

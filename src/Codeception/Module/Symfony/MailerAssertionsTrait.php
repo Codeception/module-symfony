@@ -160,9 +160,9 @@ trait MailerAssertionsTrait
 
     protected function grabLastSentRawMessage(): ?RawMessage
     {
-        $messages = $this->getMessageMailerEvents()->getMessages();
+        $events = $this->getMessageMailerEvents()->getEvents();
 
-        return $messages ? $messages[array_key_last($messages)] : null;
+        return $events ? $events[array_key_last($events)]->getMessage() : null;
     }
 
     protected function getMessageMailerEvents(): MessageEvents

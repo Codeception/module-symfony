@@ -45,16 +45,16 @@ trait HttpKernelAssertionsTrait
      *     )))))))))
      * )
      */
-    protected function grabCollector(DataCollectorName $name, string $function = '', ?string $message = null): DataCollectorInterface
+    protected function grabCollector(DataCollectorName $name, string $callingFunction = '', ?string $message = null): DataCollectorInterface
     {
         $profile = $this->getProfile();
 
         if ($profile === null) {
-            Assert::fail(sprintf("The Profile is needed to use the '%s' function.", $function));
+            Assert::fail(sprintf("The Profile is needed to use the '%s' function.", $callingFunction));
         }
 
         if (!$profile->hasCollector($name->value)) {
-            Assert::fail($message ?: sprintf("The '%s' collector is needed to use the '%s' function.", $name->value, $function));
+            Assert::fail($message ?: sprintf("The '%s' collector is needed to use the '%s' function.", $name->value, $callingFunction));
         }
 
         return $profile->getCollector($name->value);

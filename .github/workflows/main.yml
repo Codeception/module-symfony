@@ -55,8 +55,9 @@ jobs:
 
           if [ "${{ matrix.symfony }}" = "7.4" ]; then
             composer require codeception/module-rest --dev
+            git -C framework-tests checkout -- composer.json
             git -C framework-tests apply resetFormatsAfterRequest_issue_test.patch
-            composer -d framework-tests install --no-progress
+            composer -d framework-tests update --no-progress
             php framework-tests/bin/console lexik:jwt:generate-keypair --skip-if-exists
             php vendor/bin/codecept run Functional -c framework-tests
           fi
