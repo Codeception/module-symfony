@@ -60,6 +60,7 @@ trait ConsoleAssertionsTrait
      */
     private function configureOptions(array $parameters): array
     {
+        /** @var array<string, bool|int> $options */
         $options = [];
 
         foreach ($parameters as $key => $value) {

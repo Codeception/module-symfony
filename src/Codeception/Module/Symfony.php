@@ -49,8 +49,6 @@ use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
 use Symfony\Component\Notifier\DataCollector\NotificationDataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
 
-use function array_filter;
-use function array_map;
 use function class_exists;
 use function codecept_root_dir;
 use function count;
@@ -61,6 +59,7 @@ use function implode;
 use function ini_get;
 use function ini_set;
 use function is_object;
+use function is_scalar;
 use function is_subclass_of;
 use function sprintf;
 
@@ -334,8 +333,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
         if (file_exists($expectedKernelPath)) {
             include_once $expectedKernelPath;
         } else {
-            foreach (glob($path . DIRECTORY_SEPARATOR . '*Kernel.php') ?: [] as $file) {
-                include_once $file;
+            $kernelFiles = glob($path . DIRECTORY_SEPARATOR . '*Kernel.php', GLOB_NOSORT);
+            if ($kernelFiles !== false) {
+                foreach ($kernelFiles as $file) {
+                    include_once $file;
+                }
             }
         }
 
@@ -445,7 +447,13 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             $roles = $roles->getValue(true);
         }
 
-        $rolesStr = implode(',', array_map('strval', array_filter((array) $roles, 'is_scalar')));
+        $scalarRoles = [];
+        foreach ((array) $roles as $role) {
+            if (is_scalar($role)) {
+                $scalarRoles[] = (string) $role;
+            }
+        }
+        $rolesStr = implode(',', $scalarRoles);
         $this->debugSection('User', sprintf('%s [%s]', $securityCollector->getUser(), $rolesStr));
     }
 

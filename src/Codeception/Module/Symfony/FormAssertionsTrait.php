@@ -175,14 +175,14 @@ trait FormAssertionsTrait
         $this->assertGreaterThan(0, $this->getFormErrorsCount(__FUNCTION__), 'Expecting that the form has errors, but there were none!');
     }
 
-    protected function grabFormCollector(string $function): FormDataCollector
+    protected function grabFormCollector(string $callingFunction): FormDataCollector
     {
-        return $this->grabCollector(DataCollectorName::FORM, $function);
+        return $this->grabCollector(DataCollectorName::FORM, $callingFunction);
     }
 
-    private function getFormErrorsCount(string $function): int
+    private function getFormErrorsCount(string $callingFunction): int
     {
-        $collector = $this->grabFormCollector($function);
+        $collector = $this->grabFormCollector($callingFunction);
         $rawData = $this->getRawCollectorData($collector);
 
         return isset($rawData['nb_errors']) && is_numeric($rawData['nb_errors']) ? (int) $rawData['nb_errors'] : 0;

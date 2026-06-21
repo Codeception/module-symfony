@@ -11,6 +11,8 @@ use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorExists;
 use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorTextContains;
 use Symfony\Component\DomCrawler\Test\Constraint\CrawlerSelectorTextSame;
 
+use function sprintf;
+
 trait DomCrawlerAssertionsTrait
 {
     /**
@@ -172,11 +174,14 @@ trait DomCrawlerAssertionsTrait
 
     private function assertInputValue(string $fieldName, string $expectedValue, bool $same, string $message): void
     {
-        $this->assertThatCrawler(new CrawlerSelectorExists("input[name=\"$fieldName\"]"), $message);
-        $constraint = new CrawlerSelectorAttributeValueSame("input[name=\"$fieldName\"]", 'value', $expectedValue);
+        $selector = "input[name=\"$fieldName\"]";
+        $context = $message ?: sprintf('Value of input "%s"', $fieldName);
+        $this->assertThatCrawler(new CrawlerSelectorExists($selector), $context);
+
+        $constraint = new CrawlerSelectorAttributeValueSame($selector, 'value', $expectedValue);
         if (!$same) {
             $constraint = new LogicalNot($constraint);
         }
-        $this->assertThatCrawler($constraint, $message);
+        $this->assertThatCrawler($constraint, $context);
     }
 }

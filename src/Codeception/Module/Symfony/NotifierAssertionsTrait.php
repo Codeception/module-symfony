@@ -163,9 +163,13 @@ trait NotifierAssertionsTrait
      */
     public function grabLastSentNotification(): ?MessageInterface
     {
-        $notifications = $this->getNotifierMessages();
+        $events = $this->getNotifierEvents();
 
-        return $notifications ? $notifications[array_key_last($notifications)] : null;
+        if ($events === []) {
+            return null;
+        }
+
+        return $events[array_key_last($events)]->getMessage();
     }
 
     /**
@@ -238,7 +242,9 @@ trait NotifierAssertionsTrait
      */
     public function getNotifierMessage(int $index = 0, ?string $transportName = null): ?MessageInterface
     {
-        return $this->getNotifierMessages($transportName)[$index] ?? null;
+        $event = $this->getNotifierEvents($transportName)[$index] ?? null;
+
+        return $event?->getMessage();
     }
 
     protected function getNotificationEvents(): NotificationEvents

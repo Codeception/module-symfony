@@ -7,6 +7,7 @@ namespace Codeception\Module\Symfony;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+use function array_filter;
 use function iterator_to_array;
 use function str_contains;
 
@@ -87,23 +88,21 @@ trait ValidatorAssertionsTrait
     protected function getViolationsForSubject(object $subject, ?string $propertyPath = null, ?string $constraint = null): array
     {
         $validator = $this->getValidatorService();
-        $violations = $propertyPath ? $validator->validateProperty($subject, $propertyPath) : $validator->validate($subject);
+        $violations = $propertyPath !== null ? $validator->validateProperty($subject, $propertyPath) : $validator->validate($subject);
 
-        /** @var ConstraintViolationInterface[] $violations */
-        $violations = iterator_to_array($violations);
+        $violations = iterator_to_array($violations, false);
 
-        if ($constraint !== null) {
-            $filteredViolations = [];
-            foreach ($violations as $violation) {
-                $violationConstraint = $violation->getConstraint();
-                if ($violationConstraint !== null && $violationConstraint::class === $constraint) {
-                    $filteredViolations[] = $violation;
-                }
-            }
-            return $filteredViolations;
+        if ($constraint === null) {
+            return $violations;
         }
 
-        return $violations;
+        return array_filter(
+            $violations,
+            static function (ConstraintViolationInterface $violation) use ($constraint): bool {
+                $c = $violation->getConstraint();
+                return $c !== null && $c::class === $constraint;
+            }
+        );
     }
 
     protected function getValidatorService(): ValidatorInterface
