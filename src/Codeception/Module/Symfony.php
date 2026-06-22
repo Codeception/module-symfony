@@ -364,8 +364,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      */
     protected function getProfile(): ?Profile
     {
-        /** @var Profiler|null $profiler */
-        $profiler = $this->getService('profiler');
+        $profiler = $this->grabCachedService(Profiler::class, ['.container.private.profiler', 'profiler']);
 
         if ($profiler === null) {
             return null;

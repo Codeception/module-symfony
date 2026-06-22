@@ -87,13 +87,15 @@ class Symfony extends HttpKernelBrowser
 
     private function getProfiler(): ?Profiler
     {
-        if (!$this->container->has('profiler')) {
-            return null;
+        foreach (['.container.private.profiler', 'profiler'] as $id) {
+            if ($this->container->has($id)) {
+                $profiler = $this->container->get($id);
+
+                return $profiler instanceof Profiler ? $profiler : null;
+            }
         }
 
-        $profiler = $this->container->get('profiler');
-
-        return $profiler instanceof Profiler ? $profiler : null;
+        return null;
     }
 
     private function persistDoctrineConnections(): void

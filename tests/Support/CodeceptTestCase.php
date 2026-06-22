@@ -153,12 +153,20 @@ abstract class CodeceptTestCase extends TestCase
         }
 
         $container = $this->_getContainer();
-        if (!$container->has('profiler')) {
+
+        $profiler = null;
+        foreach (['.container.private.profiler', 'profiler'] as $id) {
+            if ($container->has($id)) {
+                /** @var Profiler $profiler */
+                $profiler = $container->get($id);
+                break;
+            }
+        }
+
+        if (!$profiler instanceof Profiler) {
             return null;
         }
 
-        /** @var Profiler $profiler */
-        $profiler = $container->get('profiler');
         $profile = $profiler->collect($request, $response);
 
         if ($profile instanceof Profile) {
