@@ -272,24 +272,31 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
 
     /**
      * Retrieve the Doctrine EntityManager.
-     * EntityManager service is retrieved once and then reused.
+     *
+     * The EntityManager is resolved fresh from the current container on every
+     * call instead of being cached, so it always matches the one the kernel
+     * uses for the request in flight. After a reboot a persisted EntityManager
+     * would keep an immutable ListenersInvoker bound to the old container,
+     * splitting the identity map (and the security context lazy entity
+     * listeners see) from the application's. Only the DBAL connection is kept
+     * persistent: that preserves the open test transaction across reboots while
+     * the freshly rebuilt EntityManager runs on top of it.
+     *
+     * @see https://github.com/Codeception/module-symfony/issues/34
      */
     public function _getEntityManager(): EntityManagerInterface
     {
         /** @var non-empty-string $emService */
         $emService = $this->config['em_service'];
 
-        if (!isset($this->permanentServices[$emService])) {
-            $this->persistPermanentService($emService);
+        if (!isset($this->permanentServices['doctrine.dbal.default_connection'])) {
             $container = $this->_getContainer();
-            foreach (['doctrine', 'doctrine.orm.default_entity_manager', 'doctrine.dbal.default_connection'] as $service) {
-                if ($container->has($service)) {
-                    $this->persistPermanentService($service);
-                }
+            if ($container->has('doctrine.dbal.default_connection')) {
+                $this->persistPermanentService('doctrine.dbal.default_connection');
             }
         }
 
-        $em = $this->permanentServices[$emService];
+        $em = $this->getService($emService);
         if (!$em instanceof EntityManagerInterface) {
             Assert::fail(sprintf('Service "%s" is not an instance of EntityManagerInterface.', $emService));
         }
