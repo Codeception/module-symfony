@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use Codeception\Lib\InnerBrowser;
 use PHPUnit\Framework\Constraint\Constraint;
 use PHPUnit\Framework\Constraint\LogicalAnd;
 use PHPUnit\Framework\Constraint\LogicalNot;
@@ -319,7 +320,13 @@ trait BrowserAssertionsTrait
     {
         if ($url !== null) {
             $client = $this->getClient();
-            $client->request('GET', $url);
+
+            if ($this instanceof InnerBrowser) {
+                $this->amOnPage($url);
+            } else {
+                $client->request('GET', $url);
+            }
+
             $this->assertStringContainsString($url, $client->getRequest()->getRequestUri());
         }
 
@@ -338,7 +345,12 @@ trait BrowserAssertionsTrait
     {
         $client = $this->getClient();
         $client->followRedirects(false);
-        $client->request('GET', $page);
+
+        if ($this instanceof InnerBrowser) {
+            $this->amOnPage($page);
+        } else {
+            $client->request('GET', $page);
+        }
 
         $this->assertThatForResponse(new ResponseIsRedirected(), 'The response is not a redirection.');
 
@@ -365,6 +377,7 @@ trait BrowserAssertionsTrait
      */
     public function submitSymfonyForm(string $name, array $fields): void
     {
+        $client = $this->getClient();
         $selector = sprintf('form[name=%s]', $name);
 
         $params = [];
@@ -372,7 +385,12 @@ trait BrowserAssertionsTrait
             $params[$name . $key] = $value;
         }
 
-        $client = $this->getClient();
+        if ($this instanceof InnerBrowser) {
+            $this->submitForm($selector, $params, sprintf('%s_submit', $name));
+
+            return;
+        }
+
         $node = $client->getCrawler()->filter($selector);
         $this->assertGreaterThan(0, $node->count(), sprintf('Form "%s" not found.', $selector));
         $form = $node->form();
