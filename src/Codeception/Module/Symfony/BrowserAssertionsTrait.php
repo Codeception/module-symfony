@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use Codeception\Lib\InnerBrowser;
 use PHPUnit\Framework\Constraint\Constraint;
 use PHPUnit\Framework\Constraint\LogicalAnd;
 use PHPUnit\Framework\Constraint\LogicalNot;
@@ -22,7 +23,6 @@ use Symfony\Component\HttpFoundation\Test\Constraint\ResponseIsUnprocessable;
 use Symfony\Component\HttpFoundation\Test\Constraint\ResponseStatusCodeSame;
 
 use function class_exists;
-use function count;
 use function sprintf;
 
 trait BrowserAssertionsTrait
@@ -318,8 +318,15 @@ trait BrowserAssertionsTrait
     public function seePageIsAvailable(?string $url = null): void
     {
         if ($url !== null) {
-            $this->getClient()->request('GET', $url);
-            $this->assertStringContainsString($url, $this->getClient()->getRequest()->getRequestUri());
+            $client = $this->getClient();
+
+            if ($this instanceof InnerBrowser) {
+                $this->amOnPage($url);
+            } else {
+                $client->request('GET', $url);
+            }
+
+            $this->assertStringContainsString($url, $client->getRequest()->getRequestUri());
         }
 
         $this->assertResponseIsSuccessful();
@@ -337,7 +344,12 @@ trait BrowserAssertionsTrait
     {
         $client = $this->getClient();
         $client->followRedirects(false);
-        $client->request('GET', $page);
+
+        if ($this instanceof InnerBrowser) {
+            $this->amOnPage($page);
+        } else {
+            $client->request('GET', $page);
+        }
 
         $this->assertThatForResponse(new ResponseIsRedirected(), 'The response is not a redirection.');
 
@@ -364,6 +376,7 @@ trait BrowserAssertionsTrait
      */
     public function submitSymfonyForm(string $name, array $fields): void
     {
+        $client = $this->getClient();
         $selector = sprintf('form[name=%s]', $name);
 
         $params = [];
@@ -371,10 +384,16 @@ trait BrowserAssertionsTrait
             $params[$name . $key] = $value;
         }
 
-        $node = $this->getClient()->getCrawler()->filter($selector);
-        $this->assertGreaterThan(0, count($node), sprintf('Form "%s" not found.', $selector));
+        if ($this instanceof InnerBrowser) {
+            $this->submitForm($selector, $params, sprintf('%s_submit', $name));
+
+            return;
+        }
+
+        $node = $client->getCrawler()->filter($selector);
+        $this->assertGreaterThan(0, $node->count(), sprintf('Form "%s" not found.', $selector));
         $form = $node->form();
-        $this->getClient()->submit($form, $params);
+        $client->submit($form, $params);
     }
 
     protected function assertThatForClient(Constraint $constraint, string $message = ''): void
