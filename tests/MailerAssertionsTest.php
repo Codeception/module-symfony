@@ -65,6 +65,26 @@ final class MailerAssertionsTest extends CodeceptTestCase
         $this->assertInstanceOf(MessageEvent::class, $this->getMailerEvent());
     }
 
+    public function testGetMailerEvents(): void
+    {
+        $this->client->request('GET', '/send-email');
+        $this->assertCount(1, $this->getMailerEvents());
+    }
+
+    public function testGetMailerMessages(): void
+    {
+        $this->client->request('GET', '/send-email');
+        $messages = $this->getMailerMessages();
+        $this->assertCount(1, $messages);
+        $this->assertInstanceOf(Email::class, $messages[0]);
+    }
+
+    public function testGetMailerMessage(): void
+    {
+        $this->client->request('GET', '/send-email');
+        $this->assertInstanceOf(Email::class, $this->getMailerMessage());
+    }
+
     public function testGrabLastSentEmailReturnsEmailInstance(): void
     {
         $this->client->request('GET', '/send-email');
@@ -113,6 +133,7 @@ final class MailerAssertionsTest extends CodeceptTestCase
 
         $this->client->request('GET', '/send-email');
         $this->assertNull($this->getMailerEvent(999));
+        $this->assertNull($this->getMailerMessage(999));
     }
 
     private function createQueuedEvent(): MessageEvent

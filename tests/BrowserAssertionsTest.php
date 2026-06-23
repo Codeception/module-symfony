@@ -6,7 +6,11 @@ namespace Tests;
 
 use Codeception\Module\Symfony\BrowserAssertionsTrait;
 use Symfony\Component\BrowserKit\Cookie;
+use Symfony\Component\BrowserKit\Test\Constraint\BrowserHistoryIsOnFirstPage;
+use Symfony\Component\BrowserKit\Test\Constraint\BrowserHistoryIsOnLastPage;
 use Tests\Support\CodeceptTestCase;
+
+use function class_exists;
 
 final class BrowserAssertionsTest extends CodeceptTestCase
 {
@@ -33,6 +37,50 @@ final class BrowserAssertionsTest extends CodeceptTestCase
     {
         $this->client->getCookieJar()->expire('browser_cookie');
         $this->assertBrowserNotHasCookie('browser_cookie');
+    }
+
+    public function testAssertBrowserHistoryIsOnFirstPage(): void
+    {
+        if (!class_exists(BrowserHistoryIsOnFirstPage::class)) {
+            $this->markTestSkipped('Browser history assertions require symfony/browser-kit with BrowserHistoryIsOnFirstPage support.');
+        }
+
+        $this->client->request('GET', '/');
+        $this->assertBrowserHistoryIsOnFirstPage();
+    }
+
+    public function testAssertBrowserHistoryIsNotOnFirstPage(): void
+    {
+        if (!class_exists(BrowserHistoryIsOnFirstPage::class)) {
+            $this->markTestSkipped('Browser history assertions require symfony/browser-kit with BrowserHistoryIsOnFirstPage support.');
+        }
+
+        $this->client->request('GET', '/');
+        $this->client->request('GET', '/login');
+        $this->assertBrowserHistoryIsNotOnFirstPage();
+    }
+
+    public function testAssertBrowserHistoryIsOnLastPage(): void
+    {
+        if (!class_exists(BrowserHistoryIsOnLastPage::class)) {
+            $this->markTestSkipped('Browser history assertions require symfony/browser-kit with BrowserHistoryIsOnLastPage support.');
+        }
+
+        $this->client->request('GET', '/');
+        $this->client->request('GET', '/login');
+        $this->assertBrowserHistoryIsOnLastPage();
+    }
+
+    public function testAssertBrowserHistoryIsNotOnLastPage(): void
+    {
+        if (!class_exists(BrowserHistoryIsOnLastPage::class)) {
+            $this->markTestSkipped('Browser history assertions require symfony/browser-kit with BrowserHistoryIsOnLastPage support.');
+        }
+
+        $this->client->request('GET', '/');
+        $this->client->request('GET', '/login');
+        $this->client->back();
+        $this->assertBrowserHistoryIsNotOnLastPage();
     }
 
     public function testAssertRequestAttributeValueSame(): void

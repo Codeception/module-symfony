@@ -146,6 +146,21 @@ trait MailerAssertionsTrait
     }
 
     /**
+     * Returns all mailer events for the given transport.
+     *
+     * ```php
+     * <?php
+     * $events = $I->getMailerEvents();
+     * ```
+     *
+     * @return MessageEvent[]
+     */
+    public function getMailerEvents(?string $transport = null): array
+    {
+        return $this->getMessageMailerEvents()->getEvents($transport);
+    }
+
+    /**
      * Returns the mailer event at the specified index.
      *
      * ```php
@@ -155,7 +170,35 @@ trait MailerAssertionsTrait
      */
     public function getMailerEvent(int $index = 0, ?string $transport = null): ?MessageEvent
     {
-        return $this->getMessageMailerEvents()->getEvents($transport)[$index] ?? null;
+        return $this->getMailerEvents($transport)[$index] ?? null;
+    }
+
+    /**
+     * Returns all sent mailer messages for the given transport.
+     *
+     * ```php
+     * <?php
+     * $messages = $I->getMailerMessages();
+     * ```
+     *
+     * @return RawMessage[]
+     */
+    public function getMailerMessages(?string $transport = null): array
+    {
+        return $this->getMessageMailerEvents()->getMessages($transport);
+    }
+
+    /**
+     * Returns the mailer message at the specified index.
+     *
+     * ```php
+     * <?php
+     * $message = $I->getMailerMessage();
+     * ```
+     */
+    public function getMailerMessage(int $index = 0, ?string $transport = null): ?RawMessage
+    {
+        return $this->getMailerMessages($transport)[$index] ?? null;
     }
 
     protected function grabLastSentRawMessage(): ?RawMessage
