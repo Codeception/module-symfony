@@ -2,6 +2,17 @@
 
 First of all: Contributions are very welcome!
 
+## Assertion Naming Conventions
+
+When adding new assertions, prefer these conventions:
+
+- Use `see*` / `dontSee*` for high-level, actor-style checks (Codeception style), where the method expresses an observed application state.
+- Use `assert*` for direct value/constraint comparisons that map closely to PHPUnit/Symfony assertion semantics.
+
+### Doctrine checks in this module
+
+Doctrine-related assertions in this repository belong to the Symfony module because they rely on Symfony kernel/container integration and the service graph available during functional tests.
+
 **Does your change require a test?**
 
 ## No, my change does not require a test

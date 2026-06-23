@@ -31,4 +31,20 @@ final class DoctrineAssertionsTest extends CodeceptTestCase
     {
         $this->seeNumRecords(1, User::class);
     }
+
+    public function testSeeDoctrineDatabaseIsUp(): void
+    {
+        $this->seeDoctrineDatabaseIsUp();
+        $this->addToAssertionCount(1);
+    }
+
+    public function testSeeDoctrineSchemaIsValid(): void
+    {
+        $this->seeDoctrineSchemaIsValid();
+    }
+
+    public function testSeeDoctrineProxyDirIsWritable(): void
+    {
+        $this->seeDoctrineProxyDirIsWritable();
+    }
 }
