@@ -11,7 +11,11 @@ use Symfony\Component\Mime\Email;
 use Symfony\Component\Mime\Header\Headers;
 use Symfony\Component\Mime\Message;
 use Symfony\Component\Mime\Part\TextPart;
+use Symfony\Component\Mime\Test\Constraint\EmailAddressContains;
+use Symfony\Component\Mime\Test\Constraint\EmailSubjectContains;
 use Tests\Support\CodeceptTestCase;
+
+use function class_exists;
 
 final class MimeAssertionsTest extends CodeceptTestCase
 {
@@ -28,6 +32,15 @@ final class MimeAssertionsTest extends CodeceptTestCase
     public function testAssertEmailAddressContains(): void
     {
         $this->assertEmailAddressContains('To', 'jane_doe@example.com');
+    }
+
+    public function testAssertEmailAddressNotContains(): void
+    {
+        if (!class_exists(EmailAddressContains::class)) {
+            $this->markTestSkipped('assertEmailAddressNotContains requires EmailAddressContains support in symfony/mime.');
+        }
+
+        $this->assertEmailAddressNotContains('To', 'john_doe@example.com');
     }
 
     public function testAssertEmailAttachmentCount(): void
@@ -75,12 +88,45 @@ final class MimeAssertionsTest extends CodeceptTestCase
         $this->assertEmailTextBodyNotContains('My secret text body');
     }
 
+    public function testAssertEmailSubjectContains(): void
+    {
+        if (!class_exists(EmailSubjectContains::class)) {
+            $this->markTestSkipped('assertEmailSubjectContains requires EmailSubjectContains support in symfony/mime.');
+        }
+
+        $this->assertEmailSubjectContains('Account created successfully');
+    }
+
+    public function testAssertEmailSubjectNotContains(): void
+    {
+        if (!class_exists(EmailSubjectContains::class)) {
+            $this->markTestSkipped('assertEmailSubjectNotContains requires EmailSubjectContains support in symfony/mime.');
+        }
+
+        $this->assertEmailSubjectNotContains('Password reset');
+    }
+
     public function testAssertionsWorkWithProvidedEmail(): void
     {
-        $email = (new Email())->from('custom@example.com')->to('custom@example.com')->text('Custom body text');
+        if (!class_exists(EmailAddressContains::class)) {
+            $this->markTestSkipped('assertEmailAddressNotContains requires EmailAddressContains support in symfony/mime.');
+        }
+
+        if (!class_exists(EmailSubjectContains::class)) {
+            $this->markTestSkipped('assertEmailSubjectContains/assertEmailSubjectNotContains require EmailSubjectContains support in symfony/mime.');
+        }
+
+        $email = (new Email())
+            ->from('custom@example.com')
+            ->to('custom@example.com')
+            ->subject('Custom subject')
+            ->text('Custom body text');
 
         $this->assertEmailAddressContains('To', 'custom@example.com', $email);
+        $this->assertEmailAddressNotContains('To', 'other@example.com', $email);
         $this->assertEmailTextBodyContains('Custom body text', $email);
+        $this->assertEmailSubjectContains('Custom subject', $email);
+        $this->assertEmailSubjectNotContains('Other subject', $email);
         $this->assertEmailNotHasHeader('Cc', $email);
     }
 
