@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use Codeception\Lib\InnerBrowser;
 use PHPUnit\Framework\Assert;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -157,7 +158,16 @@ trait RouterAssertionsTrait
     /** @param array<string, mixed> $params */
     private function openRoute(string $routeName, array $params = []): void
     {
-        $this->getClient()->request('GET', $this->grabRouterService()->generate($routeName, $params));
+        $client = $this->getClient();
+        $url = $this->grabRouterService()->generate($routeName, $params);
+
+        if ($this instanceof InnerBrowser) {
+            $this->amOnPage($url);
+
+            return;
+        }
+
+        $client->request('GET', $url);
     }
 
     protected function grabRouterService(): RouterInterface
