@@ -11,6 +11,7 @@ return function (RoutingConfigurator $routes): void {
     $routes->add('dashboard', '/dashboard')->controller(AppController::class . '::dashboard');
     $routes->add('deprecated', '/deprecated')->controller(AppController::class . '::deprecated');
     $routes->add('dispatch_event', '/dispatch-event')->controller(AppController::class . '::dispatchEvent');
+    $routes->add('dispatch_message', '/dispatch-message')->controller(AppController::class . '::dispatchTestMessage');
     $routes->add('dispatch_named_event', '/dispatch-named-event')->controller(AppController::class . '::dispatchNamedEvent');
     $routes->add('dispatch_orphan_event', '/dispatch-orphan-event')->controller(AppController::class . '::dispatchOrphanEvent');
     $routes->add('form_handler', '/form')->controller(AppController::class . '::form');

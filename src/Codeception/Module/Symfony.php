@@ -22,6 +22,7 @@ use Codeception\Module\Symfony\HttpClientAssertionsTrait;
 use Codeception\Module\Symfony\HttpKernelAssertionsTrait;
 use Codeception\Module\Symfony\LoggerAssertionsTrait;
 use Codeception\Module\Symfony\MailerAssertionsTrait;
+use Codeception\Module\Symfony\MessengerAssertionsTrait;
 use Codeception\Module\Symfony\MimeAssertionsTrait;
 use Codeception\Module\Symfony\NotifierAssertionsTrait;
 use Codeception\Module\Symfony\ParameterAssertionsTrait;
@@ -148,6 +149,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
     use HttpKernelAssertionsTrait;
     use LoggerAssertionsTrait;
     use MailerAssertionsTrait;
+    use MessengerAssertionsTrait;
     use MimeAssertionsTrait;
     use NotifierAssertionsTrait;
     use ParameterAssertionsTrait;

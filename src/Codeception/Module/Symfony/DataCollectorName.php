@@ -18,5 +18,6 @@ enum DataCollectorName: string
     case TWIG = 'twig';
     case SECURITY = 'security';
     case MAILER = 'mailer';
+    case MESSENGER = 'messenger';
     case NOTIFIER = 'notifier';
 }
