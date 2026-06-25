@@ -15,6 +15,7 @@ use Symfony\Component\HttpKernel\DataCollector\LoggerDataCollector;
 use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
 use Symfony\Component\HttpKernel\Profiler\Profile;
 use Symfony\Component\Mailer\DataCollector\MessageDataCollector;
+use Symfony\Component\Messenger\DataCollector\MessengerDataCollector;
 use Symfony\Component\Notifier\DataCollector\NotificationDataCollector;
 use Symfony\Component\Translation\DataCollector\TranslationDataCollector;
 
@@ -40,9 +41,10 @@ trait HttpKernelAssertionsTrait
      *     ($name is DataCollectorName::TWIG ? TwigDataCollector :
      *     ($name is DataCollectorName::SECURITY ? SecurityDataCollector :
      *     ($name is DataCollectorName::MAILER ? MessageDataCollector :
+     *     ($name is DataCollectorName::MESSENGER ? MessengerDataCollector :
      *     ($name is DataCollectorName::NOTIFIER ? NotificationDataCollector :
      *      DataCollectorInterface
-     *     )))))))))
+     *     ))))))))))
      * )
      */
     protected function grabCollector(DataCollectorName $name, string $callingFunction = '', ?string $message = null): DataCollectorInterface

@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Validator\Constraints\Email as EmailConstraint;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -23,6 +24,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Tests\App\Event\TestEvent;
 use Tests\App\Mailer\MessageMailer;
 use Tests\App\Mailer\RegistrationMailer;
+use Tests\App\Message\TestMessage;
 use Twig\Environment;
 
 final class AppController extends AbstractController
@@ -64,6 +66,13 @@ final class AppController extends AbstractController
         $dispatcher->dispatch(new TestEvent(), 'orphan.event');
 
         return new Response('Orphan event dispatched');
+    }
+
+    public function dispatchTestMessage(MessageBusInterface $bus): Response
+    {
+        $bus->dispatch(new TestMessage('Hello from Messenger'));
+
+        return new Response('Message dispatched');
     }
 
     public function form(Request $request, FormFactoryInterface $formFactory, Environment $twig): Response

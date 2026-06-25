@@ -54,12 +54,13 @@ class TestKernel extends BaseKernel
             'profiler' => $profilerConfig,
             'property_info' => ['enabled' => true],
             'session' => ['handler_id' => null, 'storage_factory_id' => 'session.storage.factory.mock_file'],
-            'mailer' => ['dsn' => 'null://null'],
+            'mailer' => ['dsn' => 'null://null', 'message_bus' => false],
             'default_locale' => 'en',
             'translator' => ['default_path' => __DIR__ . '/translations', 'fallbacks' => ['es'], 'logging' => true],
             'validation' => ['enabled' => true],
             'form' => ['enabled' => true],
             'notifier' => ['chatter_transports' => ['async' => 'null://null'], 'texter_transports' => ['sms' => 'null://null']],
+            'messenger' => ['default_bus' => 'messenger.bus.default', 'buses' => ['messenger.bus.default' => []]],
         ]);
 
         $container->extension('twig', ['default_path' => __DIR__ . '/templates', 'debug' => true]);

@@ -25,6 +25,7 @@ use Tests\App\Listener\TestEventListener;
 use Tests\App\Logger\ArrayLogger;
 use Tests\App\Mailer\MessageMailer;
 use Tests\App\Mailer\RegistrationMailer;
+use Tests\App\MessageHandler\TestMessageHandler;
 use Tests\App\Notifier\NotifierFixture;
 use Tests\App\Repository\UserRepository;
 use Tests\App\Repository\UserRepositoryInterface;
@@ -66,6 +67,8 @@ return static function (ContainerConfigurator $container): void {
     $services->set('mailer.message_logger_listener', MessageLoggerListener::class)->tag('kernel.event_subscriber');
     $services->set('notifier.notification_logger_listener', NotificationLoggerListener::class)->tag('kernel.event_subscriber');
     $services->alias('notifier.logger_notification_listener', 'notifier.notification_logger_listener')->public();
+
+    $services->set(TestMessageHandler::class);
 
     $services->set(RegistrationMailer::class)->arg('$mailer', service('mailer'));
     $services->set(MessageMailer::class)->arg('$mailer', service('mailer'));

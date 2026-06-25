@@ -54,6 +54,7 @@ jobs:
           php vendor/bin/codecept run Functional -c framework-tests
 
           if [ "${{ matrix.symfony }}" = "7.4" ]; then
+            composer remove symfony/messenger --dev --no-interaction
             composer require codeception/module-rest --dev
             git -C framework-tests checkout -- composer.json
             git -C framework-tests apply resetFormatsAfterRequest_issue_test.patch
