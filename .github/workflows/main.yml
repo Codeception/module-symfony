@@ -55,9 +55,9 @@ jobs:
 
           if [ "${{ matrix.symfony }}" = "7.4" ]; then
             composer remove symfony/messenger --dev --no-interaction
-            composer require codeception/module-rest --dev
+            composer require codeception/module-rest:^3.4 --dev
             git -C framework-tests checkout -- composer.json
-            git -C framework-tests apply resetFormatsAfterRequest_issue_test.patch
+            patch -d framework-tests -p1 --fuzz=3 --no-backup-if-mismatch < framework-tests/resetFormatsAfterRequest_issue_test.patch
             composer -d framework-tests update --no-progress
             php framework-tests/bin/console lexik:jwt:generate-keypair --skip-if-exists
             php vendor/bin/codecept run Functional -c framework-tests
