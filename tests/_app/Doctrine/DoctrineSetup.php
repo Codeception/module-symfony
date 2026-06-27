@@ -42,6 +42,10 @@ final class DoctrineSetup
         $config->setProxyNamespace('TestsProxies');
         $config->setAutoGenerateProxyClasses(true);
 
+        if (PHP_VERSION_ID >= 80400 && method_exists($config, 'enableNativeLazyObjects')) {
+            $config->enableNativeLazyObjects(true);
+        }
+
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
 
         if (method_exists(EntityManager::class, 'create')) {

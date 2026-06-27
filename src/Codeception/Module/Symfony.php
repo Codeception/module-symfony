@@ -80,7 +80,7 @@ use function sprintf;
  *
  * ## Config
  *
- * ### Symfony 5.4, 6.4, 7.4 or 8.0
+ * ### Symfony 5.4, 6.4, 7.4 or 8.1
  *
  * * `app_path`: 'src' - Specify custom path to your app dir, where the kernel interface is located.
  * * `environment`: 'local' - Environment used for load kernel

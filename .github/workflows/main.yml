@@ -7,10 +7,10 @@ jobs:
     strategy:
       matrix:
         php: ["8.2", "8.5"]
-        symfony: ["5.4", "6.4", "7.4", "8.0"]
+        symfony: ["5.4", "6.4", "7.4", "8.1"]
         exclude:
           - php: "8.2"
-            symfony: "8.0"
+            symfony: "8.1"
 
     steps:
       - uses: actions/checkout@v6
@@ -35,15 +35,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sed -i "s/\^5.4 | \^6.4 | \^7.4 | \^8.0/${{ matrix.symfony }}.*/g" composer.json
+          sed -i "s/\^5.4 | \^6.4 | \^7.4 | \^8.1/${{ matrix.symfony }}.*/g" composer.json
           composer install --prefer-dist --no-progress
 
       - name: Quality checks
-        if: matrix.symfony == '8.0'
+        if: matrix.symfony == '8.1'
         run: composer validate --strict && composer audit && composer cs-check && composer phpstan
 
       - name: Run module tests
-        run: vendor/bin/phpunit tests ${{ matrix.symfony == '8.0' && '--coverage-text --coverage-filter src' || '' }}
+        run: vendor/bin/phpunit tests ${{ matrix.symfony == '8.1' && '--coverage-text --coverage-filter src' || '' }}
 
       - name: Prepare Symfony app & run tests
         run: |
