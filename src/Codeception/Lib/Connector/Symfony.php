@@ -73,23 +73,15 @@ class Symfony extends HttpKernelBrowser
 
         $kernel = $this->kernel;
         (function () use ($kernel): void {
-            $parameters = property_exists($this, 'parameters') ? $this->parameters : null;
-            if (!is_array($parameters) || !array_key_exists('doctrine.connections', $parameters)) {
+            if (!property_exists($this, 'parameters') || !is_array($this->parameters)) {
                 $kernel->shutdown();
-
                 return;
             }
-
-            $connections = $parameters['doctrine.connections'];
-            unset($parameters['doctrine.connections']);
-            $this->parameters = $parameters;
-
-            try {
-                $kernel->shutdown();
-            } finally {
-                $parameters = $this->parameters;
-                $parameters['doctrine.connections'] = $connections;
-                $this->parameters = $parameters;
+            $connections = $this->parameters['doctrine.connections'] ?? null;
+            unset($this->parameters['doctrine.connections']);
+            $kernel->shutdown();
+            if ($connections !== null) {
+                $this->parameters['doctrine.connections'] = $connections;
             }
         })->call($kernel->getContainer());
     }
