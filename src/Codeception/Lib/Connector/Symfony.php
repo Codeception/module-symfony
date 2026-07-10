@@ -55,8 +55,6 @@ class Symfony extends HttpKernelBrowser
     {
         $this->updatePersistentServices();
 
-        $this->persistDoctrineConnections();
-
         if ($this->kernel instanceof Kernel) {
             $this->ensureKernelShutdown();
             $this->kernel->boot();
@@ -72,7 +70,20 @@ class Symfony extends HttpKernelBrowser
     protected function ensureKernelShutdown(): void
     {
         $this->kernel->boot();
-        $this->kernel->shutdown();
+
+        $kernel = $this->kernel;
+        (function () use ($kernel): void {
+            if (!property_exists($this, 'parameters') || !is_array($this->parameters)) {
+                $kernel->shutdown();
+                return;
+            }
+            $connections = $this->parameters['doctrine.connections'] ?? null;
+            unset($this->parameters['doctrine.connections']);
+            $kernel->shutdown();
+            if ($connections !== null) {
+                $this->parameters['doctrine.connections'] = $connections;
+            }
+        })->call($kernel->getContainer());
     }
 
     private function resolveContainer(): ContainerInterface
@@ -96,15 +107,6 @@ class Symfony extends HttpKernelBrowser
         }
 
         return null;
-    }
-
-    private function persistDoctrineConnections(): void
-    {
-        (function (): void {
-            if (property_exists($this, 'parameters') && is_array($this->parameters)) {
-                unset($this->parameters['doctrine.connections']);
-            }
-        })->call($this->kernel->getContainer());
     }
 
     private function updatePersistentServices(): void
