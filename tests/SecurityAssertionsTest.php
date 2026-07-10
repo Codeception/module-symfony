@@ -62,6 +62,11 @@ final class SecurityAssertionsTest extends CodeceptTestCase
         $this->seeUserPasswordDoesNotNeedRehash();
     }
 
+    public function testSeeFirewallIsConfigured(): void
+    {
+        $this->seeFirewallIsConfigured('main');
+    }
+
     private function createTestUser(array $roles): User
     {
         return User::create('john_doe@gmail.com', $this->grabPasswordHasherService()->hashPassword(User::create('tmp', ''), '123456'), $roles);
