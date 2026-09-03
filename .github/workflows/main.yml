@@ -47,8 +47,7 @@ jobs:
 
       - name: Prepare Symfony app & run tests
         run: |
-          composer -d framework-tests remove codeception/module-symfony --dev --no-update
-          composer -d framework-tests install --no-progress
+          composer -d framework-tests remove codeception/module-symfony --dev --no-progress
           php framework-tests/bin/console doctrine:schema:update --force
           php framework-tests/bin/console doctrine:fixtures:load --quiet
           php vendor/bin/codecept run Functional -c framework-tests
@@ -58,6 +57,7 @@ jobs:
             composer require codeception/module-rest:^3.4 --dev
             git -C framework-tests checkout -- composer.json
             patch -d framework-tests -p1 --fuzz=3 --no-backup-if-mismatch < framework-tests/resetFormatsAfterRequest_issue_test.patch
+            composer -d framework-tests remove codeception/module-symfony --dev --no-update
             composer -d framework-tests update --no-progress
             php framework-tests/bin/console lexik:jwt:generate-keypair --skip-if-exists
             php vendor/bin/codecept run Functional -c framework-tests

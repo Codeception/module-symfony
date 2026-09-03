@@ -15,6 +15,7 @@ use Symfony\Component\HttpKernel\Kernel as BaseKernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Serializer\DataCollector\SerializerDataCollector;
+use Tests\App\Message\TestMessage;
 
 class TestKernel extends BaseKernel
 {
@@ -60,7 +61,12 @@ class TestKernel extends BaseKernel
             'validation' => ['enabled' => true],
             'form' => ['enabled' => true],
             'notifier' => ['chatter_transports' => ['async' => 'null://null'], 'texter_transports' => ['sms' => 'null://null']],
-            'messenger' => ['default_bus' => 'messenger.bus.default', 'buses' => ['messenger.bus.default' => []]],
+            'messenger' => [
+                'default_bus' => 'messenger.bus.default',
+                'buses' => ['messenger.bus.default' => []],
+                'transports' => ['async' => 'in-memory://'],
+                'routing' => [TestMessage::class => 'async'],
+            ],
         ]);
 
         $container->extension('twig', ['default_path' => __DIR__ . '/templates', 'debug' => true]);

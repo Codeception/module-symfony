@@ -192,6 +192,13 @@ final class AppController extends AbstractController
         return new Response('Message sent');
     }
 
+    public function setFlash(Request $request): RedirectResponse
+    {
+        $request->getSession()->getFlashBag()->add('success', 'Welcome aboard!');
+
+        return new RedirectResponse('/');
+    }
+
     public function testPage(Environment $twig): Response
     {
         return new Response($twig->render('test_page.html.twig'));

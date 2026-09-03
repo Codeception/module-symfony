@@ -6,15 +6,52 @@ namespace Codeception\Module\Symfony;
 
 use Doctrine\ORM\EntityRepository;
 use PHPUnit\Framework\Assert;
+use Symfony\Bridge\Doctrine\DataCollector\DoctrineDataCollector;
 
+use function array_count_values;
+use function array_filter;
+use function array_keys;
+use function class_exists;
+use function count;
+use function implode;
 use function interface_exists;
+use function is_array;
 use function is_object;
+use function is_string;
 use function is_subclass_of;
 use function json_encode;
+use function preg_match;
 use function sprintf;
 
 trait DoctrineAssertionsTrait
 {
+    /**
+     * Asserts that no identical SQL query was executed more than once during the
+     * last request — a common symptom of an N+1 problem.
+     *
+     * Transaction-control statements (`START TRANSACTION`, `COMMIT`, ...) are ignored,
+     * so legitimately repeated transaction boundaries are not flagged as duplicates.
+     *
+     * Reads Doctrine's `db` profiler collector, so it requires `doctrine/doctrine-bundle`.
+     *
+     * ```php
+     * <?php
+     * $I->dontSeeDuplicateQueries();
+     * ```
+     */
+    public function dontSeeDuplicateQueries(): void
+    {
+        $statements = $this->grabExecutedStatements(__FUNCTION__);
+
+        $duplicates = array_keys(array_filter(array_count_values($statements), static fn(int $count): bool => $count > 1));
+
+        $this->assertSame(
+            [],
+            $duplicates,
+            sprintf('Expected no duplicate database queries, but found %d: %s', count($duplicates), implode(' | ', $duplicates))
+        );
+    }
+
     /**
      * Returns the number of rows that match the given criteria for the
      * specified Doctrine entity.
@@ -72,6 +109,32 @@ trait DoctrineAssertionsTrait
     }
 
     /**
+     * Asserts that fewer than the given number of database queries were executed
+     * during the last request — a ceiling guard against N+1 problems.
+     *
+     * Transaction-control statements (`START TRANSACTION`, `COMMIT`, ...) are not
+     * counted, so the number reflects the application queries only.
+     *
+     * Reads Doctrine's `db` profiler collector, so it requires `doctrine/doctrine-bundle`.
+     * Counts are environment-sensitive, so assert a ceiling rather than an exact number.
+     *
+     * ```php
+     * <?php
+     * $I->seeNumQueriesIsLessThan(5);
+     * ```
+     */
+    public function seeNumQueriesIsLessThan(int $expectedCount): void
+    {
+        $actualCount = count($this->grabExecutedStatements(__FUNCTION__));
+
+        $this->assertLessThan(
+            $expectedCount,
+            $actualCount,
+            sprintf('Expected fewer than %d database queries, but %d were executed.', $expectedCount, $actualCount)
+        );
+    }
+
+    /**
      * Asserts that a given number of records exists for the entity.
      * 'id' is the default search parameter.
      *
@@ -101,5 +164,47 @@ trait DoctrineAssertionsTrait
                 json_encode($criteria, JSON_THROW_ON_ERROR)
             )
         );
+    }
+
+    private function grabDoctrineCollector(string $function): DoctrineDataCollector
+    {
+        if (!class_exists(DoctrineDataCollector::class)) {
+            Assert::fail(sprintf("The '%s' assertion requires the 'doctrine/doctrine-bundle' package.", $function));
+        }
+
+        return $this->grabCollector(
+            DataCollectorName::DB,
+            $function,
+            sprintf("The Doctrine 'db' collector is needed to use '%s'. Is DoctrineBundle enabled with the profiler?", $function)
+        );
+    }
+
+    /**
+     * Flattens the executed SQL of every connection into a single list, dropping
+     * transaction-control statements so the N+1 guards count application queries only.
+     *
+     * @return list<string>
+     */
+    private function grabExecutedStatements(string $function): array
+    {
+        $statements = [];
+        foreach ($this->grabDoctrineCollector($function)->getQueries() as $connectionQueries) {
+            if (!is_array($connectionQueries)) {
+                continue;
+            }
+            foreach ($connectionQueries as $query) {
+                $sql = is_array($query) ? ($query['sql'] ?? null) : null;
+                if (is_string($sql) && !$this->isTransactionStatement($sql)) {
+                    $statements[] = $sql;
+                }
+            }
+        }
+
+        return $statements;
+    }
+
+    private function isTransactionStatement(string $sql): bool
+    {
+        return preg_match('/^\s*("|`)?(START\s+TRANSACTION|BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE\s+SAVEPOINT)\b/i', $sql) === 1;
     }
 }

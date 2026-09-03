@@ -25,6 +25,7 @@ return function (RoutingConfigurator $routes): void {
     $routes->add('sample', '/sample')->controller(AppController::class . '::sample');
     $routes->add('send_email', '/send-email')->controller(AppController::class . '::sendEmail');
     $routes->add('send_message', '/send-message')->controller(AppController::class . '::sendMessage');
+    $routes->add('set_flash', '/set-flash')->controller(AppController::class . '::setFlash');
     $routes->add('test_page', '/test_page')->controller(AppController::class . '::testPage');
     $routes->add('unprocessable_entity', '/unprocessable_entity')->controller(AppController::class . '::unprocessableEntity');
 };

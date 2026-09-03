@@ -40,6 +40,7 @@
         "symfony/console": "^5.4 | ^6.4 | ^7.4 | ^8.1",
         "symfony/css-selector": "^5.4 | ^6.4 | ^7.4 | ^8.1",
         "symfony/dependency-injection": "^5.4 | ^6.4 | ^7.4 | ^8.1",
+        "symfony/doctrine-bridge": "^5.4 | ^6.4 | ^7.4 | ^8.1",
         "symfony/dom-crawler": "^5.4 | ^6.4 | ^7.4 | ^8.1",
         "symfony/dotenv": "^5.4 | ^6.4 | ^7.4 | ^8.1",
         "symfony/error-handler": "^5.4 | ^6.4 | ^7.4 | ^8.1",

@@ -111,8 +111,10 @@ use function sprintf;
  *
  * * `services`: Includes methods related to the Symfony dependency injection container (DIC):
  *     * grabService
+ *     * mockService
  *     * persistService
  *     * persistPermanentService
+ *     * unmockService
  *     * unpersistService
  *
  * See [WebDriver module](https://codeception.com/docs/modules/WebDriver#Loading-Parts-from-other-Modules)

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\Assert;
 
 trait ServicesAssertionsTrait
@@ -55,6 +56,39 @@ trait ServicesAssertionsTrait
     }
 
     /**
+     * Replaces a service in the container with a test double (mock, stub or fake).
+     *
+     * Build the double however you like — Codeception `Stub`, PHPUnit mocks,
+     * Mockery, or a hand-written fake — then swap it in. The replacement is kept
+     * as a persistent service, so it survives the kernel reboots that happen
+     * between requests and stays active for the rest of the test.
+     *
+     * Typical uses: stub outbound HTTP, freeze the clock, or replace a collaborator.
+     *
+     * ```php
+     * <?php
+     * $I->mockService('http_client', new MockHttpClient($responses));
+     * $I->mockService(PaymentGateway::class, $this->makeEmpty(PaymentGateway::class));
+     * $I->mockService('clock', new MockClock('2030-01-01'));
+     * ```
+     *
+     * @part services
+     * @param non-empty-string $serviceId
+     */
+    public function mockService(string $serviceId, object $replacement): void
+    {
+        $this->persistentServices[$serviceId] = $replacement;
+        $this->updateClientPersistentService($serviceId, $replacement);
+
+        try {
+            $this->_getContainer()->set($serviceId, $replacement);
+        } catch (InvalidArgumentException) {
+            // The current container may have already initialized the service and
+            // refuse to replace it; the double still takes effect on the next reboot.
+        }
+    }
+
+    /**
      * Get service $serviceName and add it to the lists of persistent services.
      *
      * @part services
@@ -75,6 +109,22 @@ trait ServicesAssertionsTrait
     public function persistPermanentService(string $serviceName): void
     {
         $this->doPersistService($serviceName, true);
+    }
+
+    /**
+     * Removes a previously mocked service, restoring the real one on the next kernel reboot.
+     *
+     * ```php
+     * <?php
+     * $I->unmockService('http_client');
+     * ```
+     *
+     * @part services
+     * @param non-empty-string $serviceId
+     */
+    public function unmockService(string $serviceId): void
+    {
+        $this->unpersistService($serviceId);
     }
 
     /**
