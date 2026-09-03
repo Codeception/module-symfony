@@ -6,12 +6,64 @@ namespace Tests;
 
 use Codeception\Module\Symfony\MessengerAssertionsTrait;
 use stdClass;
+use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Tests\App\Message\TestMessage;
+use Tests\App\MessageHandler\TestMessageHandler;
 use Tests\Support\CodeceptTestCase;
+
+use function class_exists;
 
 final class MessengerAssertionsTest extends CodeceptTestCase
 {
     use MessengerAssertionsTrait;
+
+    public function testConsumeMessengerMessages(): void
+    {
+        $this->requireInMemoryTransport();
+        $this->client->request('GET', '/dispatch-message');
+        $this->seeMessengerQueueCount(1, 'async');
+
+        $this->consumeMessengerMessages('async');
+
+        $this->seeMessengerQueueCount(0, 'async');
+
+        $handler = $this->grabService(TestMessageHandler::class);
+        $this->assertContains('Hello from Messenger', $handler->handled);
+    }
+
+    public function testGrabMessengerTransport(): void
+    {
+        $this->requireInMemoryTransport();
+        $this->client->request('GET', '/dispatch-message');
+
+        $sent = $this->grabMessengerTransport('async')->getSent();
+
+        $this->assertCount(1, $sent);
+        $this->assertInstanceOf(TestMessage::class, $sent[0]->getMessage());
+    }
+
+    public function testSeeMessengerQueueCount(): void
+    {
+        $this->requireInMemoryTransport();
+        $this->client->request('GET', '/dispatch-message');
+
+        $this->seeMessengerQueueCount(1, 'async');
+    }
+
+    public function testSeeMessengerTransportContains(): void
+    {
+        $this->requireInMemoryTransport();
+        $this->client->request('GET', '/dispatch-message');
+
+        $this->seeMessengerTransportContains(TestMessage::class, 'async');
+    }
+
+    private function requireInMemoryTransport(): void
+    {
+        if (!class_exists(InMemoryTransport::class)) {
+            $this->markTestSkipped('symfony/messenger 6.3 or higher (in-memory transport) is required.');
+        }
+    }
 
     public function testSeeDispatchedMessageCount(): void
     {

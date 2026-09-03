@@ -9,6 +9,7 @@ namespace Codeception\Module\Symfony;
  */
 enum DataCollectorName: string
 {
+    case DB = 'db';
     case EVENTS = 'events';
     case FORM = 'form';
     case HTTP_CLIENT = 'http_client';

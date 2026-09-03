@@ -8,8 +8,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Profiler\Profile;
 
 use function array_key_exists;
-use function array_unique;
-use function array_values;
+use function array_keys;
 use function is_string;
 
 trait CacheTrait
@@ -48,12 +47,12 @@ trait CacheTrait
 
             $hostRegex = $route->compile()->getHostRegex();
             if ($hostRegex !== null && $hostRegex !== '') {
-                $domains[] = $hostRegex;
+                $domains[$hostRegex] = true;
             }
         }
 
         /** @var list<non-empty-string> $domains */
-        $domains = array_values(array_unique($domains));
+        $domains = array_keys($domains);
         return $this->state['internalDomains'] = $domains;
     }
 

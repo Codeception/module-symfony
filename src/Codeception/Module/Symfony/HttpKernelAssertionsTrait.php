@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use PHPUnit\Framework\Assert;
+use Symfony\Bridge\Doctrine\DataCollector\DoctrineDataCollector;
 use Symfony\Bridge\Twig\DataCollector\TwigDataCollector;
 use Symfony\Bundle\SecurityBundle\DataCollector\SecurityDataCollector;
 use Symfony\Component\Form\Extension\DataCollector\FormDataCollector;
@@ -32,7 +33,8 @@ trait HttpKernelAssertionsTrait
      * Grab a Symfony Data Collector from the current profile.
      *
      * @phpstan-return (
-     *     $name is DataCollectorName::EVENTS ? EventDataCollector :
+     *     $name is DataCollectorName::DB ? DoctrineDataCollector :
+     *     ($name is DataCollectorName::EVENTS ? EventDataCollector :
      *     ($name is DataCollectorName::FORM ? FormDataCollector :
      *     ($name is DataCollectorName::HTTP_CLIENT ? HttpClientDataCollector :
      *     ($name is DataCollectorName::LOGGER ? LoggerDataCollector :
@@ -44,7 +46,7 @@ trait HttpKernelAssertionsTrait
      *     ($name is DataCollectorName::MESSENGER ? MessengerDataCollector :
      *     ($name is DataCollectorName::NOTIFIER ? NotificationDataCollector :
      *      DataCollectorInterface
-     *     ))))))))))
+     *     )))))))))))
      * )
      */
     protected function grabCollector(DataCollectorName $name, string $callingFunction = '', ?string $message = null): DataCollectorInterface

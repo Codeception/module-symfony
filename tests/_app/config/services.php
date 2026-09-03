@@ -17,6 +17,7 @@ use Symfony\Component\Mailer\EventListener\MessageLoggerListener;
 use Symfony\Component\Notifier\EventListener\NotificationLoggerListener;
 use Tests\App\Command\TestCommand;
 use Tests\App\Controller\AppController;
+use Tests\App\Doctrine\DbDataCollector;
 use Tests\App\Doctrine\DoctrineSetup;
 use Tests\App\Entity\User;
 use Tests\App\Event\TestEvent;
@@ -41,6 +42,9 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set(AppController::class);
     $services->set(TestCommand::class)->tag('console.command', ['command' => 'app:test-command']);
+
+    $services->set(DbDataCollector::class)
+        ->tag('data_collector', ['id' => 'db', 'template' => '@WebProfiler/Collector/db.html.twig', 'priority' => 250]);
 
     $services->set('doctrine.orm.entity_manager', EntityManagerInterface::class)
         ->factory([DoctrineSetup::class, 'createEntityManager']);
