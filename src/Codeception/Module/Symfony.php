@@ -110,6 +110,7 @@ use function sprintf;
  * ## Parts
  *
  * * `services`: Includes methods related to the Symfony dependency injection container (DIC):
+ *     * grabContainer
  *     * grabService
  *     * mockService
  *     * persistService

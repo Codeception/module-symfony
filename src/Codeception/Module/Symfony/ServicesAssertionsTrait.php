@@ -6,6 +6,7 @@ namespace Codeception\Module\Symfony;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\Assert;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 trait ServicesAssertionsTrait
 {
@@ -22,6 +23,30 @@ trait ServicesAssertionsTrait
      * @var array<non-empty-string, object>
      */
     protected array $permanentServices = [];
+
+    /**
+     * Returns the Symfony dependency injection container (DIC).
+     *
+     * In the "test" environment this is Symfony's special `test.service_container`,
+     * so private services are reachable too, unlike
+     * `$I->grabService('kernel')->getContainer()`, which only ever exposes the public ones.
+     *
+     * The container belongs to the kernel that is currently booted, so grab it again after
+     * a request or a [`rebootClientKernel()`](#rebootClientKernel) instead of keeping it
+     * in a property.
+     *
+     * ```php
+     * <?php
+     * $container = $I->grabContainer();
+     * $isDebug = $container->getParameter('kernel.debug');
+     * ```
+     *
+     * @part services
+     */
+    public function grabContainer(): ContainerInterface
+    {
+        return $this->_getContainer();
+    }
 
     /**
      * Grabs a service from the Symfony dependency injection container (DIC).
