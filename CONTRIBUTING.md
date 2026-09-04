@@ -2,6 +2,20 @@
 
 First of all: Contributions are very welcome!
 
+## Assertion Naming Conventions
+
+When adding new assertions, prefer these conventions:
+
+- Use `see*` / `dontSee*` for high-level, actor-style checks (Codeception style), where the method expresses an observed application state.
+- Use `assert*` for direct value/constraint comparisons that map closely to PHPUnit/Symfony assertion semantics.
+
+An assertion should describe what the application does: a request, a service, a message,
+a security decision. Checks about the machine the application runs on (writable directories,
+project layout, build artifacts, `.env` files) belong in CI or a healthcheck, not in this module.
+
+Container parameters are already reachable through `grabParameter()`, so a value that can be
+asserted with `grabParameter()` plus a plain PHPUnit assertion does not need a dedicated method.
+
 **Does your change require a test?**
 
 ## No, my change does not require a test
