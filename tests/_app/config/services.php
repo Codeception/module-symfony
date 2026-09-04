@@ -31,6 +31,7 @@ use Tests\App\Notifier\NotifierFixture;
 use Tests\App\Repository\UserRepository;
 use Tests\App\Repository\UserRepositoryInterface;
 use Tests\App\Security\TestUserProvider;
+use Tests\App\Security\UserVoter;
 use Twig\Extension\ProfilerExtension;
 use Twig\Profiler\Profile;
 
@@ -60,6 +61,8 @@ return static function (ContainerConfigurator $container): void {
     $services->set('security.user.provider.test', TestUserProvider::class)
         ->arg('$repository', service(UserRepository::class))
         ->tag('security.user_provider');
+
+    $services->set(UserVoter::class);
 
     $services->alias('security.password_hasher', 'security.user_password_hasher')->public();
 

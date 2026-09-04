@@ -11,6 +11,7 @@ use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+use function get_debug_type;
 use function sprintf;
 
 trait SecurityAssertionsTrait
@@ -131,6 +132,42 @@ trait SecurityAssertionsTrait
         $this->assertFalse($this->grabPasswordHasherService()->needsRehash($userToValidate), 'User password needs rehash.');
     }
 
+    /**
+     * Checks that the current user is granted an attribute, optionally over a subject.
+     *
+     * This runs the application's voters through `Security::isGranted()`, so unlike
+     * `seeUserHasRole()` it also covers custom voters and permissions that depend on
+     * the object being accessed.
+     *
+     * ```php
+     * <?php
+     * $I->seeUserIsGranted('POST_EDIT', $post);
+     * ```
+     */
+    public function seeUserIsGranted(string $attribute, mixed $subject = null): void
+    {
+        $this->assertTrue(
+            $this->grabSecurityService()->isGranted($attribute, $subject),
+            $this->buildIsGrantedMessage('is not granted', $attribute, $subject)
+        );
+    }
+
+    /**
+     * Checks that the current user is not granted an attribute, optionally over a subject.
+     *
+     * ```php
+     * <?php
+     * $I->dontSeeUserIsGranted('POST_DELETE', $post);
+     * ```
+     */
+    public function dontSeeUserIsGranted(string $attribute, mixed $subject = null): void
+    {
+        $this->assertFalse(
+            $this->grabSecurityService()->isGranted($attribute, $subject),
+            $this->buildIsGrantedMessage('is granted', $attribute, $subject)
+        );
+    }
+
     private function getAuthenticatedUser(): UserInterface
     {
         return $this->grabSecurityService()->getUser() ?? Assert::fail('No user found in session to perform this check.');
@@ -153,5 +190,16 @@ trait SecurityAssertionsTrait
     {
         /** @var UserPasswordHasherInterface */
         return $this->grabService('security.password_hasher');
+    }
+
+    private function buildIsGrantedMessage(string $verb, string $attribute, mixed $subject): string
+    {
+        return sprintf(
+            'User %s %s "%s"%s.',
+            $this->grabSecurityService()->getUser()?->getUserIdentifier() ?? 'anon.',
+            $verb,
+            $attribute,
+            $subject === null ? '' : sprintf(' on %s', get_debug_type($subject))
+        );
     }
 }

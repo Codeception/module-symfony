@@ -54,4 +54,9 @@ final class DoctrineAssertionsTest extends CodeceptTestCase
     {
         $this->seeNumRecords(1, User::class);
     }
+
+    public function testSeeDoctrineSchemaIsValid(): void
+    {
+        $this->seeDoctrineSchemaIsValid();
+    }
 }

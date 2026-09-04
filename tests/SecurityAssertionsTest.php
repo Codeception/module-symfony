@@ -8,6 +8,7 @@ use Codeception\Module\Symfony\SecurityAssertionsTrait;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\BrowserKit\Cookie;
 use Tests\App\Entity\User;
+use Tests\App\Security\UserVoter;
 use Tests\Support\CodeceptTestCase;
 
 final class SecurityAssertionsTest extends CodeceptTestCase
@@ -60,6 +61,23 @@ final class SecurityAssertionsTest extends CodeceptTestCase
     {
         $this->client->loginUser($this->createTestUser(['ROLE_USER']));
         $this->seeUserPasswordDoesNotNeedRehash();
+    }
+
+    public function testSeeUserIsGranted(): void
+    {
+        $user = $this->createTestUser(['ROLE_USER']);
+        $this->client->loginUser($user);
+
+        $this->seeUserIsGranted('ROLE_USER');
+        $this->seeUserIsGranted(UserVoter::EDIT, $user);
+    }
+
+    public function testDontSeeUserIsGranted(): void
+    {
+        $this->client->loginUser($this->createTestUser(['ROLE_USER']));
+
+        $this->dontSeeUserIsGranted('ROLE_ADMIN');
+        $this->dontSeeUserIsGranted(UserVoter::EDIT, User::create('jane_doe@gmail.com', 'secret'));
     }
 
     private function createTestUser(array $roles): User

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Codeception\Module\Symfony;
 
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Tools\SchemaValidator;
 use PHPUnit\Framework\Assert;
 use Symfony\Bridge\Doctrine\DataCollector\DoctrineDataCollector;
 
@@ -163,6 +164,42 @@ trait DoctrineAssertionsTrait
                 $expectedNum,
                 json_encode($criteria, JSON_THROW_ON_ERROR)
             )
+        );
+    }
+
+    /**
+     * Asserts that the Doctrine mapping is valid and that the database schema is in sync with it.
+     *
+     * In-process equivalent of `bin/console doctrine:schema:validate`: it catches mapping mistakes
+     * and missing migrations before they surface as unrelated failures in other tests.
+     *
+     * The entity manager checked is the one configured in the module's `em_service` option.
+     *
+     * ```php
+     * <?php
+     * $I->seeDoctrineSchemaIsValid();
+     * ```
+     */
+    public function seeDoctrineSchemaIsValid(): void
+    {
+        if (!class_exists(SchemaValidator::class)) {
+            Assert::fail("The 'seeDoctrineSchemaIsValid' assertion requires the 'doctrine/orm' package.");
+        }
+
+        $validator = new SchemaValidator($this->_getEntityManager());
+
+        $mappingErrors = [];
+        foreach ($validator->validateMapping() as $className => $classErrors) {
+            $mappingErrors[] = sprintf(' - %s: %s', $className, implode('; ', $classErrors));
+        }
+
+        if ($mappingErrors !== []) {
+            Assert::fail(sprintf("The Doctrine mapping is invalid:\n%s", implode("\n", $mappingErrors)));
+        }
+
+        $this->assertTrue(
+            $validator->schemaInSyncWithMetadata(),
+            'The database schema is not in sync with the current mapping. A migration is missing.'
         );
     }
 
