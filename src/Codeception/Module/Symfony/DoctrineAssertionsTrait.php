@@ -7,8 +7,10 @@ namespace Codeception\Module\Symfony;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Tools\SchemaValidator;
+use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\Assert;
 use Symfony\Bridge\Doctrine\DataCollector\DoctrineDataCollector;
+use Throwable;
 
 use function array_count_values;
 use function array_filter;
@@ -159,6 +161,53 @@ trait DoctrineAssertionsTrait
     }
 
     /**
+     * Resets the Doctrine EntityManager.
+     *
+     * Doctrine closes the EntityManager as soon as an exception escapes a `flush()`:
+     * a unique constraint violation, a deadlock, a failed transaction. Every write after
+     * that throws `EntityManagerClosed`, which usually surfaces as an unrelated failure
+     * further down the test. Call this after deliberately provoking such an error to carry
+     * on with a healthy manager.
+     *
+     * If the manager is still open it is only cleared, detaching every managed entity,
+     * which is handy to prove that the next read really hits the database.
+     * The open test transaction is preserved either way: the manager is rebuilt,
+     * the DBAL connection underneath it is not.
+     *
+     * ```php
+     * <?php
+     * $I->amOnPage('/register');
+     * $I->resetDoctrineManager();
+     * $I->seeNumRecords(1, User::class);
+     * ```
+     *
+     * @param non-empty-string|null $name Manager name as registered in Doctrine's registry,
+     *                                    `null` for the default one.
+     */
+    public function resetDoctrineManager(?string $name = null): void
+    {
+        $em = $this->_getEntityManager();
+
+        if ($em->isOpen()) {
+            $em->clear();
+
+            return;
+        }
+
+        if (!$this->resetManagerThroughRegistry($name) || !$this->_getEntityManager()->isOpen()) {
+            $this->rebootClientKernel();
+        }
+
+        if (!$this->_getEntityManager()->isOpen()) {
+            Assert::fail(
+                "The Doctrine EntityManager is still closed after resetting it.\n"
+                . "Check that the module's 'em_service' option points at your entity manager "
+                . 'and that the container can rebuild it.'
+            );
+        }
+    }
+
+    /**
      * Asserts that a given number of records exists for the entity.
      * 'id' is the default search parameter.
      *
@@ -266,6 +315,36 @@ trait DoctrineAssertionsTrait
     private function isTransactionStatement(string $sql): bool
     {
         return preg_match('/^\s*("|`)?(START\s+TRANSACTION|BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE\s+SAVEPOINT)\b/i', $sql) === 1;
+    }
+
+    /**
+     * Rebuilds the manager through Doctrine's registry, which swaps the lazy service in
+     * place: everything already holding the manager, the application and the Doctrine
+     * module included, sees the reopened one.
+     *
+     * Returns false when the app has no registry, or when the manager service is not lazy
+     * and therefore cannot be reset that way.
+     *
+     * @param non-empty-string|null $name
+     */
+    private function resetManagerThroughRegistry(?string $name): bool
+    {
+        if (!interface_exists(ManagerRegistry::class)) {
+            return false;
+        }
+
+        $registry = $this->getService('doctrine');
+        if (!$registry instanceof ManagerRegistry) {
+            return false;
+        }
+
+        try {
+            $registry->resetManager($name);
+        } catch (Throwable) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
