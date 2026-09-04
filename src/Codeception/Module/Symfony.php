@@ -300,12 +300,7 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             }
         }
 
-        $em = $this->getService($emService);
-        if (!$em instanceof EntityManagerInterface) {
-            Assert::fail(sprintf('Service "%s" is not an instance of EntityManagerInterface.', $emService));
-        }
-
-        return $em;
+        return $this->resolveEntityManager($emService);
     }
 
     protected function getClient(): SymfonyConnector

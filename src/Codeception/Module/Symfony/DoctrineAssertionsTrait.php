@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Codeception\Module\Symfony;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Tools\SchemaValidator;
 use PHPUnit\Framework\Assert;
@@ -51,6 +52,28 @@ trait DoctrineAssertionsTrait
             $duplicates,
             sprintf('Expected no duplicate database queries, but found %d: %s', count($duplicates), implode(' | ', $duplicates))
         );
+    }
+
+    /**
+     * Returns the Doctrine EntityManager the module is configured to use:
+     * the `em_service` option, `doctrine.orm.entity_manager` by default.
+     *
+     * The manager is resolved from the container on every call, so it always belongs to the
+     * kernel that is currently booted. Don't keep it in a property across requests:
+     * [`amOnPage()`](#amOnPage) and friends reboot the kernel, which builds a new manager.
+     *
+     * To reach a manager other than the configured one, grab it by service id:
+     * `$I->grabService('doctrine.orm.other_entity_manager')`.
+     *
+     * ```php
+     * <?php
+     * $em = $I->grabEntityManager();
+     * $user = $em->getRepository(User::class)->findOneBy(['email' => 'john_doe@gmail.com']);
+     * ```
+     */
+    public function grabEntityManager(): EntityManagerInterface
+    {
+        return $this->_getEntityManager();
     }
 
     /**
@@ -243,5 +266,26 @@ trait DoctrineAssertionsTrait
     private function isTransactionStatement(string $sql): bool
     {
         return preg_match('/^\s*("|`)?(START\s+TRANSACTION|BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE\s+SAVEPOINT)\b/i', $sql) === 1;
+    }
+
+    /**
+     * Resolves the configured entity manager service, failing with a hint
+     * instead of a type error when Doctrine isn't wired up.
+     *
+     * @param non-empty-string $serviceId
+     */
+    private function resolveEntityManager(string $serviceId): EntityManagerInterface
+    {
+        $em = $this->getService($serviceId);
+
+        if (!$em instanceof EntityManagerInterface) {
+            Assert::fail(sprintf(
+                "The '%s' service is not a Doctrine EntityManager.\n"
+                . "Install and enable doctrine/doctrine-bundle, or point the module's 'em_service' option at your entity manager.",
+                $serviceId
+            ));
+        }
+
+        return $em;
     }
 }

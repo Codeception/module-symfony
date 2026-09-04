@@ -30,6 +30,11 @@ final class DoctrineAssertionsTest extends CodeceptTestCase
         $this->dontSeeDuplicateQueries();
     }
 
+    public function testGrabEntityManager(): void
+    {
+        $this->assertSame($this->_getEntityManager(), $this->grabEntityManager());
+    }
+
     public function testGrabNumRecords(): void
     {
         $this->assertSame(1, $this->grabNumRecords(User::class));
