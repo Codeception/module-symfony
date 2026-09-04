@@ -6,6 +6,7 @@ namespace Tests;
 
 use Codeception\Module\Symfony\DoctrineAssertionsTrait;
 use PHPUnit\Framework\AssertionFailedError;
+use Tests\App\Doctrine\TestManagerRegistry;
 use Tests\App\Entity\User;
 use Tests\App\Repository\UserRepository;
 use Tests\App\Repository\UserRepositoryInterface;
@@ -30,6 +31,11 @@ final class DoctrineAssertionsTest extends CodeceptTestCase
         $this->dontSeeDuplicateQueries();
     }
 
+    public function testGrabEntityManager(): void
+    {
+        $this->assertSame($this->_getEntityManager(), $this->grabEntityManager());
+    }
+
     public function testGrabNumRecords(): void
     {
         $this->assertSame(1, $this->grabNumRecords(User::class));
@@ -48,6 +54,24 @@ final class DoctrineAssertionsTest extends CodeceptTestCase
         $this->client->request('GET', '/');
 
         $this->seeNumQueriesIsLessThan(3);
+    }
+
+    public function testResetDoctrineManager(): void
+    {
+        $em = $this->grabEntityManager();
+        $user = $em->getRepository(User::class)->findOneBy(['email' => 'john_doe@gmail.com']);
+        $this->assertTrue($em->contains($user));
+
+        $this->resetDoctrineManager();
+        $this->assertFalse($this->grabEntityManager()->contains($user));
+
+        /** @var TestManagerRegistry $registry */
+        $registry = $this->grabService('doctrine');
+        $this->grabEntityManager()->close();
+        $this->resetDoctrineManager();
+
+        $this->assertSame(1, $registry->resets);
+        $this->assertTrue($this->grabEntityManager()->isOpen());
     }
 
     public function testSeeNumRecords(): void

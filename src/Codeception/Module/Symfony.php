@@ -110,6 +110,7 @@ use function sprintf;
  * ## Parts
  *
  * * `services`: Includes methods related to the Symfony dependency injection container (DIC):
+ *     * grabContainer
  *     * grabService
  *     * mockService
  *     * persistService
@@ -286,6 +287,11 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
      * persistent: that preserves the open test transaction across reboots while
      * the freshly rebuilt EntityManager runs on top of it.
      *
+     * If the resolved EntityManager was closed by a failed flush, it is reopened through
+     * Doctrine's registry before being handed out, so one broken write does not cascade
+     * through the rest of the test. Nothing is cached: the container stays the single
+     * source of truth.
+     *
      * @see https://github.com/Codeception/module-symfony/issues/34
      */
     public function _getEntityManager(): EntityManagerInterface
@@ -300,9 +306,10 @@ class Symfony extends Framework implements DoctrineProvider, PartedModule
             }
         }
 
-        $em = $this->getService($emService);
-        if (!$em instanceof EntityManagerInterface) {
-            Assert::fail(sprintf('Service "%s" is not an instance of EntityManagerInterface.', $emService));
+        $em = $this->resolveEntityManager($emService);
+
+        if (!$em->isOpen() && $this->resetManagerThroughRegistry(null)) {
+            $em = $this->resolveEntityManager($emService);
         }
 
         return $em;

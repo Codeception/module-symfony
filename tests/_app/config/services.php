@@ -19,6 +19,7 @@ use Tests\App\Command\TestCommand;
 use Tests\App\Controller\AppController;
 use Tests\App\Doctrine\DbDataCollector;
 use Tests\App\Doctrine\DoctrineSetup;
+use Tests\App\Doctrine\TestManagerRegistry;
 use Tests\App\Entity\User;
 use Tests\App\Event\TestEvent;
 use Tests\App\HttpClient\MockResponseFactory;
@@ -48,10 +49,12 @@ return static function (ContainerConfigurator $container): void {
         ->tag('data_collector', ['id' => 'db', 'template' => '@WebProfiler/Collector/db.html.twig', 'priority' => 250]);
 
     $services->set('doctrine.orm.entity_manager', EntityManagerInterface::class)
-        ->factory([DoctrineSetup::class, 'createEntityManager']);
+        ->factory([DoctrineSetup::class, 'createEntityManager'])
+        ->share(false);
     $services->alias('doctrine.orm.default_entity_manager', 'doctrine.orm.entity_manager')->public();
     $services->set('doctrine.dbal.default_connection', Connection::class)
         ->factory([DoctrineSetup::class, 'createConnection']);
+    $services->set('doctrine', TestManagerRegistry::class);
 
     $services->set(UserRepository::class)
         ->factory([service('doctrine.orm.entity_manager'), 'getRepository'])
