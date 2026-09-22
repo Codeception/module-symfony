@@ -91,6 +91,8 @@ trait RouterAssertionsTrait
      */
     public function seeCurrentRouteIs(string $routeName, array $params = []): void
     {
+        $params = array_map($this->castRouteParameterToString(...), $params);
+
         $match = $this->getCurrentRouteMatch($routeName);
         $expected = ['_route' => $routeName] + $params;
         $this->assertSame($expected, array_intersect_key($match, $expected));
@@ -108,6 +110,24 @@ trait RouterAssertionsTrait
     public function seeInCurrentRoute(string $routeName): void
     {
         $this->assertSame($routeName, $this->getCurrentRouteMatch($routeName)['_route']);
+    }
+
+    /**
+     * Casts (where possible) a route parameter to a string.
+     *
+     * This does not recurse into arrays.
+     *
+     * @param scalar|object|array<mixed>|null $value
+     *
+     * @return string|object|array<mixed>
+     */
+    private function castRouteParameterToString(mixed $value): string|object|array
+    {
+        if (\is_scalar($value) || $value instanceof \Stringable || $value === null) {
+            return (string) $value;
+        }
+
+        return $value;
     }
 
     /** @return array<string, mixed> */

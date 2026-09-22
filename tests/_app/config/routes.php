@@ -28,4 +28,5 @@ return function (RoutingConfigurator $routes): void {
     $routes->add('set_flash', '/set-flash')->controller(AppController::class . '::setFlash');
     $routes->add('test_page', '/test_page')->controller(AppController::class . '::testPage');
     $routes->add('unprocessable_entity', '/unprocessable_entity')->controller(AppController::class . '::unprocessableEntity');
+    $routes->add('with_parameters', '/with-parameters/{id}/{slug}')->controller(AppController::class . '::withParameters');
 };
