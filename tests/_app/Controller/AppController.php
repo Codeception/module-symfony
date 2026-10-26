@@ -211,4 +211,9 @@ final class AppController extends AbstractController
             'message' => 'The request was well-formed but could not be processed.',
         ], Response::HTTP_UNPROCESSABLE_ENTITY);
     }
+
+    public function withParameters(int $id, string $slug): Response
+    {
+        return new Response("{$id} {$slug}");
+    }
 }

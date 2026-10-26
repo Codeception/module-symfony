@@ -50,4 +50,27 @@ final class RouterAssertionsTest extends CodeceptTestCase
         $this->client->request('GET', '/register');
         $this->seeInCurrentRoute('app_register');
     }
+
+    /**
+     * https://github.com/Codeception/module-symfony/issues/245
+     */
+    public function testIssue245(): void
+    {
+        $this->client->request('GET', '/with-parameters/1/hello-world');
+
+        $this->seeCurrentRouteIs('with_parameters', [
+            'id' => '1',
+            'slug' => 'hello-world',
+        ]);
+
+        $this->seeCurrentRouteIs('with_parameters', [
+            'id' => 1,
+            'slug' => new class() {
+                public function __toString()
+                {
+                    return 'hello-world';
+                }
+            },
+        ]);
+    }
 }
